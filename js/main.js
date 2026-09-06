@@ -1948,28 +1948,27 @@
      ABOUT SKILLOVA SECTION
      ------------------------------------------------------------
      The human, calm "about" split. Animation strength is LOW (⭐⭐):
-       1. visual: portrait placeholder fades in slowly first
-          (delay 0, a slower opacity+scale/translate entrance)
-       2. text:   text column fades up gently as ONE block, shortly
-          after the image (delay ~150ms)
-     No heavy per-line stagger — the whole text column moves as a
-     single settled unit. Same architecture as every other section:
-     one IntersectionObserver adds .is-visible to the two .a-reveal
-     nodes at once; timing is driven only by the --a-delay custom
-     property set here. Falls back gracefully.
+       1. visual: portrait photo fades in first (delay 0, a slower
+          opacity+scale/translate entrance; the slow float + glowing
+          halo start automatically in CSS once it settles)
+       2. text:   each child staggers in individually — eyebrow,
+          heading, tagline, lead block, then LEARN / PRACTICE /
+          OPPORTUNITY one after another. Each element carries its
+          own --a-delay (mapped in CSS), 100-150ms apart.
+     Same architecture as every other section: one IntersectionObserver
+     adds .is-visible to all .a-reveal + .about-reveal nodes at once;
+     timing is driven only by the CSS --a-delay values. Falls back
+     gracefully.
      ============================================================ */
   var aboutSection = document.getElementById('about-skillova');
   if (aboutSection) {
     var aboutVisual = aboutSection.querySelector('.about__visual');
-    var aboutText = aboutSection.querySelector('.about__text');
 
     // 1. visual fades in first.
     if (aboutVisual) aboutVisual.style.setProperty('--a-delay', '0s');
-    // 2. text follows as one block.
-    if (aboutText) aboutText.style.setProperty('--a-delay', '0.15s');
 
     var aboutReveals = Array.prototype.slice.call(
-      aboutSection.querySelectorAll('.a-reveal')
+      aboutSection.querySelectorAll('.a-reveal, .about-reveal')
     );
 
     if ('IntersectionObserver' in window) {

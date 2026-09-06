@@ -4155,13 +4155,22 @@ input, select, textarea {
    the RIGHT, so the TEXT is column 1 (60%) and the portrait visual
    is column 2 (40%, visually LEFT) — same grid + logical-property
    approach as .hero__grid (which is 55/45) and .live__part.
-   The visual is a large editorial PORTRAIT placeholder (4/5), not a
-   small avatar/card: it uses Hero's muted gradient + border +
-   shadow treatment with a small muted label so it reads as a slot
-   to swap a real trainer photo into later.
-   Animation strength is LOW (⭐⭐): the image fades in slowly first,
-   then the text column fades up as ONE block after it — calm, no
-   heavy per-line stagger. White bg (--clr-bg). js/main.js reveal.
+   The visual is the real trainer photo in an editorial PORTRAIT
+   frame (4/5, Hero's muted gradient + border + shadow treatment),
+   surrounded by faint "UI system" chips (SALES/CLOSING/COACHING/
+   PRACTICE) and a floating SKILLOVA ACADEMY badge overlapping the
+   bottom edge. A soft blurred brand-blue halo (::before) breathes
+   slowly behind it.
+   Text column: eyebrow → Skillova heading → tagline → lead copy
+   with inline skill tags → three stat rows (LEARN / PRACTICE /
+   OPPORTUNITY, LTR Latin labels + Arabic line) → trainer-name
+   placeholder footer.
+   Animation strength is LOW (⭐⭐), one light stagger sequence:
+   image slides/fades in first, then eyebrow, heading, tagline,
+   lead block, then the three stats one after another — calm, no
+   heavy per-line effect. Each step is an element with
+   .about-reveal + its own --a-delay (CSS-driven), shown once via
+   one IntersectionObserver (js/main.js). White bg (--clr-bg).
    ============================================================ */
 .about {
   background-color: var(--clr-bg); /* full white contrast */
@@ -4242,6 +4251,82 @@ input, select, textarea {
   color: var(--clr-brand);
 }
 
+/* Short tagline — the one-line promise, slightly larger/semibold */
+.about__tagline {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  color: var(--clr-heading);
+  line-height: var(--leading-snug);
+}
+
+/* Lead copy block: intro + inline skill tags + two mission paras */
+.about__lead {
+  margin-top: var(--space-4);
+}
+
+.about__lead .about__copy + .about__copy,
+.about__lead .about__copy + .about__skills {
+  margin-top: var(--space-3);
+}
+
+.about__lead .about__skills + .about__copy {
+  margin-top: var(--space-4);
+}
+
+/* --- Three stat-style rows (LEARN / PRACTICE / OPPORTUNITY) ---- */
+.about__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.about__stat {
+  position: relative;
+  padding-block: var(--space-4) var(--space-3);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* Thin brand underline that expands in on hover (bottom-border). */
+.about__stat::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  inset-inline: 0;
+  height: 2px;
+  background-color: var(--clr-brand);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--dur-slow) var(--ease-in-out);
+}
+
+.about__stat:hover {
+  transform: translateY(-3px);
+}
+
+.about__stat:hover::after {
+  transform: scaleX(1);
+}
+
+/* Big, bold Latin label — direction:ltr like .skill__path/.why__wordmark */
+.about__stat-label {
+  display: block;
+  direction: ltr; /* English stat names read left-to-right inside RTL */
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: 0.05em;
+  color: var(--clr-brand);
+  line-height: var(--leading-tight);
+}
+
+/* Short Arabic line underneath the English stat name */
+.about__stat-desc {
+  margin-top: var(--space-2);
+  font-size: var(--fs-base);
+  color: var(--clr-text);
+  line-height: var(--leading-snug);
+}
+
 /* --- Trainer credentials (editorial signature block) ---------- */
 .about__creds {
   border-top: 1px solid var(--clr-border);
@@ -4249,28 +4334,111 @@ input, select, textarea {
   margin-top: var(--space-6);
 }
 
-/* Placeholder name — bold heading style. Bracketed copy clearly
-   marks it as a to-swap-in slot (do NOT invent a real name). */
+/* Name — bold heading style (same tone as the old placeholder) */
 .about__creds-name {
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
   color: var(--clr-heading);
   line-height: var(--leading-tight);
-  font-style: italic;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
-/* Placeholder bio — muted, secondary (clearly placeholder copy) */
+/* Subtitle/role line — smaller, secondary */
+.about__creds-role {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--clr-text);
+  margin-bottom: var(--space-4);
+}
+
+/* Bio paragraph — muted, secondary */
 .about__creds-bio {
   font-size: var(--fs-sm);
   color: var(--clr-text);
   line-height: var(--leading-snug);
-  font-style: italic;
 }
 
-/* --- Portrait photo placeholder (40%, visual) ----------------- */
+/* Checkmark bullet list (brand-blue ✓ in a soft badge) */
+.about__creds-list {
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.about__creds-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--clr-text);
+  line-height: var(--leading-snug);
+}
+
+.about__creds-check {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: var(--radius-full);
+  background-color: var(--clr-bg-subtle);
+  border: 1px solid var(--clr-border);
+  color: var(--clr-brand);
+  font-size: 0.72rem;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Divider between the bullets and the tag row */
+.about__creds-divider {
+  border: none;
+  border-top: 1px solid var(--clr-border);
+  margin: var(--space-5) 0;
+}
+
+/* --- Areas of expertise -------------------------------------- */
+.about__creds-tags-title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--clr-heading);
+  margin-bottom: var(--space-3);
+}
+
+/* Small chip/pill row (wraps on narrow screens) */
+.about__creds-tags {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.about__creds-tag {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--clr-brand);
+  background-color: var(--clr-bg-subtle);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-full);
+  padding: 0.3rem 0.9rem;
+  white-space: nowrap;
+}
+
+/* Inline Latin terms inside RTL sentences */
+.about__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* --- Portrait photo (40%, visual) --------------------------------- */
 .about__visual {
   position: relative;
+  isolation: isolate; /* keep ::before glow inside this stacking context */
 }
 
 /* Full, tall portrait-style photo slot (4/5 aspect ratio) using
@@ -4291,6 +4459,99 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+/* Real trainer photo — fills the portrait slot, crop-to-frame. */
+.about__portrait-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* subtle entrance settle: starts slightly zoomed, eases to 1 */
+  transform: scale(1.055);
+  transition: transform var(--dur-slower) var(--ease-out);
+}
+
+.about__visual.is-visible .about__portrait-img {
+  transform: scale(1);
+}
+
+/* --- Inner wrapper: holds portrait + chips + badge, floats slowly --- */
+.about__visual-inner {
+  position: relative;
+  will-change: transform;
+}
+
+/* Very slow, barely-noticeable float — starts only after the 0.8s
+   entrance has settled (delay 1.1s), then loops forever. */
+.about__visual.is-visible .about__visual-inner {
+  animation: aboutFloat 7s var(--ease-in-out) infinite;
+  animation-delay: 1.1s;
+}
+
+@keyframes aboutFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* --- Faint "UI system" chips around the frame -------------------- */
+/* Low-opacity brand pills straddling the frame's edges/corners so
+   they never cover the trainer's face (which sits upper-center). */
+.about__chip {
+  position: absolute;
+  z-index: 2;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid rgba(25, 58, 109, 0.16);
+  border-radius: var(--radius-full);
+  background-color: rgba(25, 58, 109, 0.07);
+  color: var(--clr-brand);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.12em;
+  direction: ltr; /* English chip labels read left-to-right */
+  white-space: nowrap;
+}
+
+.about__chip--tl { top: -0.8rem;    left: -0.8rem; }
+.about__chip--tr { top: 1.5rem;     right: -0.7rem; }
+.about__chip--bl { bottom: 4.5rem;  left: -0.9rem; }
+.about__chip--br { bottom: -0.8rem; right: 1.2rem; }
+
+/* --- Floating SKILLOVA ACADEMY badge (overlaps frame bottom) ----- */
+.about__badge {
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--clr-bg);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.about__badge-title {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: 0.16em;
+  color: var(--clr-brand);
+}
+
+.about__badge-sub {
+  display: block;
+  direction: ltr; /* Learn → Practice → Opportunity reads LTR */
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--clr-text);
+  margin-top: var(--space-1);
 }
 
 /* Small centered label making the placeholder intent obvious —
@@ -4333,6 +4594,89 @@ input, select, textarea {
 
 .about__text.a-reveal.is-visible {
   transform: translateY(0);
+}
+
+/* --- Per-element stagger reveal (rebuilt text column) ----------- */
+/* The visual column keeps its whole-block .a-reveal; each text
+   child (eyebrow → heading → tagline → lead → stats → creds) is its
+   own faded-up unit, revealed once the section enters viewport and
+   sequenced purely by the --a-delay values mapped below. */
+.about-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--dur-slower) var(--ease-out),
+    transform var(--dur-slower) var(--ease-out);
+  transition-delay: var(--a-delay, 0s);
+}
+
+.about-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger timing (image = 0s on the .a-reveal visual above) */
+.about__eyebrow.about-reveal { --a-delay: 100ms; }
+.about__heading.about-reveal { --a-delay: 200ms; }
+.about__tagline.about-reveal { --a-delay: 300ms; }
+.about__lead.about-reveal   { --a-delay: 400ms; }
+.about__stat.about-reveal:nth-child(1) { --a-delay: 550ms; }
+.about__stat.about-reveal:nth-child(2) { --a-delay: 650ms; }
+.about__stat.about-reveal:nth-child(3) { --a-delay: 750ms; }
+.about__creds.about-reveal  { --a-delay: 900ms; }
+
+/* --- Animated branded glow halo around the trainer portrait ------ */
+.about__visual::before {
+  content: "";
+  position: absolute;
+  inset: -1rem;
+  z-index: -1;
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  background: radial-gradient(
+    55% 55% at 50% 50%,
+    rgba(25, 58, 109, 0.28) 0%,
+    rgba(25, 58, 109, 0) 70%
+  );
+  filter: blur(16px);
+  opacity: 0.35;
+  transform: scale(0.96);
+  will-change: transform, opacity;
+  animation: aboutGlowPulse 4.5s var(--ease-in-out) infinite;
+}
+
+@keyframes aboutGlowPulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.04);
+  }
+}
+
+/* Reduced motion: static, non-animated glow + fully revealed states */
+@media (prefers-reduced-motion: reduce) {
+  .about__visual::before {
+    animation: none !important;
+    opacity: 0.45;
+    transform: scale(1);
+  }
+
+  .about__visual-inner,
+  .about__portrait-img {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .about-reveal,
+  .about__visual.a-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* ============================================================
@@ -5109,6 +5453,28 @@ input, select, textarea {
     display: none; /* CTA moves into the mobile drawer */
   }
 
+  /* Mobile three-zone rail: hamburger | centered logo | blank spacer.
+     Grid 1fr/auto/1fr keeps the middle (logo) track dead-center while
+     the two outer 1fr tracks are equal-width — the empty right track
+     acts as an invisible spacer balancing the 40px toggle on the left
+     (in RTL the toggle-column sits visually LTR-left). */
+  .navbar__inner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+  }
+
+  .navbar__logo {
+    grid-column: 2;
+    justify-self: center;
+    /* one-time entrance: fade + tiny drop + settle to scale 1 */
+    animation: navLogoMobile var(--dur-slower) var(--ease-out) forwards;
+  }
+
+  .navbar__actions {
+    grid-column: 3;
+    justify-self: end;
+  }
+
   /* Mobile drawer: full-screen overlay (RTL-correct) */
   .navbar__mobile {
     position: fixed;
@@ -5165,6 +5531,30 @@ input, select, textarea {
 
   .navbar__mobile-cta {
     width: 100%;
+  }
+}
+
+/* Mobile logo entrance: fade-in + tiny slide-down + soft scale-settle.
+   Independent of the desktop navLogo slide, scoped to ≤900px above,
+   and fires once on page load (CSS-only, no scroll re-trigger). */
+@keyframes navLogoMobile {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Reduced motion: logo shows instantly in its final static state —
+   opacity 1, no transform — regardless of the entrance animation. */
+@media (prefers-reduced-motion: reduce) {
+  .navbar__logo {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
@@ -6776,6 +7166,18 @@ input, select, textarea {
   .about__statement {
     font-size: var(--fs-lg);
   }
+
+  .about__tagline {
+    font-size: var(--fs-lg);
+  }
+
+  .about__stats {
+    gap: var(--space-3);
+  }
+
+  .about__stat-label {
+    font-size: var(--fs-lg);
+  }
 }
 
 /* Mobile: stack vertically — image first (smaller, centered, with a
@@ -6788,6 +7190,17 @@ input, select, textarea {
   .about__grid {
     grid-template-columns: 1fr;
     gap: var(--space-7);
+  }
+
+  /* Three stats stack into one column for a clean mobile read */
+  .about__stats {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    margin-top: var(--space-5);
+  }
+
+  .about__stat {
+    padding-block: var(--space-3) var(--space-2);
   }
 
   /* Image first in source order shown first when stacked (in RTL the
@@ -6825,6 +7238,19 @@ input, select, textarea {
 
   .about__creds-name {
     font-size: var(--fs-base);
+  }
+
+  .about__tagline {
+    font-size: var(--fs-md);
+  }
+
+  .about__badge {
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+  }
+
+  .about__badge-sub {
+    font-size: var(--fs-xs);
   }
 
   .about__visual {
