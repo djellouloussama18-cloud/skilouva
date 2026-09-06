@@ -1,0 +1,2849 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="سكيلوفا — أكاديمية تدريب متخصصة في فنون البيع والإقناع والتعامل مع العملاء وخدمتهم. تعلّم، تدرّب، ونمُ." />
+  <title>Skillova — Learn. Practice. Grow.</title>
+
+  <!-- Arabic-friendly Google Font: Cairo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+  <!-- ============================================================
+         Announcement Bar (top urgency strip)
+         Static, full-width strip above the navbar. NOT sticky/fixed —
+         it sits in the normal document flow and scrolls away with the
+         page. The CTA reuses the existing [data-open-funnel] handler.
+         ============================================================ -->
+  <div class="announcement-bar" id="announcement-bar">
+    <div class="announcement-bar__inner">
+      <span class="announcement-bar__message announcement-bar__full">
+        🚀 انضم الآن مقابل XXXX DA فقط — عدد الأماكن محدود
+      </span>
+      <span class="announcement-bar__message announcement-bar__mobile">
+        🚀 XXXX DA — أماكن محدودة
+      </span>
+      <a href="#" class="announcement-bar__cta" data-open-funnel>احجز مكانك</a>
+    </div>
+  </div>
+  <!-- / ANNOUNCEMENT BAR -->
+
+  <!-- ============================================================
+         Navbar
+         ============================================================ -->
+  <header class="navbar" id="navbar" data-scrolled="false">
+    <div class="navbar__inner container">
+      <!-- RTL "start" (logically first): Logotype -->
+      <a href="#program" class="navbar__logo [ animate-item ]" data-animate="logo">
+        SKILL<em>OVA</em>
+      </a>
+
+      <!-- Center: nav links -->
+      <nav class="navbar__nav" id="navbar-nav" aria-label="التنقل الرئيسي">
+        <ul class="navbar__links">
+          <li class="animate-item" data-animate="link" style="--stagger: 1">
+            <a href="#program" class="navbar__link">البرنامج</a>
+          </li>
+          <li class="animate-item" data-animate="link" style="--stagger: 2">
+            <a href="#program" class="navbar__link">ماذا ستتعلم</a>
+          </li>
+          <li class="animate-item" data-animate="link" style="--stagger: 3">
+            <a href="#career-path" class="navbar__link">المسار المهني</a>
+          </li>
+          <li class="animate-item" data-animate="link" style="--stagger: 4">
+            <a href="#faq" class="navbar__link">الأسئلة الشائعة</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- RTL "end": CTA -->
+      <div class="navbar__actions">
+        <button type="button" class="navbar__cta btn btn--primary animate-item" data-animate="cta" data-open-funnel>
+          انضم للدفعة الحالية
+        </button>
+
+        <!-- Hamburger toggle (visible on mobile) -->
+        <button type="button" class="navbar__toggle" id="nav-toggle" aria-label="فتح القائمة" aria-expanded="false"
+          aria-controls="navbar-mobile">
+          <span class="navbar__toggle-bar"></span>
+          <span class="navbar__toggle-bar"></span>
+          <span class="navbar__toggle-bar"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile nav drawer (only active below 900px) -->
+    <div class="navbar__mobile" id="navbar-mobile" hidden>
+      <ul class="navbar__mobile-links">
+        <li><a href="#program" class="navbar__mobile-link">البرنامج</a></li>
+        <li>
+          <a href="#program" class="navbar__mobile-link">ماذا ستتعلم</a>
+        </li>
+        <li>
+          <a href="#career-path" class="navbar__mobile-link">المسار المهني</a>
+        </li>
+        <li>
+          <a href="#faq" class="navbar__mobile-link">الأسئلة الشائعة</a>
+        </li>
+      </ul>
+      <button type="button" class="navbar__mobile-cta btn btn--primary" data-open-funnel>
+        انضم للدفعة الحالية
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+         Page content
+         ============================================================ -->
+  <main>
+    <!-- ============================================================
+           HERO SECTION
+           ============================================================ -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="container">
+        <div class="hero__grid">
+          <!-- Text content (RTL: sits visually on the right) -->
+          <div class="hero__content">
+            <!-- Eyebrow label -->
+            <p class="hero__eyebrow">SKILLOVA ACADEMY</p>
+
+            <!-- Headline with brand-colored emphasis -->
+            <h1 class="hero__title" id="hero-heading">
+              ما تتعلمش <span class="hero__accent">Skill</span> باش تزيد شهادة…
+              تعلّم <span class="hero__accent">Skill</span> تقدر تخدم بيها.
+            </h1>
+
+            <!-- Description -->
+            <p class="hero__desc">
+              مع Skillova، تتعلم <span class="hero__accent">Sales</span>
+              و<span class="hero__accent">Closing</span> و
+              <span class="hero__accent">Customer Service</span> بطريقة
+              عملية، تطبق اللي تعلمته، وتطور مستواك مع
+              <span class="hero__accent">Coaching</span> ومتابعة. وإذا
+              أثبتّ جاهزيتك ومستواك، يمكن أن تتاح لك فرصة الانضمام إلى
+              فريق Skillova والعمل معنا.
+            </p>
+
+            <!-- CTA button -->
+            <div class="hero__actions">
+              <a href="#program" class="btn btn--primary btn--hero" data-open-funnel>
+                انضم للدفعة الحالية 🚀
+              </a>
+            </div>
+
+            <!-- Tagline row -->
+            <p class="hero__tagline">
+              تعلم <span class="hero__dot">•</span> طبّق
+              <span class="hero__dot">•</span> طوّر نفسك
+              <span class="hero__dot">•</span> افتح فرص جديدة
+            </p>
+          </div>
+
+          <!-- Visual composition (placeholder, no external images) -->
+          <div class="hero__visual" aria-hidden="true">
+            <!-- Inner wrapper: holds the parallax-free composition.
+                   JS parallax moves the outer .hero__visual,
+                   CSS animations move this inner wrapper. -->
+            <div class="hero__visual-inner">
+              <!-- Decorative blurred blue blob (background depth) -->
+              <div class="hero__blob"></div>
+
+              <!-- Video frame: stands in for the intro/sales-call video.
+                     Outer .hero__media keeps the size / rounded corners /
+                     border / shadow / gradient-poster look as the frame. -->
+              <div class="hero__media">
+                <!-- Embeddable area: paste a hosting <iframe> embed code
+                       (Loom / Wistia / Vimeo) in here later and it will
+                       automatically fill the whole frame — no CSS change. -->
+                <div class="hero__media-embed" id="hero-video-embed">
+                  <!-- PASTE VIDEO EMBED CODE HERE (e.g. an <iframe> from Loom/Wistia/Vimeo) --></div>
+
+                <!-- Placeholder overlay (play button + label), shown only
+                       while the embed is empty. To activate the real video:
+                       paste the <iframe> embed code inside .hero__media-embed
+                       above, then delete this .hero__media-placeholder div
+                       below (or set it to display:none). -->
+                <div class="hero__media-placeholder">
+                  <button class="hero__media-play" type="button" tabindex="-1" aria-hidden="true">
+                    <svg class="hero__media-play-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                  </button>
+                  <p class="hero__media-label">فيديو تعريفي قريبًا</p>
+                </div>
+              </div>
+
+              <!-- Floating micro-labels -->
+              <span class="hero__tag hero__tag--sales">Sales</span>
+              <span class="hero__tag hero__tag--closing">Closing</span>
+              <span class="hero__tag hero__tag--service">Customer Service</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Proof strip (below hero) — continuous marquee. The outer
+           .proof is overflow:hidden (see css/style.css .proof). The
+           inner .proof__track holds the list twice for a seamless
+           translateX(0% -> -50%) loop; the duplicated set is
+           aria-hidden so screen readers read the items only once. -->
+    <section class="proof" aria-label="مميزات البرنامج">
+      <div class="proof__track">
+        <ul class="proof__list">
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            Live Sessions
+          </li>
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            One-to-One Coaching
+          </li>
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            Practical Training
+          </li>
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            Career Preparation
+          </li>
+        </ul>
+        <ul class="proof__list" aria-hidden="true">
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            Live Sessions
+          </li>
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            One-to-One Coaching
+          </li>
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            Practical Training
+          </li>
+          <li class="proof__item">
+            <span class="proof__dot" aria-hidden="true"></span>
+            Career Preparation
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           WHO IS THIS FOR SECTION
+           Audience segments presented as an ASYMMETRIC bento grid —
+           deliberately NOT the uniform equal-size grid of the
+           Curriculum section. CSS Grid with per-cell column spans:
+             top row (prominent): 🎓 spans 2 cols, 👨‍💼 + 💼 span 1
+             lower rows (denser): 6 smaller cards, 3 per row, with a
+                                 couple spanning 2 cols for asymmetry
+           White bg, light-tint + thin-border flat cards (no heavy
+           shadows), subtle hover lift. Reveals as one cohesive group
+           with a small stagger (js/main.js IntersectionObserver).
+           ============================================================ -->
+    <section id="who-is-this-for" class="aud" aria-labelledby="aud-heading">
+      <div class="container">
+        <!-- Heading -->
+        <h2 class="aud__heading aud-reveal" id="aud-heading">
+          لمن موجه برنامج Skillova؟
+        </h2>
+
+        <!-- Bento grid of audience cards -->
+        <div class="aud__grid">
+          <!-- Large feature cell -->
+          <article class="aud__card aud__card--feature aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 10L12 5 2 10l10 5 10-5z"></path>
+                <path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"></path>
+                <path d="M22 10v6"></path>
+              </svg>
+            </span>
+            <h3 class="aud__title">الطلبة والخريجين</h3>
+            <p class="aud__desc">إذا حاب تبدأ حياتك المهنية بمهارات عملية وتبني أساس قوي لسوق العمل.</p>
+          </article>
+
+          <!-- Medium -->
+          <article class="aud__card aud__card--tint aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <h3 class="aud__title">المبتدئين</h3>
+            <p class="aud__desc">إذا ما عندكش أي خبرة سابقة في Sales أو Closing، البرنامج يبدأ معاك من الأساسيات.</p>
+          </article>
+
+          <!-- Medium -->
+          <article class="aud__card aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
+                <path d="M2 13h20"></path>
+              </svg>
+            </span>
+            <h3 class="aud__title">الباحثين عن عمل</h3>
+            <p class="aud__desc">إذا تبحث على أول وظيفة أو حاب تبدل المجال المهني.</p>
+          </article>
+
+          <!-- Small -->
+          <article class="aud__card aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M2 12h20"></path>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </span>
+            <h3 class="aud__title">اللي حاب يخدم في الخارج</h3>
+            <p class="aud__desc">إذا هدفك تستهدف فرص Remote أو فرص في الأسواق الدولية والخليج.</p>
+          </article>
+
+          <!-- Small -->
+          <article class="aud__card aud__card--tint aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                <polyline points="17 6 23 6 23 12"></polyline>
+              </svg>
+            </span>
+            <h3 class="aud__title">موظفي الـSales</h3>
+            <p class="aud__desc">إذا راك تخدم في المبيعات وحاب تطور مستواك.</p>
+          </article>
+
+          <!-- Small (wider, for asymmetry) -->
+          <article class="aud__card aud__card--wide aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 11v2a4 4 0 0 0 4 4h1"></path>
+                <path d="M20 11v2a4 4 0 0 1-4 4h-1"></path>
+                <path d="M4 11a8 8 0 0 1 16 0"></path>
+                <path d="M20 11l2 2h-4z"></path>
+                <path d="M4 11l-2 2h4z"></path>
+                <path d="M5 21l6-6"></path>
+                <path d="M19 21l-6-6"></path>
+              </svg>
+            </span>
+            <h3 class="aud__title">موظفي Customer Service</h3>
+            <p class="aud__desc">إذا حاب تطور مهارات التواصل والتعامل مع العملاء.</p>
+          </article>
+
+          <!-- Small -->
+          <article class="aud__card aud__card--tint aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z">
+                </path>
+                <path
+                  d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z">
+                </path>
+                <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path>
+                <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+              </svg>
+            </span>
+            <h3 class="aud__title">Entrepreneurs</h3>
+            <p class="aud__desc">إذا عندك Business وحاب تتعلم كيفاش تبيع وتتواصل مع العملاء بطريقة أفضل.</p>
+          </article>
+
+          <!-- Small -->
+          <article class="aud__card aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <path d="M7 15h4"></path>
+                <path d="M3 9h18"></path>
+              </svg>
+            </span>
+            <h3 class="aud__title">Freelancers</h3>
+            <p class="aud__desc">إذا حاب تتعلم كيفاش تبيع خدماتك وتتعامل مع العملاء بطريقة احترافية.</p>
+          </article>
+
+          <!-- Small (wider, for asymmetry) -->
+          <article class="aud__card aud__card--wide aud-reveal">
+            <span class="aud__icon" aria-hidden="true">
+              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="6" width="18" height="13" rx="2"></rect>
+                <path d="M3 10h18"></path>
+                <circle cx="12" cy="14" r="2"></circle>
+              </svg>
+            </span>
+            <h3 class="aud__title">اللي حاب يحول Skill إلى مصدر دخل</h3>
+            <p class="aud__desc">إذا حاب تبني Skill تستعملها في وظيفة، Freelance أو Service.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           PROBLEM SECTION
+           Editorial typographic composition — no cards, no grid of boxes.
+           ============================================================ -->
+    <section class="problem" aria-labelledby="problem-heading">
+      <div class="container">
+        <!-- Top heading -->
+        <h2 class="problem__heading [ p-reveal ]" id="problem-heading">
+          عندك الرغبة، بصح مازال ما عندكش Skill واضحة تقدر تعتمد عليها؟
+        </h2>
+
+        <!-- Two-column editorial composition -->
+        <div class="problem__composition">
+          <!-- RTL start / visually-right: big statement -->
+          <div class="problem__statement">
+            <p class="problem__big [ p-reveal ]">
+              حاب تبدأ… بصح ما تعرفش منين؟
+            </p>
+          </div>
+
+          <!-- RTL end / visually-left: numbered problem lines -->
+          <div class="problem__list">
+            <div class="problem__item [ p-reveal ]" style="--reveal-delay: 0">
+              <span class="problem__number">01</span>
+              <p>أول وظيفة</p>
+            </div>
+            <div class="problem__item [ p-reveal ]" style="--reveal-delay: 1">
+              <span class="problem__number">02</span>
+              <p>تغيير المجال</p>
+            </div>
+            <div class="problem__item [ p-reveal ]" style="--reveal-delay: 2">
+              <span class="problem__number">03</span>
+              <p>تعلم البيع</p>
+            </div>
+            <div class="problem__item [ p-reveal ]" style="--reveal-delay: 3">
+              <span class="problem__number">04</span>
+              <p>التعامل مع اعتراضات العملاء</p>
+            </div>
+            <div class="problem__item [ p-reveal ]" style="--reveal-delay: 4">
+              <span class="problem__number">05</span>
+              <p>Follow-up</p>
+            </div>
+            <div class="problem__item [ p-reveal ]" style="--reveal-delay: 5">
+              <span class="problem__number">06</span>
+              <p>تقديم Skill للشركات</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Closing statements (emotional climax) -->
+        <div class="problem__closing">
+          <p class="problem__close-line [ p-reveal ]">
+            المشكلة ماشي دائمًا في نقص الفرص.
+          </p>
+          <p class="problem__close-big [ p-reveal ]">
+            المشكلة هو أنك مازلت ما بنيتش الـ
+            <span class="problem__accent">Skills</span>
+            اللي تخليك تستغل هذي الفرص.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           SKILLOVA METHOD SECTION
+           Scroll-driven horizontal journey/flow (not cards).
+           ============================================================ -->
+    <section class="method" id="method" aria-labelledby="method-heading">
+      <div class="container">
+        <!-- Heading -->
+        <h2 class="method__heading [ m-reveal ]" id="method-heading">
+          Skillova ماشي مجرد دورة.
+        </h2>
+        <p class="method__subline [ m-reveal ]">
+          Learn&nbsp;→&nbsp;Coach&nbsp;→&nbsp;Practice&nbsp;→&nbsp;Grow&nbsp;→&nbsp;Opportunities
+        </p>
+
+        <!-- The Flow / Journey component -->
+        <div class="method__flow" id="method-flow">
+          <!-- Continuous connecting line (track) + progress fill overlay -->
+          <div class="method__line" aria-hidden="true">
+            <span class="method__line-fill"></span>
+          </div>
+
+          <!-- Traveling glow head: rides the leading edge of the fill
+                 (positioned by JS from the same scroll progress). -->
+          <span class="method__pulse" aria-hidden="true"></span>
+
+          <!-- 5 stages -->
+          <div class="method__stage [ m-reveal ]" data-stage="0">
+            <div class="method__marker" aria-hidden="true">
+              <span class="method__marker-dot"></span>
+            </div>
+            <p class="method__label">Learn</p>
+            <p class="method__desc">تعلم Sales, Closing &amp; Customer Service</p>
+          </div>
+
+          <div class="method__stage [ m-reveal ]" data-stage="1">
+            <div class="method__marker" aria-hidden="true">
+              <span class="method__marker-dot"></span>
+            </div>
+            <p class="method__label">Coach</p>
+            <p class="method__desc">احصل على Coaching ومتابعة فردية</p>
+          </div>
+
+          <div class="method__stage [ m-reveal ]" data-stage="2">
+            <div class="method__marker" aria-hidden="true">
+              <span class="method__marker-dot"></span>
+            </div>
+            <p class="method__label">Practice</p>
+            <p class="method__desc">طبق المهارات وتدرب على سيناريوهات عملية</p>
+          </div>
+
+          <div class="method__stage [ m-reveal ]" data-stage="3">
+            <div class="method__marker" aria-hidden="true">
+              <span class="method__marker-dot"></span>
+            </div>
+            <p class="method__label">Grow</p>
+            <p class="method__desc">تطور مستمر بمتابعة حقيقية</p>
+          </div>
+
+          <div class="method__stage [ m-reveal ]" data-stage="4">
+            <div class="method__marker" aria-hidden="true">
+              <span class="method__marker-dot"></span>
+            </div>
+            <p class="method__label">Opportunities</p>
+            <p class="method__desc">وصول إلى فرص مهنية حقيقية</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           CURRICULUM SECTION
+           Grid of 10 module cards (2 cols x 5 rows desktop).
+           Replaces the old empty #program placeholder — keeps the id
+           so the navbar link "البرنامج" still anchors here.
+           ============================================================ -->
+    <section id="program" class="curriculum" aria-labelledby="curriculum-heading">
+      <div class="container">
+        <!-- Heading -->
+        <h2 class="curriculum__heading [ c-reveal ]" id="curriculum-heading">
+          واش راح تتعلم داخل البرنامج؟
+        </h2>
+
+        <!-- Module grid -->
+        <div class="curriculum__grid">
+          <!-- 01 — Sales Fundamentals (no icon) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">01</span>
+            <div class="curriculum__body">
+              <h3 class="curriculum__title">Sales Fundamentals</h3>
+              <p class="curriculum__text">
+                تفهم أساسيات البيع وكيفاش تمشي عملية البيع من أول تواصل مع العميل حتى إتمام الصفقة.
+              </p>
+            </div>
+          </article>
+
+          <!-- 02 — Sales Psychology (no icon) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">02</span>
+            <div class="curriculum__body">
+              <h3 class="curriculum__title">Sales Psychology</h3>
+              <p class="curriculum__text">
+                تفهم كيفاش يفكر العميل، كيفاش يتخذ قرار الشراء، وكيفاش تكتشف احتياجاته ودوافعه.
+              </p>
+            </div>
+          </article>
+
+          <!-- 03 — Discovery & Qualification (icon: magnifying glass) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">03</span>
+            <div class="curriculum__body">
+              <div class="curriculum__head">
+                <svg class="curriculum__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <h3 class="curriculum__title">Discovery &amp; Qualification</h3>
+              </div>
+              <p class="curriculum__text">
+                تتعلم كيفاش تطرح الأسئلة الصحيحة وتكتشف المشكلة الحقيقية للعميل.
+              </p>
+            </div>
+          </article>
+
+          <!-- 04 — High-Ticket Closing (no icon) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">04</span>
+            <div class="curriculum__body">
+              <h3 class="curriculum__title">High-Ticket Closing</h3>
+              <p class="curriculum__text">
+                تتعلم كيفاش تقود Sales Call بطريقة منظمة نحو قرار الشراء.
+              </p>
+            </div>
+          </article>
+
+          <!-- 05 — Objection Handling (icon: shield/checkmark) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">05</span>
+            <div class="curriculum__body">
+              <div class="curriculum__head">
+                <svg class="curriculum__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"></path>
+                  <polyline points="9 12 11 14 15 10"></polyline>
+                </svg>
+                <h3 class="curriculum__title">Objection Handling</h3>
+              </div>
+              <p class="curriculum__text">
+                تتعلم كيفاش تتعامل مع اعتراضات العملاء بهدوء واحترافية.
+              </p>
+            </div>
+          </article>
+
+          <!-- 06 — Customer Service (icon: headset) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">06</span>
+            <div class="curriculum__body">
+              <div class="curriculum__head">
+                <svg class="curriculum__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 14a8 8 0 0 1 16 0"></path>
+                  <rect x="2" y="14" width="4" height="6" rx="1.5"></rect>
+                  <rect x="18" y="14" width="4" height="6" rx="1.5"></rect>
+                  <path d="M20 20v1a2 2 0 0 1-2 2h-3"></path>
+                </svg>
+                <h3 class="curriculum__title">Customer Service</h3>
+              </div>
+              <p class="curriculum__text">
+                تتعلم كيفاش تحافظ على تجربة وعلاقة احترافية مع العميل قبل وأثناء وبعد البيع.
+              </p>
+            </div>
+          </article>
+
+          <!-- 07 — Communication Skills (icon: chat bubble) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">07</span>
+            <div class="curriculum__body">
+              <div class="curriculum__head">
+                <svg class="curriculum__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12z"></path>
+                  <path d="M8.5 12h7"></path>
+                  <path d="M8.5 8.5h3"></path>
+                </svg>
+                <h3 class="curriculum__title">Communication Skills</h3>
+              </div>
+              <p class="curriculum__text">
+                تطور طريقة الكلام، الاستماع، وبناء الثقة والتواصل المهني.
+              </p>
+            </div>
+          </article>
+
+          <!-- 08 — Follow-Up (no icon) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">08</span>
+            <div class="curriculum__body">
+              <h3 class="curriculum__title">Follow-Up</h3>
+              <p class="curriculum__text">
+                تتعلم كيفاش تتابع مع العملاء بطريقة منظمة بدون ضغط أو إزعاج.
+              </p>
+            </div>
+          </article>
+
+          <!-- 09 — Practical Sales (no icon) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">09</span>
+            <div class="curriculum__body">
+              <h3 class="curriculum__title">Practical Sales</h3>
+              <p class="curriculum__text">
+                تطبق اللي تعلمته من خلال تمارين و Roleplays تحاكي مواقف البيع الحقيقية.
+              </p>
+            </div>
+          </article>
+
+          <!-- 10 — Career Skills (no icon) -->
+          <article class="curriculum__card [ c-reveal ]">
+            <span class="curriculum__number" aria-hidden="true">10</span>
+            <div class="curriculum__body">
+              <h3 class="curriculum__title">Career Skills</h3>
+              <p class="curriculum__text">
+                تتعلم كيفاش تحول المهارات اللي اكتسبتها إلى فرص مهنية حقيقية.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           LIVE SESSIONS + ONE-TO-ONE COACHING SECTION
+           Split editorial layout in two alternating parts (no cards,
+           no grid). Pure CSS/HTML/SVG visuals — no external media.
+           ============================================================ -->
+    <section class="live" aria-labelledby="live-heading">
+      <div class="container">
+        <!-- Section heading -->
+        <h2 class="live__heading [ l-reveal ]" id="live-heading">
+          التعلم وحده ما يكفيش.
+        </h2>
+
+        <!-- Part 1 — Live Sessions (text-right, visual-left in RTL) -->
+        <div class="live__part" id="live-sessions">
+          <div class="live__text [ l-reveal ]" id="live-text-col">
+            <!-- Two-line heading (brand-blue first line) -->
+            <h3 class="live__label live__label--head live-text-reveal">تعلّم مع المدرب…</h3>
+            <p class="live__label-sub live-text-reveal">وطبّق في نفس الوقت.</p>
+            <p class="live__copy live-text-reveal">
+              جلسات مباشرة تطرح فيها أسئلتك، تفهم النقاط الصعبة، وتشوف
+              التطبيق العملي خطوة بخطوة. تدرب على مواقف البيع الحقيقية،
+              خذ Feedback مباشر، وتفاعل مع باقي أفراد الدفعة.
+            </p>
+            <!-- Session focus pills -->
+            <div class="live__tags">
+              <span class="live__tag live-text-reveal">Live Training</span>
+              <span class="live__tag live-text-reveal">Practical Scenarios</span>
+              <span class="live__tag live-text-reveal">Direct Feedback</span>
+              <span class="live__tag live-text-reveal">Group Interaction</span>
+            </div>
+          </div>
+
+          <div class="live__visual [ l-visual ]" aria-hidden="true">
+            <!-- Live Session Interface panel mockup (no people/avatars) -->
+            <div class="session-panel">
+              <!-- Top bar: platform name + LIVE indicator -->
+              <div class="session-panel-top">
+                <span class="session-platform">SKILLOVA LIVE</span>
+                <span class="session-live">
+                  <span class="session-live-dot" aria-hidden="true"></span>
+                  LIVE
+                </span>
+              </div>
+
+              <!-- Session meta -->
+              <div class="session-body">
+                <div class="session-head">
+                  <span class="session-meta">Today's Session</span>
+                  <span class="session-topic">Objection Handling</span>
+                </div>
+
+                <!-- Divider -->
+                <hr class="session-divider" />
+
+                <!-- Sample customer objection (styled as a quote callout) -->
+                <p class="session-quote">"غالي"</p>
+
+                <!-- Prompt -->
+                <p class="session-prompt">How would you respond?</p>
+
+                <!-- Divider -->
+                <hr class="session-divider" />
+
+                <!-- Session feature list -->
+                <ul class="session-features">
+                  <li class="session-feature">
+                    <span class="session-feature-check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="session-feature-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    Live Discussion
+                  </li>
+                  <li class="session-feature">
+                    <span class="session-feature-check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="session-feature-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    Feedback
+                  </li>
+                  <li class="session-feature">
+                    <span class="session-feature-check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="session-feature-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round"></path>
+                      </svg>
+                    </span>
+                    Practical Scenario
+                  </li>
+                </ul>
+
+                <!-- Feedback received badge (appears then fades each cycle) -->
+                <div class="session-badge">Feedback received ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Part 2 — One-to-One Coaching (mirrored: visual-right, text-left) -->
+        <div class="live__part live__part--alt" id="live-coaching">
+          <div class="live__text [ l-reveal ]">
+            <!-- Two-line heading (brand-blue first line) -->
+            <h3 class="live__label live__label--head">🎯 ما تتعلمش وحدك.</h3>
+            <p class="live__label-sub">تتطور مع متابعة حقيقية.</p>
+            <p class="live__copy">
+              خلال الـOne-to-One Coaching، ما نكتفوش بأنك تتعلم الدروس.
+              نتابع تطورك، نحدد النقاط اللي تحتاج تحسين، نعطيك Feedback
+              ونساعدوك تطبق المهارات بطريقة أفضل.
+            </p>
+            <!-- Coaching process as connected stages (step-flow) -->
+            <div class="live__flow">
+              <span class="live__flow-stage">
+                <span class="live__flow-label">نحلل مستواك</span>
+              </span>
+              <svg class="live__flow-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12h14"></path>
+                <path d="M13 6l6 6-6 6"></path>
+              </svg>
+              <span class="live__flow-stage">
+                <span class="live__flow-label">نعطيك Feedback</span>
+              </span>
+              <svg class="live__flow-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12h14"></path>
+                <path d="M13 6l6 6-6 6"></path>
+              </svg>
+              <span class="live__flow-stage">
+                <span class="live__flow-label">نصحح الأخطاء</span>
+              </span>
+              <svg class="live__flow-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12h14"></path>
+                <path d="M13 6l6 6-6 6"></path>
+              </svg>
+              <span class="live__flow-stage">
+                <span class="live__flow-label">نتابع تطورك</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="live__visual [ l-visual ]" aria-hidden="true">
+            <!-- Coaching Progress Dashboard panel mockup -->
+            <div class="coach-panel">
+              <!-- Window chrome bar: dots + uppercase title -->
+              <div class="coach-panel-top">
+                <span class="coach-panel-dots" aria-hidden="true">
+                  <span class="coach-dot"></span>
+                  <span class="coach-dot"></span>
+                  <span class="coach-dot"></span>
+                </span>
+                <span class="coach-panel-title">ONE-TO-ONE SESSION</span>
+              </div>
+
+              <!-- Student progress rows -->
+              <div class="coach-progress">
+                <span class="coach-progress-sublabel">Student Progress</span>
+
+                <div class="coach-progress-row" style="--bar-pct: 85%;">
+                  <div class="coach-progress-head">
+                    <span class="coach-progress-name">Communication</span>
+                    <span class="coach-progress-pct">85%</span>
+                  </div>
+                  <div class="coach-progress-bar">
+                    <span class="coach-progress-fill"></span>
+                  </div>
+                </div>
+
+                <div class="coach-progress-row" style="--bar-pct: 70%;">
+                  <div class="coach-progress-head">
+                    <span class="coach-progress-name">Sales Call</span>
+                    <span class="coach-progress-pct">70%</span>
+                  </div>
+                  <div class="coach-progress-bar">
+                    <span class="coach-progress-fill"></span>
+                  </div>
+                </div>
+
+                <div class="coach-progress-row" style="--bar-pct: 60%;">
+                  <div class="coach-progress-head">
+                    <span class="coach-progress-name">Objection Handling</span>
+                    <span class="coach-progress-pct">60%</span>
+                  </div>
+                  <div class="coach-progress-bar">
+                    <span class="coach-progress-fill"></span>
+                  </div>
+                </div>
+
+                <div class="coach-progress-row" style="--bar-pct: 75%;">
+                  <div class="coach-progress-head">
+                    <span class="coach-progress-name">Follow-Up</span>
+                    <span class="coach-progress-pct">75%</span>
+                  </div>
+                  <div class="coach-progress-bar">
+                    <span class="coach-progress-fill"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status lines (checkmarks) -->
+              <ul class="coach-status-list">
+                <li class="coach-status coach-status--done">
+                  <span class="coach-status-check" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="coach-status-check-icon">
+                      <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                  </span>
+                  Feedback received
+                </li>
+                <li class="coach-status coach-status--next">
+                  <span class="coach-status-check" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" class="coach-status-check-icon">
+                      <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                        stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                  </span>
+                  Next improvement: Objection Handling
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center connecting statement (climax) -->
+        <div class="live__closing [ l-reveal l-reveal--emph ]">
+          <p class="live__closing-text">
+            نخرجوك من مرحلة
+            <span class="live__accent">"نتعلم"</span>
+            إلى مرحلة
+            <span class="live__accent">"نقدر نطبق"</span>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           CAREER PATH SECTION
+           Signature section — a large, scroll-driven vertical timeline
+           with strong typographic presence. Replaces the old empty
+           #career-path placeholder (keeps the id for the navbar link).
+           ============================================================ -->
+    <section id="career-path" class="career" aria-labelledby="career-heading">
+      <div class="container">
+        <!-- Heading -->
+        <h2 class="career__heading [ k-reveal ]" id="career-heading">
+          من أول درس… حتى أول فرصة.
+        </h2>
+
+        <!-- Vertical timeline -->
+        <div class="career__timeline" id="career-timeline">
+          <!-- Center/start vertical line (track) + brand-blue fill -->
+          <div class="career__line" aria-hidden="true">
+            <span class="career__fill"></span>
+          </div>
+
+          <!-- 01 — LEARN -->
+          <div class="career__step [ k-reveal ]" data-step="0">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">01</span>
+              <h3 class="career__title">LEARN</h3>
+              <p class="career__desc">تعلم Sales, Closing &amp; Customer Service.</p>
+            </div>
+          </div>
+
+          <!-- 02 — COACH -->
+          <div class="career__step [ k-reveal ]" data-step="1">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">02</span>
+              <h3 class="career__title">COACH</h3>
+              <p class="career__desc">احصل على Coaching ومتابعة فردية.</p>
+            </div>
+          </div>
+
+          <!-- 03 — PRACTICE -->
+          <div class="career__step [ k-reveal ]" data-step="2">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">03</span>
+              <h3 class="career__title">PRACTICE</h3>
+              <p class="career__desc">طبق المهارات وتدرب على سيناريوهات عملية.</p>
+            </div>
+          </div>
+
+          <!-- 04 — PROVE YOURSELF -->
+          <div class="career__step [ k-reveal ]" data-step="3">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">04</span>
+              <h3 class="career__title">PROVE YOURSELF</h3>
+              <p class="career__desc">أثبت قدرتك على التعلم، التطور والالتزام.</p>
+            </div>
+          </div>
+
+          <!-- 05 — PAID PRACTICE -->
+          <div class="career__step [ k-reveal ]" data-step="4">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">05</span>
+              <h3 class="career__title">PAID PRACTICE</h3>
+              <p class="career__desc">
+                الطلاب المؤهلون يمكن أن تتاح لهم فرصة تطبيق عملي مدفوع، حسب معايير الأكاديمية والفرص المتاحة.
+              </p>
+            </div>
+          </div>
+
+          <!-- 06 — TEAM OPPORTUNITY -->
+          <div class="career__step [ k-reveal ]" data-step="5">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">06</span>
+              <h3 class="career__title">TEAM OPPORTUNITY</h3>
+              <p class="career__desc">
+                الطلاب المتميزون يمكن أن تتاح لهم فرصة الانضمام إلى فريق Skillova، حسب الأداء واحتياجات الأكاديمية.
+              </p>
+            </div>
+          </div>
+
+          <!-- 07 — CAREER OPPORTUNITIES -->
+          <div class="career__step [ k-reveal ]" data-step="6">
+            <div class="career__node" aria-hidden="true"><span class="career__node-dot"></span></div>
+            <div class="career__card">
+              <span class="career__num">07</span>
+              <h3 class="career__title">CAREER OPPORTUNITIES</h3>
+              <p class="career__desc">
+                استفد من Career Community للوصول إلى فرص العمل في الجزائر والخارج.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile-only horizontal stage strip (≤900px). The
+               .career__timeline above is display:none at this width;
+               this swipeable, scroll-snap row replaces it on small
+               screens. Each button opens the single reusable modal
+               below. Number + short English title are written inline
+               (needed for display); the modal's longer Arabic
+               description is read at open-time from the matching
+               desktop .career__desc so the text isn't duplicated. -->
+        <div class="career__strip" id="career-strip" aria-label="مراحل المسار المهني"
+          aria-roledescription="شريط أفقي قابل للتمرير">
+          <button type="button" class="career__col" data-step="0" aria-haspopup="dialog"
+            aria-label="LEARN — افتح التفاصيل">
+            <span class="career__col-num">01</span>
+            <span class="career__col-title">LEARN</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <button type="button" class="career__col" data-step="1" aria-haspopup="dialog"
+            aria-label="COACH — افتح التفاصيل">
+            <span class="career__col-num">02</span>
+            <span class="career__col-title">COACH</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <button type="button" class="career__col" data-step="2" aria-haspopup="dialog"
+            aria-label="PRACTICE — افتح التفاصيل">
+            <span class="career__col-num">03</span>
+            <span class="career__col-title">PRACTICE</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <button type="button" class="career__col" data-step="3" aria-haspopup="dialog"
+            aria-label="PROVE YOURSELF — افتح التفاصيل">
+            <span class="career__col-num">04</span>
+            <span class="career__col-title">PROVE YOURSELF</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <button type="button" class="career__col" data-step="4" aria-haspopup="dialog"
+            aria-label="PAID PRACTICE — افتح التفاصيل">
+            <span class="career__col-num">05</span>
+            <span class="career__col-title">PAID PRACTICE</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <button type="button" class="career__col" data-step="5" aria-haspopup="dialog"
+            aria-label="TEAM OPPORTUNITY — افتح التفاصيل">
+            <span class="career__col-num">06</span>
+            <span class="career__col-title">TEAM OPPORTUNITY</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+          <button type="button" class="career__col" data-step="6" aria-haspopup="dialog"
+            aria-label="CAREER OPPORTUNITIES — افتح التفاصيل">
+            <span class="career__col-num">07</span>
+            <span class="career__col-title">CAREER OPPORTUNITIES</span>
+            <svg class="career__col-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Progress dots: one per stage, driven by the active column -->
+        <div class="career__dots" id="career-dots" aria-hidden="true">
+          <span class="career__dot" data-dot="0"></span>
+          <span class="career__dot" data-dot="1"></span>
+          <span class="career__dot" data-dot="2"></span>
+          <span class="career__dot" data-dot="3"></span>
+          <span class="career__dot" data-dot="4"></span>
+          <span class="career__dot" data-dot="5"></span>
+          <span class="career__dot" data-dot="6"></span>
+        </div>
+
+        <!-- Single reusable modal (content filled by JS at open) -->
+        <div class="career__modal" id="career-modal" role="dialog" aria-modal="true"
+          aria-labelledby="career-modal-title" aria-describedby="career-modal-desc" hidden>
+          <div class="career__modal-card">
+            <button type="button" class="career__modal-close" id="career-modal-close" aria-label="إغلاق">×</button>
+            <span class="career__modal-num" id="career-modal-num"></span>
+            <h3 class="career__modal-title" id="career-modal-title"></h3>
+            <p class="career__modal-desc" id="career-modal-desc"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           CAREER PREPARATION SECTION
+           A single, unified "Career Workspace / Dashboard" mockup —
+           deliberately NOT a grid of cards. One believable product
+           panel (pure CSS/HTML/SVG) containing a checklist, with a
+           supporting text column beside it on desktop (stacked on
+           mobile). Rows and notes reveal progressively as the section
+           scrolls into view (driven by js/main.js IntersectionObserver).
+           ============================================================ -->
+    <section id="career-preparation" class="prep" aria-labelledby="prep-heading">
+      <div class="container">
+        <!-- Heading block (centered, two-line thought) -->
+        <div class="prep__head">
+          <p class="prep__lead">ما راحش نعلموك كيفاش تخدم فقط…</p>
+          <h2 class="prep__heading" id="prep-heading">
+            راح نعلموك كيفاش تبحث على الخدمة أيضًا.
+          </h2>
+        </div>
+
+        <!-- Composition: dashboard panel + synced text blocks -->
+        <div class="prep__layout">
+          <!-- Dashboard / Workspace panel (the core visual) -->
+          <div class="prep__panel" role="group" aria-label="Career Preparation Workspace">
+            <!-- Window chrome: dots + panel title -->
+            <div class="prep__panel-top">
+              <span class="prep__dots" aria-hidden="true">
+                <span class="prep__dot"></span>
+                <span class="prep__dot"></span>
+                <span class="prep__dot"></span>
+              </span>
+              <span class="prep__panel-title">CAREER PREPARATION</span>
+            </div>
+
+            <!-- Building state: profile checklist + readiness bar -->
+            <div class="prep__building">
+              <!-- Block one — YOUR CAREER PROFILE -->
+              <div class="prep__block">
+                <p class="prep__block-label">Your Career Profile</p>
+                <ul class="prep__list">
+                  <!-- 01 — CV -->
+                  <li class="prep__row" data-key="cv">
+                    <span class="prep__check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="prep__check-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <span class="prep__label">CV</span>
+                  </li>
+
+                  <!-- 02 — LinkedIn -->
+                  <li class="prep__row" data-key="linkedin">
+                    <span class="prep__check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="prep__check-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <span class="prep__label">LinkedIn</span>
+                  </li>
+
+                  <!-- 03 — Job Search -->
+                  <li class="prep__row" data-key="search">
+                    <span class="prep__check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="prep__check-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <span class="prep__label">Job Search</span>
+                  </li>
+
+                  <!-- 04 — Applications -->
+                  <li class="prep__row" data-key="applications">
+                    <span class="prep__check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="prep__check-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <span class="prep__label">Applications</span>
+                  </li>
+
+                  <!-- 05 — Remote Opportunities -->
+                  <li class="prep__row" data-key="remote">
+                    <span class="prep__check" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" class="prep__check-icon">
+                        <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                          stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                    </span>
+                    <span class="prep__label">Remote Opportunities</span>
+                  </li>
+                </ul>
+              </div>
+
+              <!-- Thin divider -->
+              <div class="prep__divider" aria-hidden="true"></div>
+
+              <!-- Block two — PROFILE READINESS -->
+              <div class="prep__block prep__block--readiness">
+                <p class="prep__block-label">Profile Readiness</p>
+                <div class="prep__meter">
+                  <div class="prep__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+                    aria-label="Profile readiness">
+                    <span class="prep__fill"></span>
+                  </div>
+                  <span class="prep__pct">0%</span>
+                </div>
+                <p class="prep__ready-line">Ready to enter the job market</p>
+              </div>
+            </div>
+
+            <!-- Final transformation state: CAREER READY flow -->
+            <div class="prep__ready" hidden>
+              <h3 class="prep__ready-title">Career Ready <span class="prep__ready-check" aria-hidden="true">✓</span>
+              </h3>
+              <div class="prep__flow">
+                <span class="prep__flow-stage">SKILLS</span>
+                <svg class="prep__flow-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12h14"></path>
+                  <path d="M13 6l6 6-6 6"></path>
+                </svg>
+                <span class="prep__flow-stage">PROFILE</span>
+                <svg class="prep__flow-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12h14"></path>
+                  <path d="M13 6l6 6-6 6"></path>
+                </svg>
+                <span class="prep__flow-stage">APPLICATION</span>
+                <svg class="prep__flow-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12h14"></path>
+                  <path d="M13 6l6 6-6 6"></path>
+                </svg>
+                <span class="prep__flow-stage">OPPORTUNITY</span>
+              </div>
+              <p class="prep__ready-line">Your next step starts here.</p>
+            </div>
+          </div>
+
+          <!-- Synced text blocks (only one prominent at a time) -->
+          <aside class="prep__notes" aria-label="تفاصيل التحضير المهني">
+            <!-- CV Preparation -->
+            <div class="prep__note" data-key="cv">
+              <span class="prep__note-icon" aria-hidden="true">📄</span>
+              <div class="prep__note-body">
+                <span class="prep__note-label">CV Preparation</span>
+                <p class="prep__note-text">
+                  تبني CV منظم يبرز المهارات والخبرات اللي عندك بطريقة مناسبة للوظائف اللي تستهدفها.
+                </p>
+              </div>
+            </div>
+
+            <!-- LinkedIn Profile -->
+            <div class="prep__note" data-key="linkedin">
+              <span class="prep__note-icon" aria-hidden="true">💼</span>
+              <div class="prep__note-body">
+                <span class="prep__note-label">LinkedIn Profile</span>
+                <p class="prep__note-text">
+                  تبني Profile احترافي يساعدك تقدم نفسك بشكل أفضل أمام الشركات والـRecruiters.
+                </p>
+              </div>
+            </div>
+
+            <!-- Job Search -->
+            <div class="prep__note" data-key="search">
+              <span class="prep__note-icon" aria-hidden="true">🔍</span>
+              <div class="prep__note-body">
+                <span class="prep__note-label">Job Search</span>
+                <p class="prep__note-text">
+                  تتعلم كيفاش تلقى الفرص المناسبة في Sales، Customer Service، Business Development، Appointment Setting
+                  وClosing.
+                </p>
+              </div>
+            </div>
+
+            <!-- Remote & International -->
+            <div class="prep__note" data-key="remote">
+              <span class="prep__note-icon" aria-hidden="true">🌍</span>
+              <div class="prep__note-body">
+                <span class="prep__note-label">Remote &amp; International</span>
+                <p class="prep__note-text">
+                  تعرف وين وكيفاش تستهدف فرص Remote ودولية من الجزائر.
+                </p>
+              </div>
+            </div>
+
+            <!-- Job Applications -->
+            <div class="prep__note" data-key="applications">
+              <span class="prep__note-icon" aria-hidden="true">📩</span>
+              <div class="prep__note-body">
+                <span class="prep__note-label">Job Applications</span>
+                <p class="prep__note-text">
+                  تتعلم كيفاش تقدم نفسك وتتواصل مع الشركات والـRecruiters بطريقة احترافية.
+                </p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           PAID PRACTICE SECTION
+           Restrained, premium tone — pure typography + a clean 4-stage
+           flow diagram. NO coins / money emojis / confetti / flashy
+           colors. The connecting line (a thin brand-blue fill) draws
+           progressively as the user scrolls, emphasizing each stage as
+           LEARN -> PRACTICE -> GET PAID -> BUILD EXPERIENCE. The big
+           statement fades up first, the disclaimer note fades in last.
+           ============================================================ -->
+    <section id="paid-practice" class="paid" aria-labelledby="paid-heading">
+      <div class="container">
+        <!-- Big typographic statement (main focal point) -->
+        <h2 class="paid__heading paid-reveal" id="paid-heading">
+          التعلم يفتح الباب… التطبيق يبني الخبرة.
+        </h2>
+
+        <!-- Flow diagram: 4 stages on a horizontal spine -->
+        <div class="paid__flow" id="paid-flow">
+          <!-- Thin connecting line (track) + brand-blue fill -->
+          <div class="paid__line" aria-hidden="true">
+            <span class="paid__fill"></span>
+          </div>
+
+          <!-- 01 — LEARN -->
+          <div class="paid__stage" data-index="0">
+            <span class="paid__stage-en">LEARN</span>
+            <span class="paid__marker" aria-hidden="true"></span>
+            <span class="paid__stage-ar">تتعلم المهارة</span>
+          </div>
+
+          <!-- 02 — PRACTICE -->
+          <div class="paid__stage" data-index="1">
+            <span class="paid__stage-en">PRACTICE</span>
+            <span class="paid__marker" aria-hidden="true"></span>
+            <span class="paid__stage-ar">تطبقها</span>
+          </div>
+
+          <!-- 03 — GET PAID -->
+          <div class="paid__stage" data-index="2">
+            <span class="paid__stage-en">GET PAID</span>
+            <span class="paid__marker" aria-hidden="true"></span>
+            <span class="paid__stage-ar">تحصل على مقابل عند القبول</span>
+          </div>
+
+          <!-- 04 — BUILD EXPERIENCE -->
+          <div class="paid__stage" data-index="3">
+            <span class="paid__stage-en">BUILD EXPERIENCE</span>
+            <span class="paid__marker" aria-hidden="true"></span>
+            <span class="paid__stage-ar">تبني خبرة عملية حقيقية</span>
+          </div>
+        </div>
+
+        <!-- Neutral disclaimer note (fades in last, calmly) -->
+        <p class="paid__note paid-reveal">
+          ملاحظة: التطبيق العملي المدفوع متاح للطلاب المؤهلين فقط، وليس مضمونًا لجميع المشاركين.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           CAREER COMMUNITY SECTION
+           A distinct visual shift: the user has "landed on a job
+           platform". A believable job-listing feed (pure CSS/HTML, no
+           external logos) with clear illustrative labeling, beside a
+           minimal geographic-scope indicator column on desktop (below
+           on mobile). Rows + geo tags reveal with a quick stagger via
+           js/main.js IntersectionObserver.
+           ============================================================ -->
+    <section id="career-community" class="community" aria-labelledby="community-title">
+      <div class="container">
+        <!-- Heading block (centered) -->
+        <div class="community__head community-reveal">
+          <p class="community__lead">وما توقفش رحلتك بعد نهاية التدريب.</p>
+          <h2 class="community__title" id="community-title">Skillova Career Community</h2>
+          <p class="community__sub">كي تبني الـSkill، نعاونك تعرف وين وكيفاش تستعملها.</p>
+        </div>
+
+        <!-- Unified Career Board panel -->
+        <div class="community__board community-reveal" role="group" aria-label="Career Board">
+          <!-- Top bar / title -->
+          <div class="community__bar">
+            <span class="community__bar-label">Skillova Career Community</span>
+          </div>
+
+          <!-- Decorative, non-interactive search bar with typewriter -->
+          <div class="community__search community-part" aria-hidden="true">
+            <svg class="community__search-icon" viewBox="0 0 24 24">
+              <path d="M21 21l-4.35-4.35M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span class="community__typewriter">
+              <span class="community__typewriter-text" aria-hidden="true"></span>
+              <span class="community__typewriter-caret" aria-hidden="true"></span>
+            </span>
+          </div>
+
+          <!-- Category tabs + sliding underline -->
+          <div class="community__tabs community-part" role="tablist" aria-label="تصفح حسب النطاق">
+            <button type="button" class="community__tab is-active" role="tab" aria-selected="true" data-category="all">
+              <span class="community__tab-txt">الكل / All</span>
+            </button>
+            <button type="button" class="community__tab" role="tab" aria-selected="false" data-category="algeria">
+              <span class="community__tab-txt">🇩🇿 Algeria</span>
+            </button>
+            <button type="button" class="community__tab" role="tab" aria-selected="false" data-category="remote">
+              <span class="community__tab-txt">🌍 Remote</span>
+            </button>
+            <button type="button" class="community__tab" role="tab" aria-selected="false" data-category="international">
+              <span class="community__tab-txt">🌎 International</span>
+            </button>
+            <span class="community__tab-indicator" aria-hidden="true"></span>
+          </div>
+
+          <!-- Illustrative label (clear it's a sample, not live) -->
+          <div class="community__feed-note community-part">نموذج توضيحي لفرص يتم مشاركتها عبر المجتمع</div>
+
+          <!-- Job listings (filterable by the active tab above) -->
+          <div class="community__list community-part" role="list" aria-label="نموذج لعروض العمل">
+            <!-- Listing 01 — Algeria -->
+            <article class="community__job community-reveal" role="listitem" data-category="algeria">
+              <div class="community__job-main">
+                <h3 class="community__job-title">
+                  Sales Representative
+                  <span class="community__new-badge community-reveal" aria-hidden="true">New</span>
+                </h3>
+                <p class="community__job-meta">Sales · الجزائر العاصمة · حضوري</p>
+              </div>
+              <span class="community__tag">Sales</span>
+              <span class="community__job-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+            </article>
+
+            <!-- Listing 02 — Remote -->
+            <article class="community__job community-reveal" role="listitem" data-category="remote">
+              <div class="community__job-main">
+                <h3 class="community__job-title">Customer Service</h3>
+                <p class="community__job-meta">Customer Service · Remote · الجزائر</p>
+              </div>
+              <span class="community__tag">Customer Service</span>
+              <span class="community__job-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+            </article>
+
+            <!-- Listing 03 — International -->
+            <article class="community__job community-reveal" role="listitem" data-category="international">
+              <div class="community__job-main">
+                <h3 class="community__job-title">Appointment Setter</h3>
+                <p class="community__job-meta">Appointment Setting · Remote · دولي</p>
+              </div>
+              <span class="community__tag">Appointment Setting</span>
+              <span class="community__job-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+            </article>
+
+            <!-- Listing 04 — International -->
+            <article class="community__job community-reveal" role="listitem" data-category="international">
+              <div class="community__job-main">
+                <h3 class="community__job-title">Business Development</h3>
+                <p class="community__job-meta">Business Development · دبي · حسب التوفر</p>
+              </div>
+              <span class="community__tag">Business Development</span>
+              <span class="community__job-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M14 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                </svg>
+              </span>
+            </article>
+          </div>
+        </div>
+
+        <!-- Closing paragraph -->
+        <p class="community__closing community-reveal">
+          فرص Sales، Customer Service، Appointment Setting وBusiness Development في الجزائر،
+          Remote وخارج الجزائر، حسب توفرها ومتطلبات الشركات.
+        </p>
+
+        <!-- Mini flow bridging to "Turn Your Skill Into a Service" -->
+        <div class="community__bridge community-reveal" aria-label="من مهارتك إلى فرصك">
+          <span class="community__bridge-root">YOUR SKILL</span>
+          <svg class="community__bridge-line" viewBox="0 0 200 40" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M100 0 L100 12 M100 12 L30 40 M100 12 L100 40 M100 12 L170 40" fill="none" stroke="currentColor"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <div class="community__bridge-branches">
+            <span class="community__bridge-branch">Employee</span>
+            <span class="community__bridge-branch">Freelancer</span>
+            <span class="community__bridge-branch">Service Provider</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           SKILL TO SERVICE SECTION
+           A completely different visual pattern: an interactive-feeling
+           "skill map" (hub-and-spoke radial diagram, pure CSS/SVG, no
+           external assets) — NOT a grid, NOT cards.
+             .skill__head   — two-line heading, fades up first
+             .skill__map    — anchored by a central SKILL node with 8
+                              branch lines (SVG) drawing outward radially
+                              (desktop) to 8 service labels; vertical
+                              trunk (mobile)
+             .skill__path   — Employee -> Freelancer -> Service Provider
+                              -> Sales Professional (reuses the Paid
+                              Practice flow pattern), fades up last
+           Multi-step reveal: SKILL core scales in -> lines draw ->
+           8 labels pop in (staggered) -> career path fades up.
+           ============================================================ -->
+    <section id="skill-to-service" class="skill" aria-labelledby="skill-title">
+      <div class="container">
+        <!-- Heading block (centered) -->
+        <div class="skill__head skill-reveal">
+          <p class="skill__lead">وماذا لو ما حبيتش تكون موظف فقط؟</p>
+          <h2 class="skill__title" id="skill-title">Turn Your Skill Into a Service</h2>
+        </div>
+
+        <!-- Skill map (hub-and-spoke diagram) -->
+        <div class="skill__map" id="skill-map">
+          <!-- Central SKILL anchor node -->
+          <div class="skill__core" aria-hidden="true">SKILL</div>
+
+          <!-- Branching lines (drawn outward on reveal) -->
+          <svg class="skill__lines" aria-hidden="true">
+            <line data-i="0" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="1" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="2" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="3" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="4" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="5" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="6" x1="0" y1="0" x2="0" y2="0" />
+            <line data-i="7" x1="0" y1="0" x2="0" y2="0" />
+          </svg>
+
+          <!-- Mobile vertical trunk connector -->
+          <div class="skill__trunk" aria-hidden="true"></div>
+
+          <!-- 8 service branch labels -->
+          <div class="skill__branch" data-i="0">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Sales</span>
+          </div>
+          <div class="skill__branch" data-i="1">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Closing</span>
+          </div>
+          <div class="skill__branch" data-i="2">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Appointment Setting</span>
+          </div>
+          <div class="skill__branch" data-i="3">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Lead Qualification</span>
+          </div>
+          <div class="skill__branch" data-i="4">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Customer Service</span>
+          </div>
+          <div class="skill__branch" data-i="5">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Follow-up</span>
+          </div>
+          <div class="skill__branch" data-i="6">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">Sales Support</span>
+          </div>
+          <div class="skill__branch" data-i="7">
+            <span class="skill__branch-dot" aria-hidden="true"></span>
+            <span class="skill__branch-label">LinkedIn / CV Services</span>
+          </div>
+        </div>
+
+        <!-- Career path row (reuses the Paid Practice flow pattern) -->
+        <div class="skill__path skill-reveal" aria-label="المسار المهني">
+          <div class="skill__path-stage">
+            <span class="skill__path-label">Employee</span>
+          </div>
+          <svg viewBox="0 0 24 24" class="skill__path-arrow" aria-hidden="true">
+            <path d="M4 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
+          <div class="skill__path-stage">
+            <span class="skill__path-label">Freelancer</span>
+          </div>
+          <svg viewBox="0 0 24 24" class="skill__path-arrow" aria-hidden="true">
+            <path d="M4 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
+          <div class="skill__path-stage">
+            <span class="skill__path-label">Service Provider</span>
+          </div>
+          <svg viewBox="0 0 24 24" class="skill__path-arrow" aria-hidden="true">
+            <path d="M4 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
+          <div class="skill__path-stage">
+            <span class="skill__path-label">Sales Professional</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           WHAT YOU GET SECTION
+           A unified "Program Overview" composition (NOT a checklist,
+           NOT the bento grid from the previous section, NOT the plain
+           Curriculum grid). It reads as ONE connected hub-and-spoke:
+             central anchor label:  SKILLOVA PROGRAM (brand-blue pill)
+             below it:  exactly 4 labeled feature clusters in 4 columns
+                        (Training / Practice / Career / Opportunities)
+                        separated only by thin vertical dividers, each
+                        cluster a short bold heading + a clean text
+                        list with small brand-blue accent dots (no
+                        per-item icons, no per-item cards)
+             footnote:  a small asterisk note beneath the composition
+           Reveal (js/main.js): the hub fades/scales in first, then the
+           4 clusters fade up in quick succession (light stagger).
+           ============================================================ -->
+    <section id="what-you-get" class="get" aria-labelledby="get-heading">
+      <div class="container">
+        <!-- Heading -->
+        <h2 class="get__heading reveal-wyg" id="get-heading">
+          واش تحصل عليه بانضمامك للبرنامج؟
+        </h2>
+
+        <!-- Central anchor label (the "hub")) -->
+        <div class="get__hub-wrap reveal-wyg">
+          <span class="get__hub">SKILLOVA PROGRAM</span>
+        </div>
+
+        <!-- The 4 feature clusters -->
+        <div class="get__clusters">
+          <!-- Training -->
+          <div class="get__cluster reveal-wyg">
+            <h3 class="get__cluster-title">Training</h3>
+            <ul class="get__list">
+              <li>Sales</li>
+              <li>Closing</li>
+              <li>Customer Service</li>
+              <li>Communication</li>
+            </ul>
+          </div>
+
+          <!-- Practice -->
+          <div class="get__cluster reveal-wyg">
+            <h3 class="get__cluster-title">Practice</h3>
+            <ul class="get__list">
+              <li>Live Sessions</li>
+              <li>Roleplays</li>
+              <li>Practical Exercises</li>
+              <li>Coaching</li>
+            </ul>
+          </div>
+
+          <!-- Career -->
+          <div class="get__cluster reveal-wyg">
+            <h3 class="get__cluster-title">Career</h3>
+            <ul class="get__list">
+              <li>CV</li>
+              <li>LinkedIn</li>
+              <li>Job Search</li>
+              <li>Career Community</li>
+            </ul>
+          </div>
+
+          <!-- Opportunities -->
+          <div class="get__cluster reveal-wyg">
+            <h3 class="get__cluster-title">Opportunities</h3>
+            <ul class="get__list">
+              <li>Paid Practice*</li>
+              <li>Team Opportunity*</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Footnote for the asterisk -->
+        <p class="get__footnote">* حسب معايير الأكاديمية والفرص المتاحة.</p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           WHY SKILLOVA SECTION
+           A calm, PURE-TYPOGRAPHY "Five Principles" composition. No
+           cards, no grid of boxes, no bento, no radial diagram, no
+           dashboard, no timeline. Instead:
+             centered heading            علاش Skillova؟
+             a large SKILLOVA wordmark   oversized brand-blue type,
+                                         the typographic anchor the
+                                         five principles relate to
+             five equal typographic columns (LEARN / IMPROVE / PRACTICE /
+                                         BUILD EXPERIENCE / FIND
+                                         OPPORTUNITIES), each a large
+                                         bold English word + a one-line
+                                         Arabic description, separated
+                                         only by a thin vertical divider
+             a large closing statement   with a subtle scale-in, tying
+                                         the principles to the outcome
+           White bg (--clr-bg) for full contrast against the #F8FAFC
+           "What You Get" section above. Reveal (js/main.js): heading
+           fades up -> wordmark scales in -> principles in sequence ->
+           closing statement last. Calm --ease-out, no bouncy easing.
+           ============================================================ -->
+    <section id="why-skillova" class="why" aria-labelledby="why-heading">
+      <div class="container">
+
+        <!-- Heading -->
+        <h2 class="why__heading w-reveal" id="why-heading">
+          علاش Skillova؟
+        </h2>
+
+        <!-- Central typographic wordmark (the anchor) -->
+        <div class="why__wordmark-wrap w-reveal">
+          <span class="why__wordmark">SKILLOVA</span>
+        </div>
+
+        <!-- The five principles (equal typographic columns) -->
+        <div class="why__principles">
+          <div class="why__principle w-reveal">
+            <span class="why__name">LEARN</span>
+            <p class="why__desc">مهارات ومعرفة أساسية.</p>
+          </div>
+
+          <div class="why__principle w-reveal">
+            <span class="why__name">IMPROVE</span>
+            <p class="why__desc">تطور مستمر من خلال Coaching وFeedback.</p>
+          </div>
+
+          <div class="why__principle w-reveal">
+            <span class="why__name">PRACTICE</span>
+            <p class="why__desc">تطبيق وتمارين تحاكي مواقف عملية.</p>
+          </div>
+
+          <div class="why__principle w-reveal">
+            <span class="why__name">BUILD EXPERIENCE</span>
+            <p class="why__desc">فرصة لبناء Experience من خلال التطبيق العملي عند التأهل.</p>
+          </div>
+
+          <div class="why__principle w-reveal">
+            <span class="why__name">FIND OPPORTUNITIES</span>
+            <p class="why__desc">وصول إلى Career Community وفرص مهنية حسب المتاح.</p>
+          </div>
+        </div>
+
+        <!-- Closing statement -->
+        <p class="why__close w-reveal">
+          Skillova يجمع بين التعلم، التدريب والاستعداد الحقيقي لسوق العمل.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           ABOUT SKILLOVA SECTION
+           A deliberately HUMAN, calm "about who we are" split layout —
+           a deliberate breather after all the data-driven sections.
+           Reuses the Hero visual-placeholder technique & the Live
+           split editorial layout (grid + logical properties), but with
+           a 40%/60% split and a portrait 4/5 photo placeholder instead
+           of a small avatar/card. Two columns on desktop:
+             visual (40%, sits visually LEFT in RTL): a tall, rounded
+                     portrait placeholder using the Hero's muted
+                     gradient + border + shadow, with a centered muted
+                     label "صورة المدرب" so it reads as a swap-in slot
+             text   (60%, visually RIGHT): eyebrow, heading, body w/
+                     brand-accented inline terms, two medium statement
+                     lines, and a thin-top-bordered "trainer
+                     credentials" placeholder block ([اسم المدرب]/[نبذة…])
+           Animation strength LOW (⭐⭐): image fades in slowly first,
+           text column fades up as one block after it — calm, no heavy
+           per-line stagger. White bg (--clr-bg). js/main.js reveal.
+           ============================================================ -->
+    <section id="about-skillova" class="about" aria-labelledby="about-heading">
+      <div class="container">
+        <div class="about__grid">
+
+          <!-- Text column (60%, visually RIGHT in RTL — first item) -->
+          <div class="about__text a-reveal">
+            <!-- Eyebrow -->
+            <p class="about__eyebrow">من نحن؟</p>
+
+            <!-- Heading -->
+            <h2 class="about__heading" id="about-heading">Skillova</h2>
+
+            <!-- Body -->
+            <p class="about__copy">
+              Skillova هي أكاديمية تهدف إلى مساعدة الشباب على اكتساب مهارات
+              عملية مرتبطة بسوق العمل، خصوصًا في:
+            </p>
+
+            <!-- Emphasized inline terms (brand-blue accent) -->
+            <p class="about__skills">
+              <span class="about__accent">Sales</span>
+              <span class="about__sep">•</span>
+              <span class="about__accent">Closing</span>
+              <span class="about__sep">•</span>
+              <span class="about__accent">Customer Service</span>
+              <span class="about__sep">•</span>
+              <span class="about__accent">Communication</span>
+            </p>
+
+            <!-- Two short standalone statement lines -->
+            <p class="about__statement">
+              نحن نؤمن أن التعلم الحقيقي ما يوقفش عند مشاهدة الدروس.
+            </p>
+            <p class="about__statement about__statement--strong">
+              التعلم الحقيقي يبدأ عندما تقدر تطبق اللي تعلمته.
+            </p>
+
+            <!-- Trainer credentials placeholder (editorial signature) -->
+            <div class="about__creds">
+              <p class="about__creds-name">[اسم المدرب]</p>
+              <p class="about__creds-bio">[نبذة شخصية حقيقية عن المدرب + الخبرة + الإنجازات + النتائج]</p>
+            </div>
+          </div>
+
+          <!-- Portrait photo placeholder (visual, 40%, LEFT in RTL) -->
+          <div class="about__visual a-reveal">
+            <div class="about__portrait">
+              <span class="about__portrait-label">صورة المدرب</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           TESTIMONIALS SECTION
+           A calm, credible "students' words" section — deliberately
+           FEW cards (no reviews wall), and NOT the Curriculum grid or
+           the Audience bento grid. Layout on desktop is an ASYMMETRIC
+           3-column row:  small | FEATURED (center anchor) | small.
+           Only real testimonials belong here, so every quote, name,
+           and photo is clearly-marked bracketed placeholder copy —
+           no fabricated names, quotes, ratings, or photos, and NO star
+           ratings at all (words only).
+           On mobile (≤900px) the row collapses into a SIMPLE MANUAL
+           carousel (one slide at a time, starting on the featured)
+           with prev/next buttons + dot indicators and basic swipe.
+           NEVER auto-advances — navigation is user-triggered only.
+           Reveal (js/main.js): heading fades up, then the cards fade
+           together with a small stagger (light ⭐⭐ intensity).
+           ============================================================ -->
+    <section id="testimonials" class="testi" aria-labelledby="testi-heading">
+      <div class="container">
+
+        <!-- Heading -->
+        <h2 class="testi__heading t-reveal" id="testi-heading">
+          شوف واش قالو طلاب Skillova
+        </h2>
+
+        <!-- Slides / grid (asymmetric row on desktop, carousel on mobile) -->
+        <div class="testi__grid" id="testi-grid">
+          <!-- Small card (side) — محمد ب. -->
+          <article class="testi__card testi__card--side testi__slide t-reveal" data-testi-index="0">
+            <span class="testi__avatar" aria-hidden="true"></span>
+            <p class="testi__quote">"التكوين خلاني نفهم الـSales بطريقة عملية أكثر، خصوصًا الـClosing والتعامل مع
+              اعتراضات العملاء."</p>
+            <p class="testi__stars" aria-label="تقييم 5 من 5">
+              <span aria-hidden="true">★★★★★</span>
+            </p>
+            <p class="testi__name">— محمد ب.</p>
+          </article>
+
+          <!-- Featured card (center anchor) — سارة ك. -->
+          <article class="testi__card testi__card--featured testi__slide t-reveal" data-testi-index="1">
+            <span class="testi__avatar" aria-hidden="true"></span>
+            <p class="testi__quote">"أكثر حاجة عجبتني هي الـOne-to-One Coaching، لأنه ساعدني نكتشف الأخطاء اللي كنت
+              نديرها ونصححها."</p>
+            <p class="testi__stars" aria-label="تقييم 5 من 5">
+              <span aria-hidden="true">★★★★★</span>
+            </p>
+            <p class="testi__name">— سارة ك.</p>
+          </article>
+
+          <!-- Small card (side) — ياسين م. -->
+          <article class="testi__card testi__card--side testi__slide t-reveal" data-testi-index="2">
+            <span class="testi__avatar" aria-hidden="true"></span>
+            <p class="testi__quote">"البرنامج ما وقفش عند الجانب النظري، كان فيه تطبيق وRoleplays خلوني نحس أني نقدر
+              نستعمل المهارات فعليًا."</p>
+            <p class="testi__stars" aria-label="تقييم 5 من 5">
+              <span aria-hidden="true">★★★★★</span>
+            </p>
+            <p class="testi__name">— ياسين م.</p>
+          </article>
+        </div>
+
+        <!-- Manual carousel controls (mobile only) -->
+        <div class="testi__nav" aria-hidden="true">
+          <button type="button" class="testi__btn testi__btn--prev" data-testi-prev aria-label="السابق">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <div class="testi__dots">
+            <button type="button" class="testi__dot" data-testi-dot="0" aria-label="تقييم 1"></button>
+            <button type="button" class="testi__dot" data-testi-dot="1" aria-label="تقييم 2"></button>
+            <button type="button" class="testi__dot" data-testi-dot="2" aria-label="تقييم 3"></button>
+          </div>
+
+          <button type="button" class="testi__btn testi__btn--next" data-testi-next aria-label="التالي">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+           OFFER SECTION
+           The main conversion moment. One of the only places on the
+           whole site allowed to use --clr-brand as a FULL section
+           background. Centered on that blue field floats a WHITE
+           "offer panel" (rounded, generous padding, --shadow-lg),
+           max-width constrained so it reads as a card floating on the
+           blue — NOT full-bleed white.
+           Inside the panel, in order:
+             heading          مستعد تبني Skill... (white, above panel)
+             program label    SKILLOVA PROGRAM (small, light-tinted pill)
+             short list       conversion-relevant highlights only
+                              (genuinely short, reuse the accent-dot
+                              list pattern — no icons)
+             price            XXXX DA (placeholder, keep literal)
+             old price        [السعر القديم إذا كان حقيقيًا] (muted
+                              strikethrough placeholder)
+             CTA              أريد الانضمام إلى Skillova 🚀 (large
+                              brand-blue button, .btn--hero treatment)
+             note             muted bracketed scarcity context
+           Animation LOW (⭐⭐): the white panel fades/scales in once as
+           a whole. CTA hover reuses the existing .btn--hero treatment.
+           ============================================================ -->
+    <section id="offer" class="offer" aria-labelledby="offer-heading">
+      <div class="container">
+
+        <!-- Heading (white text, above the panel) -->
+        <h2 class="offer__heading o-reveal" id="offer-heading">
+          مستعد تبني Skill تقدر تستعملها في سوق العمل؟
+        </h2>
+
+        <!-- White flo floating offer panel -->
+        <div class="offer__panel o-reveal">
+          <!-- Program label (small, light-tinted pill) -->
+          <span class="offer__label">SKILLOVA PROGRAM</span>
+
+          <!-- Short conversion-focused feature list -->
+          <ul class="offer__list">
+            <li>Sales, Closing &amp; Customer Service Training</li>
+            <li>Live Sessions &amp; One-to-One Coaching</li>
+            <li>Career Preparation (CV, LinkedIn, Job Search)</li>
+            <li>Career Community access</li>
+          </ul>
+
+          <!-- Price (placeholder) -->
+          <div class="offer__pricing">
+            <p class="offer__price">XXXX DA</p>
+            <!-- Optional muted strikethrough price placeholder -->
+            <p class="offer__old">[السعر القديم إذا كان حقيقيًا]</p>
+          </div>
+
+          <!-- Primary CTA (reuses .btn / .btn--primary / .btn--hero) -->
+          <a href="#" class="btn btn--primary btn--hero offer__cta" data-open-funnel>
+            أريد الانضمام إلى Skillova 🚀
+          </a>
+
+          <!-- Muted scarcity / context note (bracketed, conditional) -->
+          <p class="offer__note">[الأماكن محدودة بسبب نظام الـCoaching والمتابعة الفردية، إذا كانت هذه المعلومة صحيحة
+            فعلًا.]</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
+           FAQ SECTION
+           A clean, low-key counterpoint after the high-intensity Offer
+           panel. No cards here — each question is a plain typographic
+           row separated only by a border-bottom (no boxed backgrounds,
+           no shadows, no rounded card containers). Two columns on
+           desktop (~35% / 65%):
+             left  (visually RIGHT in RTL): the section heading +
+                    a short supporting line
+             right (visually LEFT in RTL) : the accordion of FAQ rows
+           Accordion: keyboard- and screen-reader-accessible rows, each
+           a <button> trigger with aria-expanded / aria-controls and the
+           answer in a grid-rows-collapsed region with aria-hidden. A
+           small plus indicator (CSS-drawn) rotates 45° into an x when
+           open. Height animates smoothly (--dur-slow, --ease-out).
+           Minimal animation (⭐): a single gentle fade-up of the whole
+           section on scroll into view (IntersectionObserver +
+           .is-visible). The accordion animates independently of the
+           reveal. White bg (--clr-bg).
+           ============================================================ -->
+    <section id="faq" class="faq" aria-labelledby="faq-heading">
+      <div class="container">
+        <div class="faq__grid">
+
+          <!-- Left column: heading + short intro -->
+          <div class="faq__intro faq-reveal">
+            <h2 class="faq__heading" id="faq-heading">الأسئلة الشائعة</h2>
+            <p class="faq__lead">كل ما تحب تعرفو عن برنامج Skillova — اضغط على السؤال باش تزيد الإجابة.</p>
+          </div>
+
+          <!-- Right column: the accordion -->
+          <div class="faq__list faq-reveal">
+            <!-- Q1 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-1" id="faq-q-1">
+                  <span>هل لازم تكون عندي خبرة سابقة؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-1" role="region" aria-labelledby="faq-q-1" aria-hidden="true">
+                <div class="faq__a-inner">لا. البرنامج مصمم باش يبدأ معاك من الأساسيات، وما يشترطش عليك خبرة سابقة في
+                  Sales أو Closing.</div>
+              </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-2" id="faq-q-2">
+                  <span>هل البرنامج فقط للـClosers؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-2" role="region" aria-labelledby="faq-q-2" aria-hidden="true">
+                <div class="faq__a-inner">لا. البرنامج يشمل Sales وClosing وCustomer Service وCommunication، بالإضافة
+                  إلى Career Skills.</div>
+              </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-3" id="faq-q-3">
+                  <span>هل كاين تطبيق عملي؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-3" role="region" aria-labelledby="faq-q-3" aria-hidden="true">
+                <div class="faq__a-inner">نعم. توجد فرص للتطبيق العملي للطلاب اللي يوصلوا للمستوى المطلوب ويتم قبولهم
+                  وفق معايير الأكاديمية والفرص المتاحة.</div>
+              </div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-4" id="faq-q-4">
+                  <span>هل التطبيق العملي مدفوع؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-4" role="region" aria-labelledby="faq-q-4" aria-hidden="true">
+                <div class="faq__a-inner">نعم. التطبيق العملي المقدم من الأكاديمية يكون مدفوع الأجر للطلاب المؤهلين، وفق
+                  الشروط والمعايير المعتمدة.</div>
+              </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-5" id="faq-q-5">
+                  <span>هل التوظيف داخل Skillova مضمون؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-5" role="region" aria-labelledby="faq-q-5" aria-hidden="true">
+                <div class="faq__a-inner">لا. التوظيف ماشي مضمون لجميع الطلاب. الطلاب اللي يثبتوا مستوى مميز في التعلم
+                  والتطور والأداء يمكن أن تتاح لهم فرصة الانضمام إلى فريق Skillova، حسب احتياجات الأكاديمية.</div>
+              </div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-6" id="faq-q-6">
+                  <span>هل يوجد Coaching فردي؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-6" role="region" aria-labelledby="faq-q-6" aria-hidden="true">
+                <div class="faq__a-inner">نعم. طلاب الدفعة يستفيدوا من One-to-One Coaching والمتابعة الفردية.</div>
+              </div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-7" id="faq-q-7">
+                  <span>هل توجد Live Sessions؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-7" role="region" aria-labelledby="faq-q-7" aria-hidden="true">
+                <div class="faq__a-inner">نعم. توجد جلسات مباشرة للتدريب، طرح الأسئلة، الحصول على Feedback وتطبيق
+                  المهارات.</div>
+              </div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-8" id="faq-q-8">
+                  <span>هل تساعدوني في إعداد CV؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-8" role="region" aria-labelledby="faq-q-8" aria-hidden="true">
+                <div class="faq__a-inner">نعم. راح تتعلم كيفاش تبني CV احترافي ومناسب للوظائف اللي تستهدفها.</div>
+              </div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-9" id="faq-q-9">
+                  <span>هل تساعدوني في LinkedIn؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-9" role="region" aria-labelledby="faq-q-9" aria-hidden="true">
+                <div class="faq__a-inner">نعم. راح تتعلم كيفاش تبني Profile احترافي على LinkedIn وتستعمله في البحث عن
+                  الفرص.</div>
+              </div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-10" id="faq-q-10">
+                  <span>هل توجد فرص عمل؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-10" role="region" aria-labelledby="faq-q-10" aria-hidden="true">
+                <div class="faq__a-inner">راح يتم مشاركة فرص العمل المتاحة عبر Career Community في الجزائر والخارج، بما
+                  فيها فرص Remote حسب توفرها ومتطلبات الشركات.</div>
+              </div>
+            </div>
+
+            <!-- Q11 -->
+            <div class="faq__item">
+              <h3 class="faq__q">
+                <button type="button" class="faq__trigger" aria-expanded="false" aria-controls="faq-a-11" id="faq-q-11">
+                  <span>هل تضمنون لي وظيفة؟</span>
+                  <span class="faq__icon" aria-hidden="true"></span>
+                </button>
+              </h3>
+              <div class="faq__a" id="faq-a-11" role="region" aria-labelledby="faq-q-11" aria-hidden="true">
+                <div class="faq__a-inner">لا نضمن وظيفة. الهدف هو تجهيزك بالمهارات، التدريب، التطبيق والاستعداد اللي
+                  يساعدك تزيد من جاهزيتك لسوق العمل.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+           FINAL CTA SECTION
+           The page's emotional send-off before the footer. Calm and
+           purely typographic — explicitly NOT a repeat of the Offer
+           section (no blue background, no price panel, no feature list).
+           A soft --clr-bg-subtle band separates it from the white FAQ
+           section directly above.
+
+           Content:
+             1. a large typographic closing statement
+             2. a short stack of standalone lines (English, medium
+                weight) revealed one after another as the user scrolls
+             3. the punchy "🚀 جاهز تبدأ؟" line + primary CTA together
+             4. a small muted Latin tagline
+
+           Animation (moderate, ⭐⭐⭐): one IntersectionObserver reveal;
+           CSS transition-delay (--delay × 90ms) orders the stagger:
+           statement(0) → lines(1..8) → kick+CTA(9) → tagline(10).
+           ============================================================ -->
+    <section id="final-cta" class="finalcta" aria-labelledby="finalcta-heading">
+      <div class="container">
+        <div class="finalcta__inner">
+
+          <p class="finalcta__statement finalcta-reveal" id="finalcta-heading" data-delay="0">
+            مستقبلك المهني يبدأ بالمهارة اللي تبنيها اليوم.
+          </p>
+
+          <p class="finalcta__lines">
+            <span class="finalcta__line finalcta-reveal" data-delay="1">Learn Sales.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="2">Improve Closing.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="3">Master Customer Service.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="4">Build your CV.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="5">Build your LinkedIn.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="6">Practice.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="7">Build Experience.</span>
+            <span class="finalcta__line finalcta-reveal" data-delay="8">Find Opportunities.</span>
+          </p>
+
+          <div class="finalcta__act">
+            <p class="finalcta__kick finalcta-reveal" data-delay="9">🚀 جاهز تبدأ؟</p>
+            <a href="#" class="btn btn--primary btn--hero finalcta-reveal" data-delay="9" data-open-funnel>انضم إلى
+              الدفعة الحالية</a>
+          </div>
+
+          <p class="finalcta__tagline finalcta-reveal" data-delay="10">Skillova — Learn. Practice. Grow.</p>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+         FOOTER
+         A clean, compact, low-key footer (not a marketing section).
+         Dark, deep-navy tone (--clr-footer-bg) — clearly darker than
+         the Offer section's brand blue, so it reads as "footer dark."
+         No reveal animation — static by design.
+
+         - Top row: SKILL<em>OVA</em> logotype + muted tagline on the
+           visual-right (RTL), nav links toward the visual-left.
+         - A thin light divider, then a centered copyright line.
+         - Copyright year is filled dynamically via js/main.js
+           (id="footer-year") so it never goes stale.
+           ============================================================ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__top">
+
+        <!-- Visual-right: logotype + tagline -->
+        <div class="site-footer__brand">
+          <a href="#program" class="site-footer__logo">SKILL<em>OVA</em></a>
+          <p class="site-footer__tagline">Skillova — Learn. Practice. Grow.</p>
+        </div>
+
+        <!-- Visual-left: footer nav links -->
+        <nav class="site-footer__nav" aria-label="روابط التذييل">
+          <ul class="site-footer__links">
+            <li><a href="#program" class="site-footer__link">البرنامج</a></li>
+            <li><a href="#career-path" class="site-footer__link">المسار المهني</a></li>
+            <li><a href="#faq" class="site-footer__link">FAQ</a></li>
+            <li><a href="#offer" class="site-footer__link">تواصل معنا</a></li>
+          </ul>
+        </nav>
+
+      </div>
+
+      <div class="site-footer__divider" role="presentation"></div>
+
+      <p class="site-footer__copyright">
+        © <span id="footer-year">2026</span> Skillova. جميع الحقوق محفوظة.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ============================================================
+         QUALIFICATION FUNNEL — FULL-SCREEN OVERLAY
+         ------------------------------------------------------------
+         Opens when any [data-open-funnel] CTA is clicked.
+         Contains 7 qualification questions; only Step 01 is built
+         in this iteration.  More steps will be added in subsequent
+         prompts.
+         ============================================================ -->
+  <div class="funnel" id="funnel" aria-hidden="true" role="dialog" aria-label="استبيان التأهيل">
+
+    <!-- Top bar (replaces site navbar inside the funnel) -->
+    <div class="funnel__topbar">
+      <a href="/" class="funnel__logo" aria-label="SKILLOVA">SKILL<em>OVA</em></a>
+      <span class="funnel__step-count" id="funnel-step-count">01 / 07</span>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="funnel__progress" role="progressbar" aria-valuenow="14" aria-valuemin="0" aria-valuemax="100">
+      <div class="funnel__progress-fill" id="funnel-progress-fill"></div>
+    </div>
+
+    <!-- Close button -->
+    <button type="button" class="funnel__close" id="funnel-close" aria-label="إغلاق الاستبيان">&times;</button>
+
+    <!-- Content area -->
+    <div class="funnel__body">
+
+      <!-- ===== STEP 01 — الوضعية الحالية ===== -->
+      <div class="funnel__step is-active" data-step="1">
+        <h2 class="funnel__heading">وش هي وضعيتك الحالية؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="student">
+            <span class="funnel__option-emoji">🎓</span>
+            <span class="funnel__option-label">طالب</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="graduate">
+            <span class="funnel__option-emoji">🎓</span>
+            <span class="funnel__option-label">خريج جامعي</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="employee">
+            <span class="funnel__option-emoji">💼</span>
+            <span class="funnel__option-label">موظف</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="looking">
+            <span class="funnel__option-emoji">🔍</span>
+            <span class="funnel__option-label">نبحث على خدمة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="business-owner">
+            <span class="funnel__option-emoji">🚀</span>
+            <span class="funnel__option-label">صاحب مشروع</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="freelancer">
+            <span class="funnel__option-emoji">💻</span>
+            <span class="funnel__option-label">Freelancer</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="career-change">
+            <span class="funnel__option-emoji">🔄</span>
+            <span class="funnel__option-label">حاب نبدل المجال المهني</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="other">
+            <span class="funnel__option-label">أخرى</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <!-- Back link (hidden on step 1, reusable on later steps) -->
+        <a href="#" class="funnel__back is-first-step" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 01 -->
+
+      <!-- ===== STEP 02 — Career Goal ===== -->
+      <div class="funnel__step" data-step="2">
+        <h2 class="funnel__heading">وش هو الهدف الرئيسي اللي حاب تحققو؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="first-job">
+            <span class="funnel__option-emoji">💼</span>
+            <span class="funnel__option-label">نلقى أول وظيفة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="career-switch">
+            <span class="funnel__option-emoji">🔄</span>
+            <span class="funnel__option-label">نبدل المجال المهني</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="improve-sales">
+            <span class="funnel__option-emoji">📈</span>
+            <span class="funnel__option-label">نطور مستواي في Sales</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="master-closing">
+            <span class="funnel__option-emoji">🎯</span>
+            <span class="funnel__option-label">نولي محترف في Closing</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="improve-cs">
+            <span class="funnel__option-emoji">🤝</span>
+            <span class="funnel__option-label">نطور Customer Service</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="freelance">
+            <span class="funnel__option-emoji">💻</span>
+            <span class="funnel__option-label">نبدأ نخدم Freelance</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="remote">
+            <span class="funnel__option-emoji">🌍</span>
+            <span class="funnel__option-label">نبحث على Remote / International Opportunities</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="grow-business">
+            <span class="funnel__option-emoji">🚀</span>
+            <span class="funnel__option-label">نطور الـBusiness تاعي</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 02 -->
+
+      <!-- ===== STEP 03 — Current Level ===== -->
+      <div class="funnel__step" data-step="3">
+        <h2 class="funnel__heading">كيفاش تقيّم مستواك الحالي في Sales وCustomer Service؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="complete-beginner">
+            <span class="funnel__option-emoji">🌱</span>
+            <span class="funnel__option-label">مبتدئ تمامًا</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="basic-knowledge">
+            <span class="funnel__option-emoji">🟢</span>
+            <span class="funnel__option-label">عندي معرفة بسيطة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="tried-before">
+            <span class="funnel__option-emoji">🟡</span>
+            <span class="funnel__option-label">جربت نخدم في المجال من قبل</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="currently-working">
+            <span class="funnel__option-emoji">🔵</span>
+            <span class="funnel__option-label">نخدم حاليًا في Sales / Customer Service</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="experienced">
+            <span class="funnel__option-emoji">🟣</span>
+            <span class="funnel__option-label">عندي خبرة جيدة وحاب نطور مستواي</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 03 -->
+
+      <!-- ===== STEP 04 — Skill Interest ===== -->
+      <div class="funnel__step" data-step="4">
+        <h2 class="funnel__heading">أي Skill حاب تطورها أكثر؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="sales">
+            <span class="funnel__option-emoji">💰</span>
+            <span class="funnel__option-label">Sales</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="closing">
+            <span class="funnel__option-emoji">🎯</span>
+            <span class="funnel__option-label">Closing</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="customer-service">
+            <span class="funnel__option-emoji">📞</span>
+            <span class="funnel__option-label">Customer Service</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="appointment-setting">
+            <span class="funnel__option-emoji">📅</span>
+            <span class="funnel__option-label">Appointment Setting</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="communication">
+            <span class="funnel__option-emoji">🧠</span>
+            <span class="funnel__option-label">Communication</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="lead-qualification">
+            <span class="funnel__option-emoji">🔎</span>
+            <span class="funnel__option-label">Lead Qualification</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="multi-skill">
+            <span class="funnel__option-emoji">🔥</span>
+            <span class="funnel__option-label">أكثر من Skill</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <!-- Multi-select panel (hidden by default, shown when "أكثر من Skill" is selected) -->
+        <div class="funnel__multiselect" aria-hidden="true">
+          <p class="funnel__multiselect-desc">اختار المهارات اللي حاب تطورها:</p>
+          <div class="funnel__checkboxes">
+            <label class="funnel__checkbox">
+              <input type="checkbox" name="skills" value="sales">
+              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
+              Sales
+            </label>
+            <label class="funnel__checkbox">
+              <input type="checkbox" name="skills" value="closing">
+              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
+              Closing
+            </label>
+            <label class="funnel__checkbox">
+              <input type="checkbox" name="skills" value="customer-service">
+              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
+              Customer Service
+            </label>
+            <label class="funnel__checkbox">
+              <input type="checkbox" name="skills" value="communication">
+              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
+              Communication
+            </label>
+            <label class="funnel__checkbox">
+              <input type="checkbox" name="skills" value="appointment-setting">
+              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
+              Appointment Setting
+            </label>
+            <label class="funnel__checkbox">
+              <input type="checkbox" name="skills" value="lead-qualification">
+              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
+              Lead Qualification
+            </label>
+          </div>
+          <button type="button" class="btn btn--primary funnel__continue-btn" disabled data-funnel-action="next">متابعة
+            &larr;</button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 04 -->
+
+      <!-- ===== STEP 05 — Main Challenge ===== -->
+      <div class="funnel__step" data-step="5">
+        <h2 class="funnel__heading">وش هو أكبر تحدي واقف قدامك اليوم باش توصل لهدفك؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="no-clear-skills">
+            <span class="funnel__option-label">ما عنديش Skill واضحة نقدر نعتمد عليها</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="no-experience">
+            <span class="funnel__option-label">ما عنديش خبرة عملية</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="dont-know-where">
+            <span class="funnel__option-label">ما نعرفش منين نبدأ</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="communication-difficulty">
+            <span class="funnel__option-label">نلقى صعوبة في التواصل مع العملاء</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="fear-of-rejection">
+            <span class="funnel__option-label">نخاف من البيع ورفض العملاء</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="closing-difficulty">
+            <span class="funnel__option-label">نلقى صعوبة في Closing</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="cant-find-jobs">
+            <span class="funnel__option-label">ما نعرفش كيفاش نلقى فرص العمل</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="cant-present-skills">
+            <span class="funnel__option-label">عندي Skills بصح ما نعرفش كيفاش نقدم نفسي للشركات</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="need-coaching">
+            <span class="funnel__option-label">احتاج Coaching ومتابعة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="other">
+            <span class="funnel__option-label">أخرى</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 05 -->
+
+      <!-- ===== STEP 06 — Time Commitment ===== -->
+      <div class="funnel__step" data-step="6">
+        <h2 class="funnel__heading">قدّاه تقدر تخصص من وقتك كل أسبوع للتعلم والتطبيق؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="under-2h">
+            <span class="funnel__option-label">أقل من ساعتين</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="2-4h">
+            <span class="funnel__option-label">2 – 4 ساعات</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="4-7h">
+            <span class="funnel__option-label">4 – 7 ساعات</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="over-7h">
+            <span class="funnel__option-label">أكثر من 7 ساعات</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="flexible">
+            <span class="funnel__option-label">حسب وقتي المتاح</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 06 -->
+
+      <!-- ===== STEP 07 — Investment Readiness ===== -->
+      <div class="funnel__step" data-step="7">
+        <h2 class="funnel__heading">إذا شفت بلي Skillova مناسبة لهدفك، هل أنت مستعد تستثمر في تكوينك وتطوير مهاراتك؟
+        </h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="ready">
+            <span class="funnel__option-emoji">✅</span>
+            <span class="funnel__option-label">نعم، مستعد نبدأ</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="if-suitable">
+            <span class="funnel__option-emoji">👍</span>
+            <span class="funnel__option-label">نعم، إذا كان البرنامج مناسب لاحتياجاتي</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="need-more-info">
+            <span class="funnel__option-emoji">ℹ️</span>
+            <span class="funnel__option-label">نحتاج نعرف تفاصيل أكثر قبل ما نقرر</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="cant-invest">
+            <span class="funnel__option-emoji">❌</span>
+            <span class="funnel__option-label">حاليًا ما نقدرش نستثمر</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 07 -->
+
+      <!-- ===== TRANSITION SCREEN — after Step 7 ===== -->
+      <div class="funnel__step funnel__transition" data-step="done">
+        <h2 class="funnel__heading funnel__heading--done">ممتاز، بقيت خطوة أخيرة 🚀</h2>
+        <p class="funnel__transition-text">بناءً على إجاباتك، الخطوة التالية هي اختيار موعد للتواصل مع فريق Skillova
+          ومعرفة تفاصيل الدفعة الحالية وطريقة الانضمام.</p>
+        <div class="funnel__transition-action">
+          <button type="button" class="btn btn--primary funnel__calendar-btn" data-funnel-action="calendar">اختار موعدك
+            &larr;</button>
+        </div>
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / TRANSITION SCREEN -->
+
+      <!-- ===== STEP 08 — Calendar / Appointment Selection ===== -->
+      <div class="funnel__step funnel__step--calendar" data-step="8">
+        <h2 class="funnel__heading">اختار الموعد اللي يناسبك</h2>
+        <p class="funnel__calendar-desc">اختار اليوم والوقت اللي يناسبك، وراح يتواصل معاك فريق Skillova في الموعد
+          المحدد.</p>
+
+        <!-- Date scroller -->
+        <div class="funnel__date-scroller" id="funnel-date-scroller">
+          <!-- JS populates this -->
+        </div>
+
+        <!-- Time slots area -->
+        <div class="funnel__timeslots" id="funnel-timeslots">
+          <p class="funnel__timeslots-placeholder">اختار يوم أولاً باش تشوف المواعيد المتاحة</p>
+        </div>
+
+        <!-- Slot-taken inline notice (shown by check-slot when the picked
+               time was booked meanwhile) -->
+        <p class="funnel__field-error" id="funnel-timeslots-notice" hidden>هذا الموعد أصبح محجوز، اختار وقت آخر</p>
+
+        <!-- Loading state -->
+        <div class="funnel__timeslots funnel__timeslots--loading" id="funnel-timeslots-loading" style="display:none">
+          <div class="funnel__loader"></div>
+          <p class="funnel__timeslots-loading-text">جاري تحميل المواعيد...</p>
+        </div>
+
+        <!-- Error state -->
+        <div class="funnel__timeslots funnel__timeslots--error" id="funnel-timeslots-error" style="display:none">
+          <p class="funnel__timeslots-error-text">ما قدرناش نجيب المواعيد المتاحة، حاول مرة أخرى</p>
+          <button type="button" class="funnel__timeslots-retry" id="funnel-timeslots-retry">إعادة المحاولة</button>
+        </div>
+
+        <!-- Confirm button -->
+        <div class="funnel__calendar-confirm">
+          <button type="button" class="btn btn--primary funnel__calendar-confirm-btn" id="funnel-calendar-confirm"
+            disabled>متابعة &larr;</button>
+        </div>
+
+        <a href="#" class="funnel__back" data-funnel-back data-back-step="8">&larr; السابق</a>
+      </div>
+      <!-- / STEP 08 -->
+
+      <!-- ===== STEP 09 — Contact Information ===== -->
+      <div class="funnel__step funnel__step--contact" data-step="9">
+        <h2 class="funnel__heading">أكد معلوماتك باش نثبتولك الموعد</h2>
+
+        <form class="funnel__contact-form" id="funnel-contact-form" novalidate>
+
+          <div class="funnel__field">
+            <label class="funnel__field-label" for="funnel-contact-name">الاسم واللقب</label>
+            <input class="funnel__input" id="funnel-contact-name" type="text" name="fullName"
+              placeholder="اكتب اسمك الكامل" required autocomplete="name">
+            <p class="funnel__field-error" id="funnel-contact-name-error" hidden></p>
+          </div>
+
+          <div class="funnel__field">
+            <label class="funnel__field-label" for="funnel-contact-phone">رقم الهاتف</label>
+            <input class="funnel__input" id="funnel-contact-phone" type="tel" name="phone"
+              placeholder="+213 XX XX XX XX" required autocomplete="tel" inputmode="tel">
+            <p class="funnel__field-error" id="funnel-contact-phone-error" hidden></p>
+          </div>
+
+          <div class="funnel__field">
+            <label class="funnel__field-label" for="funnel-contact-email">Email</label>
+            <input class="funnel__input" id="funnel-contact-email" type="email" name="email"
+              placeholder="example@email.com" required autocomplete="email" inputmode="email">
+            <p class="funnel__field-error" id="funnel-contact-email-error" hidden></p>
+          </div>
+
+          <div class="funnel__field">
+            <label class="funnel__field-label">طريقة التواصل المفضلة</label>
+            <div class="funnel__options funnel__options--inline">
+              <button type="button" class="funnel__option" data-value="whatsapp" data-contact-pref>
+                <span class="funnel__option-emoji">💬</span>
+                <span class="funnel__option-label">WhatsApp</span>
+                <span class="funnel__option-check" aria-hidden="true"></span>
+              </button>
+              <button type="button" class="funnel__option" data-value="phone-call" data-contact-pref>
+                <span class="funnel__option-emoji">📞</span>
+                <span class="funnel__option-label">مكالمة هاتفية</span>
+                <span class="funnel__option-check" aria-hidden="true"></span>
+              </button>
+            </div>
+            <p class="funnel__field-error" id="funnel-contact-pref-error" hidden></p>
+          </div>
+
+          <div class="funnel__field">
+            <label class="funnel__field-label" for="funnel-contact-notes">
+              ملاحظة <span class="funnel__field-optional">(اختياري)</span>
+            </label>
+            <textarea class="funnel__textarea" id="funnel-contact-notes" name="notes" rows="3"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn--primary funnel__submit-btn" id="funnel-contact-submit" disabled>تأكيد
+            موعدي 🚀</button>
+
+          <p class="funnel__contact-error" id="funnel-contact-error" role="alert" hidden>
+            <span class="funnel__contact-error-text" id="funnel-contact-error-text"></span>
+            <button type="button" class="funnel__contact-rebook" id="funnel-contact-back-to-slots" hidden>اختار موعد
+              آخر</button>
+          </p>
+
+          <!-- Duplicate-phone friendly notice (blocks a second confirmed
+                 booking with the same phone; dismissible) -->
+          <p class="funnel__contact-error" id="funnel-contact-duplicate" role="alert" hidden>
+            <span class="funnel__contact-error-text">يبدو أنك عندك موعد مؤكد مسبقًا بنفس رقم الهاتف، فريق Skillova راح
+              يتواصل معاك</span>
+            <button type="button" class="funnel__contact-rebook" id="funnel-contact-duplicate-dismiss">حسناً</button>
+          </p>
+        </form>
+
+        <a href="#" class="funnel__back" data-funnel-back data-back-step="9">&larr; السابق</a>
+      </div>
+      <!-- / STEP 09 -->
+
+      <!-- ===== STEP 10 — Success / Confirmation ===== -->
+      <div class="funnel__step funnel__step--success" data-step="10">
+        <h2 class="funnel__heading">تم تسجيل طلبك بنجاح 🎉</h2>
+
+        <div class="funnel__success-details">
+          <p class="funnel__success-line">
+            <span class="funnel__success-label">موعدك:</span>
+            <span class="funnel__success-value" id="funnel-success-date"></span>
+          </p>
+          <p class="funnel__success-line">
+            <span class="funnel__success-label">طريقة التواصل:</span>
+            <span class="funnel__success-value" id="funnel-success-pref"></span>
+          </p>
+        </div>
+
+        <p class="funnel__success-text">فريق Skillova راح يتواصل معاك في الموعد المحدد.</p>
+
+        <div class="funnel__success-action">
+          <button type="button" class="btn funnel__secondary-btn" id="funnel-success-close">العودة إلى Skillova</button>
+        </div>
+      </div>
+      <!-- / STEP 10 -->
+
+    </div><!-- /.funnel__body -->
+  </div><!-- /.funnel -->
+  <!-- / QUALIFICATION FUNNEL -->
+
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+</body>
+
+</html>
