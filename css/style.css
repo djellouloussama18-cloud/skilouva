@@ -246,6 +246,94 @@ input, select, textarea {
   box-shadow: var(--shadow-sm);
 }
 
+/* -- Shimmer attention CTA ---------------------------------------- */
+/* Premium "shine" treatment for the consultation-booking CTAs
+   (.btn--shimmer, shared by the desktop navbar, mobile drawer, hero
+   and final CTA buttons). Two independent, continuously looping
+   effects:
+     1. Shimmer: a diagonal bright highlight band (::before gradient)
+        sweeps across the button surface. The button clips it with
+        overflow: hidden so it stays inside the rounded shape. It
+        holds off-screen between sweeps so it never feels busy.
+     2. Attention: a soft brand-blue glow on the button's own
+        box-shadow "breathes" up and down (2.6s), layered on top of
+        the button's normal resting shadow so the base look is kept.
+   Both effects are disabled for prefers-reduced-motion below. */
+.btn--shimmer {
+  --cta-rest-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  animation: btnAttention 2.6s ease-in-out infinite;
+}
+
+/* Hero / Final CTA buttons rest on a stronger shadow — keep it. */
+.btn--shimmer.btn--hero {
+  --cta-rest-shadow: var(--shadow-md);
+}
+
+/* Shimmer: diagonal light band sweeping left -> right, off-screen at
+   both ends so only the pass across the button is visible. */
+.btn--shimmer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(255, 255, 255, 0) 58%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-150%);
+  pointer-events: none;
+  animation: btnShimmer 3s ease-in-out infinite;
+}
+
+/* Desktop navbar CTA keeps its one-time entrance animation; rebundle
+   it alongside the looping attention pulse (this selector outranks
+   the base .btn--shimmer animation rule). The shimmer lives on
+   ::before, so it runs independently in both cases. */
+.navbar__cta[data-animate='cta'] {
+  animation:
+    navCta var(--dur-slow) var(--ease-out) forwards,
+    btnAttention 2.6s ease-in-out infinite;
+  animation-delay: calc(var(--nav-entrance-delay) + 5 * 110ms + 60ms);
+}
+
+@keyframes btnShimmer {
+  /* Pause off the left edge, sweep across, pause off the right edge,
+     then loop. */
+  0%,
+  28% {
+    transform: translateX(-150%);
+  }
+  72%,
+  100% {
+    transform: translateX(150%);
+  }
+}
+
+@keyframes btnAttention {
+  0%,
+  100% {
+    box-shadow: var(--cta-rest-shadow), 0 0 0 0 rgba(25, 58, 109, 0);
+  }
+  50% {
+    box-shadow: var(--cta-rest-shadow), 0 14px 30px rgba(25, 58, 109, 0.55);
+  }
+}
+
+/* Respect prefers-reduced-motion: fully remove both effects. Without
+   the animations, the shimmer element rests off-screen (translateX
+   -150%) and the base button shadows apply again. */
+@media (prefers-reduced-motion: reduce) {
+  .btn--shimmer,
+  .btn--shimmer::before {
+    animation: none;
+  }
+}
+
 /* ============================================================
    3b. ANNOUNCEMENT BAR
    ------------------------------------------------------------
@@ -1158,6 +1246,22 @@ input, select, textarea {
   text-align: center;
 }
 
+.method__support {
+  margin-top: var(--space-4);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  color: var(--clr-text);
+  text-align: center;
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+/* Inline Latin terms inside RTL sentences */
+.method__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 .method__subline {
   margin-top: var(--space-4);
   font-size: var(--fs-sm);
@@ -1463,6 +1567,12 @@ input, select, textarea {
   font-size: var(--fs-base);
   color: var(--clr-text);
   line-height: var(--leading-snug);
+}
+
+/* Inline Latin terms inside RTL sentences */
+.curriculum__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* --- Grid reveal (batches/waves, via JS) ----------------------- */
@@ -3956,6 +4066,12 @@ input, select, textarea {
   margin-top: var(--space-7);
 }
 
+/* Inline Latin terms inside RTL sentences */
+.get__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 /* --- Reveal pattern (calm, elegant) --------------------------- */
 .reveal-wyg {
   opacity: 0;
@@ -4095,6 +4211,12 @@ input, select, textarea {
   font-size: var(--fs-base);
   color: var(--clr-text);
   line-height: var(--leading-snug);
+}
+
+/* Inline Latin terms inside RTL sentences */
+.why__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* --- Closing statement ---------------------------------------- */
@@ -5835,6 +5957,10 @@ input, select, textarea {
 
   .method__heading {
     font-size: var(--fs-2xl);
+  }
+
+  .method__support {
+    font-size: var(--fs-base);
   }
 
   .method__subline {

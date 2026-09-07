@@ -1689,6 +1689,14 @@
         // spread is unchanged — only the visible line length shrinks.
         var lineR = R * 0.85;
 
+        // The two horizontal spokes (left i=6 "Sales Support" and right
+        // i=2 "Appointment Setting") run their label directly along the
+        // line's axis, so the standard R*0.85 endpoint overshoots and
+        // crosses the text. Shorten only these two lines so they stop
+        // with the same relative gap from their label (R - lineR) that
+        // the other six spokes leave before their dot.
+        var edgeGap = R - lineR;
+
         skillBranches.forEach(function (branch, i) {
           var angle = (Math.PI * 2 * i) / skillBranches.length - Math.PI / 2;
           var x = cx + R * Math.cos(angle);
@@ -1698,8 +1706,16 @@
           branch.style.top = y + 'px';
 
           if (skillLineEls[i]) {
-            var lx = cx + lineR * Math.cos(angle);
-            var ly = cy + lineR * Math.sin(angle);
+            var eR = lineR;
+            // Only the two horizontal spoke lines are shortened; the
+            // nearest branch content sits R - halfW from the hub.
+            if (i === 2 || i === 6) {
+              var halfW = branch.offsetWidth / 2;
+              var stop = R - halfW - edgeGap;
+              eR = stop > 0 ? stop : lineR;
+            }
+            var lx = cx + eR * Math.cos(angle);
+            var ly = cy + eR * Math.sin(angle);
             skillLineEls[i].setAttribute('x1', cx);
             skillLineEls[i].setAttribute('y1', cy);
             skillLineEls[i].setAttribute('x2', lx);
