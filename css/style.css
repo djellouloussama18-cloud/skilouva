@@ -246,6 +246,48 @@ input, select, textarea {
   box-shadow: var(--shadow-sm);
 }
 
+/* -- Two-line stacked CTA (btn--stacked) -------------------------- */
+/* Turns a CTA into a two-line button: bold main label (.btn__label)
+   with a smaller, quieter microcopy line (.btn__subtext) beneath it.
+   Column direction stacks the two spans inside the same inline-flex
+   .btn. The spans are made positioned + z-index:1 so they always
+   render ABOVE the .btn--shimmer ::before sweep layer (which is also
+   positioned but paints at the z-auto/0 level), keeping the two-line
+   content independent of the shimmer effect. */
+.btn--stacked {
+  flex-direction: column;
+  gap: var(--space-1);
+  text-align: center;
+}
+
+.btn--stacked > .btn__label,
+.btn--stacked > .btn__subtext {
+  position: relative;
+  z-index: 1;
+}
+
+.btn--stacked > .btn__label {
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+
+.btn--stacked > .btn__subtext {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  line-height: 1.25;
+  opacity: 0.85;
+  white-space: normal;
+}
+
+/* Desktop navbar CTA: keep the two-line button compact so it still
+   fits inside the 72px navbar and the link row (slightly tighter
+   padding than the base .btn; the subtext may wrap to a second line
+   at narrower desktop widths without breaking the navbar height). */
+.navbar__cta.btn--stacked {
+  padding: 0.5rem 1.25rem;
+}
+
 /* -- Shimmer attention CTA ---------------------------------------- */
 /* Premium "shine" treatment for the consultation-booking CTAs
    (.btn--shimmer, shared by the desktop navbar, mobile drawer, hero
@@ -357,6 +399,12 @@ input, select, textarea {
   width: auto;
   max-width: calc(100% - var(--container-pad) * 2);
   border-radius: var(--radius-full);
+}
+
+/* Two-line pill: keep it compact (tighter than base .btn padding)
+   so the floating capsule stays pill-shaped, not oversized. */
+.btn--float-mobile.btn--stacked {
+  padding: 0.7rem 1.25rem;
 }
 
 /* Funnel open → take the button out of the visual + accessibility
@@ -3908,6 +3956,12 @@ input, select, textarea {
   margin-bottom: var(--space-10);
 }
 
+/* Inline Latin term inside the RTL heading */
+.aud__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
 /* --- Bento grid (asymmetric spans) ---------------------------- */
 .aud__grid {
   display: grid;
@@ -5784,12 +5838,48 @@ input, select, textarea {
 
   .hero__grid {
     grid-template-columns: 1fr;
-    gap: var(--space-7);
+    /* Vertical rhythm between the stacked rows comes from explicit
+       margins on each reordered row below (gap is 0 so the child
+       margins remain the single source of spacing). */
+    gap: 0;
   }
 
+  /* Collapse the text wrapper into the grid so its lines become
+     direct grid items — this lets CSS `order` interleave the video
+     composition between the description and the CTA without moving
+     any HTML. */
   .hero__content {
+    display: contents;
     max-width: none;
+    /* the unit fade-up is re-applied to the now-separate text rows */
+    animation: none;
   }
+
+  /* Keep the "text column fades up as a unit" effect: every text row
+     gets the same fade-up keyframe + delay, so the group still appears
+     together exactly like the old single-box fade. */
+  .hero__content .hero__eyebrow,
+  .hero__content .hero__title,
+  .hero__content .hero__desc,
+  .hero__content .hero__actions,
+  .hero__content .hero__tagline {
+    animation: heroFadeUp var(--dur-slow) var(--ease-out) both;
+    animation-delay: calc(var(--nav-entrance-delay) + 5 * 110ms + 120ms);
+  }
+
+  /* Mobile reading order: heading -> desc -> video visual -> CTA -> tags */
+  .hero__eyebrow { order: 1; }
+  .hero__title   { order: 2; }
+  .hero__desc    { order: 3; }
+  .hero__visual  { order: 4; }
+  .hero__actions { order: 5; }
+  .hero__tagline { order: 6; }
+
+  /* Rhythm between the reordered rows (grid-item margins never
+     collapse, so they define the spacing explicitly): tight around
+     the heading block, extra air around the video. */
+  .hero__desc   { margin-bottom: var(--space-7); }
+  .hero__visual { margin-bottom: var(--space-7); }
 
   /* Re-center visual & keep tags inside bounds */
   .hero__visual {
