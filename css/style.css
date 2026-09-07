@@ -334,6 +334,45 @@ input, select, textarea {
   }
 }
 
+/* -- Floating mobile CTA (compact FAB-style pill, bottom-left) ----- */
+/* Persistent corner CTA shown only on mobile (≤900px = the project's
+   single mobile breakpoint at 56.25rem). Anchored to the viewport
+   bottom-LEFT (away from the RTL reading flow); offsets ride on top of
+   any notch safe-area insets via env(). Compact pill sized to its text
+   with base .btn padding, floated above page content with --shadow-lg
+   (passed to .btn--shimmer via --cta-rest-shadow so the attention pulse
+   keeps resting on the strong shadow). Reuses the .btn--shimmer surface
+   (shimmer band + resting glow) shared with the navbar/drawer/hero/final
+   CTAs. While the qualification funnel is open, JS toggles .is-hidden so
+   this button never overlaps #funnel, and its z-index (900) stays below
+   the funnel's (9999). */
+.btn--float-mobile {
+  --cta-rest-shadow: var(--shadow-lg);
+  --float-cta-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  --float-cta-left: calc(var(--space-5) + env(safe-area-inset-left));
+  position: fixed;
+  bottom: var(--float-cta-bottom);
+  left: var(--float-cta-left);
+  z-index: 900;
+  width: auto;
+  max-width: calc(100% - var(--container-pad) * 2);
+  border-radius: var(--radius-full);
+}
+
+/* Funnel open → take the button out of the visual + accessibility
+   tree without rearranging layout (visibility keeps its fixed spot). */
+.btn--float-mobile.is-hidden {
+  visibility: hidden;
+}
+
+/* Fully hidden on desktop — the project's mobile breakpoint is 900px
+   (56.25rem), so anything ≥ that never shows the floating CTA. */
+@media (min-width: 56.25rem) {
+  .btn--float-mobile {
+    display: none;
+  }
+}
+
 /* ============================================================
    3b. ANNOUNCEMENT BAR
    ------------------------------------------------------------
@@ -3052,7 +3091,7 @@ input, select, textarea {
                       vertical spine down the start side)
        .paid__line   (thin muted track)
          .paid__fill (brand-blue overlay, width/height by JS)
-       .paid__stage  (EN label | marker dot | AR sub-label)
+       .paid__stage  ("NN — EN" label | ring marker | AR sub-label)
      .paid__note     (neutral disclaimer, fades in last)
    A scroll-driven fill (reuses bindScrollFill in js/main.js) draws
    the connecting line from LEARN -> BUILD EXPERIENCE, emphasizing
@@ -3137,27 +3176,41 @@ input, select, textarea {
   padding-block: var(--space-5);
 }
 
-/* Main English label — muted until the fill reaches the stage */
+/* Main label — a Latin "NN — LABEL" run inside an RTL document, so it
+   is isolated LTR exactly like the other inline Latin fragments (see
+   .method__lat). Muted until the fill reaches the stage. */
 .paid__stage-en {
   font-size: var(--fs-lg);
   font-weight: var(--fw-bold);
   letter-spacing: 0.02em;
   color: var(--clr-text);
+  direction: ltr;
+  unicode-bidi: isolate;
   transition: color var(--dur-base) var(--ease-out);
 }
 
-/* Marker dot, vertically centered so it sits ON the line */
+/* Stage marker — a hand-drawn inline SVG downward chevron-arrow,
+   vertically centered so it sits ON the line (the flow reads top-to-
+   bottom on mobile, joined by the vertical rail). Before the fill
+   arrives the arrow is a muted --clr-brand tint (an empty "socket");
+   once the stage becomes active the arrow fills/lights in --clr-brand
+   with a soft glow + gentle scale-up. Active vs upcoming stays
+   "muted vs brand", driven entirely by [data-active] from the
+   scroll-fill logic — this rule only restyles. */
 .paid__marker {
-  width: 16px;
-  height: 16px;
+  display: block;
+  width: 22px;
+  height: 22px;
   margin-block: auto;
-  border-radius: var(--radius-full);
-  background-color: var(--clr-bg-subtle-2);
-  border: 1px solid var(--clr-border);
+  fill: none;
+  stroke: rgba(25, 58, 109, 0.3);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   transition:
-    background-color var(--dur-base) var(--ease-out),
-    border-color var(--dur-base) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
+    stroke var(--dur-base) var(--ease-out),
+    filter var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
 }
 
 /* Small secondary Arabic sub-label */
@@ -3174,10 +3227,20 @@ input, select, textarea {
   color: var(--clr-heading);
 }
 
+/* Active: the arrow lights up in --clr-brand with a soft halo glow
+   and a gentle scale-up so the transition still feels alive. */
 .paid__stage[data-active='true'] .paid__marker {
-  background-color: var(--clr-brand);
-  border-color: var(--clr-brand);
-  box-shadow: 0 0 0 4px rgba(25, 58, 109, 0.15);
+  stroke: var(--clr-brand);
+  filter: drop-shadow(0 0 6px rgba(25, 58, 109, 0.35));
+  transform: scale(1.12);
+}
+
+/* Keep the arrow vertically centered on the rail AND scaled once
+   active, so the mobile translateY centering isn't overridden. */
+@media (max-width: 56.25rem) { /* 900px */
+  .paid__stage[data-active='true'] .paid__marker {
+    transform: translateY(-50%) scale(1.12);
+  }
 }
 
 /* --- Neutral disclaimer note (fades in last, calmly) ---------- */
@@ -6702,11 +6765,11 @@ input, select, textarea {
 
   /* Marker on the rail, aligned with the EN label's first line.
      The 2px rail's center sits 1px from the flow start edge; the
-     16px marker needs its own center there, so its inline-start
-     edge is (1px - 8px). Vertically it centres on the first line. */
+     (now 22px) marker needs its own center there, so its inline-start
+     edge is (1px - 11px). Vertically it centres on the first line. */
   .paid__marker {
     position: absolute;
-    inset-inline-start: -7px;
+    inset-inline-start: -10px;
     top: var(--space-4);
     margin-block: 0;
     transform: translateY(-50%);

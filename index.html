@@ -1340,29 +1340,41 @@
 
           <!-- 01 — LEARN -->
           <div class="paid__stage" data-index="0">
-            <span class="paid__stage-en">LEARN</span>
-            <span class="paid__marker" aria-hidden="true"></span>
+            <span class="paid__stage-en">01 — LEARN</span>
+            <svg class="paid__marker" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 4v13"></path>
+              <path d="M7 13l5 5 5-5"></path>
+            </svg>
             <span class="paid__stage-ar">تتعلم المهارة</span>
           </div>
 
           <!-- 02 — PRACTICE -->
           <div class="paid__stage" data-index="1">
-            <span class="paid__stage-en">PRACTICE</span>
-            <span class="paid__marker" aria-hidden="true"></span>
-            <span class="paid__stage-ar">تطبقها</span>
+            <span class="paid__stage-en">02 — PRACTICE</span>
+            <svg class="paid__marker" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 4v13"></path>
+              <path d="M7 13l5 5 5-5"></path>
+            </svg>
+            <span class="paid__stage-ar">تطبقها في مواقف عملية</span>
           </div>
 
           <!-- 03 — GET PAID -->
           <div class="paid__stage" data-index="2">
-            <span class="paid__stage-en">GET PAID</span>
-            <span class="paid__marker" aria-hidden="true"></span>
-            <span class="paid__stage-ar">تحصل على مقابل عند القبول</span>
+            <span class="paid__stage-en">03 — GET PAID</span>
+            <svg class="paid__marker" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 4v13"></path>
+              <path d="M7 13l5 5 5-5"></path>
+            </svg>
+            <span class="paid__stage-ar">تحصل على مقابل عند التأهل</span>
           </div>
 
           <!-- 04 — BUILD EXPERIENCE -->
           <div class="paid__stage" data-index="3">
-            <span class="paid__stage-en">BUILD EXPERIENCE</span>
-            <span class="paid__marker" aria-hidden="true"></span>
+            <span class="paid__stage-en">04 — BUILD EXPERIENCE</span>
+            <svg class="paid__marker" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 4v13"></path>
+              <path d="M7 13l5 5 5-5"></path>
+            </svg>
             <span class="paid__stage-ar">تبني خبرة عملية حقيقية</span>
           </div>
         </div>
@@ -2358,6 +2370,19 @@
       </p>
     </div>
   </footer>
+
+  <!-- Floating mobile CTA — sticky bottom, mobile-only (≤900px).
+       Persistently visible while scrolling; reuses the [data-open-funnel]
+       handler and the btn--shimmer attention treatment of the other CTAs.
+       Hidden while the qualification funnel overlay is open (JS syncs the
+       .is-hidden class from openFunnel/closeFunnel). -->
+  <button
+    type="button"
+    class="btn btn--primary btn--shimmer btn--float-mobile"
+    data-open-funnel
+    aria-label="احجز استشارتك المجانية الآن">
+    احجز استشارتك المجانية الآن
+  </button>
 
   <!-- ============================================================
          QUALIFICATION FUNNEL — FULL-SCREEN OVERLAY

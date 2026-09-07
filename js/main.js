@@ -2414,12 +2414,18 @@
     if (!funnelState.sessionId) funnelState.sessionId = generateSessionId();
     funnelEl.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    /* Keep the floating mobile CTA out of the funnel overlay */
+    var floatCta = document.getElementById('float-mobile-cta');
+    if (floatCta) floatCta.classList.add('is-hidden');
   }
 
   function closeFunnel() {
     if (!funnelEl) return;
     funnelEl.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
+    /* Restore the floating mobile CTA once the overlay is gone */
+    var floatCta = document.getElementById('float-mobile-cta');
+    if (floatCta) floatCta.classList.remove('is-hidden');
   }
 
   /* Bind all [data-open-funnel] triggers */
