@@ -873,11 +873,12 @@ input, select, textarea {
   pointer-events: none;
 }
 
-/* Simulated image placeholder (stands in for a sales-call photo) */
+/* Video frame: sizes the hero visual. Height is derived from width at a
+   strict 16:9 (horizontal YouTube) ratio on all breakpoints. */
 .hero__media {
   position: relative;
   z-index: 1;
-  aspect-ratio: 4 / 3.2;
+  aspect-ratio: 16 / 9;
   border-radius: var(--radius-xl);
   /* subtle multi-stop gradient "muted tone" box */
   background: linear-gradient(
@@ -894,7 +895,7 @@ input, select, textarea {
 }
 
 /* Embeddable area for the real video. Sizes to fill the whole frame,
-   so an <iframe> pasted inside later auto-fills with no CSS change. */
+   so the <video> inside auto-fills with no further CSS. */
 .hero__media-embed {
   position: absolute;
   inset: 0;
@@ -905,87 +906,48 @@ input, select, textarea {
   z-index: 1;
 }
 
-/* Placeholder overlay (play button + label) shown while the embed is
-   empty. Centered over the gradient poster; removed when the real
-   <iframe> is pasted in (see the HTML comment near the markup). */
-.hero__media-placeholder {
+/* Native HTML5 video: fills the frame with cover cropping, matches the
+   rounded corners of the container, and shows native controls. */
+.hero__media-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Soft pulsing glow around the video frame's outer edge (brand blue).
+   A blurred pseudo-element sits just outside the rounded border and
+   gently "breathes" — subtle, ambient, not a hard neon ring. */
+.hero__media::before {
+  content: '';
   position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
+  inset: -7px;
+  border-radius: inherit;
+  background: rgba(25, 58, 109, 0.55);
+  filter: blur(20px);
+  z-index: -1;
+  opacity: 0.12;
+  animation: heroGlowPulse 3s var(--ease-in-out) infinite;
   pointer-events: none;
 }
 
-/* Play button: circular, light, soft-shadowed, minimal triangle icon. */
-.hero__media-play {
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--clr-bg);
-  box-shadow: var(--shadow-md);
-  color: var(--clr-brand);
-  transition: transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
+/* Gentle "breathing" pulse of the glow opacity (premium, not flashy). */
+@keyframes heroGlowPulse {
+  0%, 100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
-.hero__media-play:hover {
-  /* subtle lift + glow — suggests interactivity without a click handler */
-  transform: scale(1.06);
-  box-shadow: var(--shadow-lg);
-}
-
-.hero__media-play-icon {
-  width: 30px;
-  height: 30px;
-  fill: currentColor;
-}
-
-/* Understated caption: makes it obvious this is a placeholder slot. */
-.hero__media-label {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--clr-text);
-  white-space: nowrap;
-}
-
-/* Floating micro-labels (pills, light — context, not clutter) */
-.hero__tag {
-  position: absolute;
-  z-index: 2;
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--radius-full);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-semibold);
-  color: var(--clr-brand);
-  background-color: var(--clr-bg);
-  border: 1px solid var(--clr-border);
-  box-shadow: var(--shadow-sm);
-  white-space: nowrap;
-}
-
-.hero__tag--sales {
-  inset-inline-end: -12px;
-  inset-block-start: 14%;
-}
-
-.hero__tag--closing {
-  inset-inline-start: -14px;
-  inset-block-start: 42%;
-}
-
-.hero__tag--service {
-  inset-inline-end: 6%;
-  inset-block-end: 8%;
+/* Respect prefers-reduced-motion: keep the soft static glow (no pulse)
+   instead of the breathing animation. */
+@media (prefers-reduced-motion: reduce) {
+  .hero__media::before {
+    animation: none;
+    opacity: 0.28;
+  }
 }
 
 /* --- Entrance animations (one-time) --------------------------- */
@@ -1020,23 +982,6 @@ input, select, textarea {
   to {
     opacity: 1;
     transform: translateX(0);
-  }
-}
-
-/* Continuous gentle float on the micro-labels (understated) */
-.hero__tag {
-  animation: heroFloat 6s var(--ease-in-out) infinite;
-}
-
-.hero__tag--closing { animation-delay: 1.2s; }
-.hero__tag--service { animation-delay: 2.4s; }
-
-@keyframes heroFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
   }
 }
 
@@ -5881,20 +5826,91 @@ input, select, textarea {
   .hero__desc   { margin-bottom: var(--space-7); }
   .hero__visual { margin-bottom: var(--space-7); }
 
-  /* Re-center visual & keep tags inside bounds */
+  /* Re-center visual */
   .hero__visual {
     margin-top: 0;
     max-width: 34rem;
     width: 100%;
     margin-inline: auto;
   }
+}
 
-  .hero__tag--sales {
-    inset-inline-end: -6px;
+/* ============================================================
+   HERO — DESKTOP STACKED LAYOUT (min-width: 900px)
+   ------------------------------------------------------------
+   On desktop only, switch from the two-column side-by-side hero to a
+   single-column stacked layout: eyebrow+headline+description on top
+   (centered, full width), then the large 16:9 video below, then the
+   CTA + tagline centered beneath. The mobile stacked layout
+   (max-width: 56.25rem) is left completely untouched.
+   ============================================================ */
+@media (min-width: 56.25rem) {
+  .hero__grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
   }
 
-  .hero__tag--closing {
-    inset-inline-start: -6px;
+  /* Collapse the text wrapper so its rows become direct grid items,
+     letting CSS `order` interleave the video between the description
+     and the CTA without moving any HTML (same technique as mobile). */
+  .hero__content {
+    display: contents;
+    max-width: none;
+  }
+
+  /* Reading order: eyebrow+headline+desc -> video -> CTA -> tagline */
+  .hero__eyebrow { order: 1; }
+  .hero__title   { order: 2; }
+  .hero__desc    { order: 3; }
+  .hero__visual  { order: 4; }
+  .hero__actions { order: 5; }
+  .hero__tagline { order: 6; }
+
+  /* Preserve the "text fades up as a unit" entrance on the now-separate
+     rows (identical to the mobile approach). */
+  .hero__content .hero__eyebrow,
+  .hero__content .hero__title,
+  .hero__content .hero__desc,
+  .hero__content .hero__actions,
+  .hero__content .hero__tagline {
+    animation: heroFadeUp var(--dur-slow) var(--ease-out) both;
+    animation-delay: calc(var(--nav-entrance-delay) + 5 * 110ms + 120ms);
+  }
+
+  /* Top text: centered, comfortably wide */
+  .hero__eyebrow,
+  .hero__title,
+  .hero__desc {
+    text-align: center;
+    width: 100%;
+    max-width: 48rem;
+    margin-inline: auto;
+  }
+
+  /* Tighten the headline->description and description->video vertical
+     spacing (~45% closer) so the text and video feel visually connected.
+     The uniform grid gap is compensated with negative bottom margins
+     (project idiom, cf. .hero__visual), so no other desktop gap changes. */
+  .hero__title {
+    margin-bottom: calc(var(--space-2) * -1); /* gap to desc = 40px */
+  }
+
+  .hero__desc {
+    margin-bottom: calc(var(--space-1) * -1); /* gap to video = 44px */
+  }
+
+  /* Video: large & centered, keeps its 16:9 ratio and rounded frame */
+  .hero__visual {
+    margin-top: 0;
+    width: 100%;
+    max-width: 64rem;
+    margin-inline: auto;
+  }
+
+  /* CTA + tagline: centered below the video */
+  .hero__actions,
+  .hero__tagline {
+    text-align: center;
   }
 }
 
@@ -5916,11 +5932,6 @@ input, select, textarea {
   .btn--hero {
     width: 100%;
     padding: 0.9rem 1.25rem;
-  }
-
-  .hero__tag {
-    font-size: var(--fs-xs);
-    padding: 0.3rem 0.7rem;
   }
 
   /* Proof strip: tighter marquee spacing on narrow widths */

@@ -164,31 +164,17 @@
                      Outer .hero__media keeps the size / rounded corners /
                      border / shadow / gradient-poster look as the frame. -->
               <div class="hero__media">
-                <!-- Embeddable area: paste a hosting <iframe> embed code
-                       (Loom / Wistia / Vimeo) in here later and it will
-                       automatically fill the whole frame — no CSS change. -->
+                <!-- Embeddable area: holds the native HTML5 video, which
+                       automatically fills the whole frame. -->
                 <div class="hero__media-embed" id="hero-video-embed">
-                  <!-- PASTE VIDEO EMBED CODE HERE (e.g. an <iframe> from Loom/Wistia/Vimeo) --></div>
-
-                <!-- Placeholder overlay (play button + label), shown only
-                       while the embed is empty. To activate the real video:
-                       paste the <iframe> embed code inside .hero__media-embed
-                       above, then delete this .hero__media-placeholder div
-                       below (or set it to display:none). -->
-                <div class="hero__media-placeholder">
-                  <button class="hero__media-play" type="button" tabindex="-1" aria-hidden="true">
-                    <svg class="hero__media-play-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                      <path d="M8 5v14l11-7z"></path>
-                    </svg>
-                  </button>
-                  <p class="hero__media-label">فيديو تعريفي قريبًا</p>
+                  <video class="hero__media-video"
+                         src="https://ycfoojlrusxfphdnlitw.supabase.co/storage/v1/object/public/VIDEO_SKILLOVA/VIDEO_SKILLOVA.mp4"
+                         controls
+                         preload="metadata"
+                         playsinline
+                         aria-label="فيديو تعريفي"></video>
                 </div>
               </div>
-
-              <!-- Floating micro-labels -->
-              <span class="hero__tag hero__tag--sales">Sales</span>
-              <span class="hero__tag hero__tag--closing">Closing</span>
-              <span class="hero__tag hero__tag--service">Customer Service</span>
             </div>
           </div>
         </div>
