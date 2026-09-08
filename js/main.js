@@ -154,6 +154,68 @@
     updateHeroParallax();
   }
 
+  /* --- 2. Hero video mute/unmute control ---------------------- */
+  // Custom centered mute button toggles the video's sound. Autoplay is
+  // forced muted by the browser, so the button starts in the "muted"
+  // icon state and invites the user to tap to unmute.
+  var heroVideo = document.querySelector('.hero__media-video');
+  var heroMuteBtn = document.querySelector('.hero__media-mute');
+  var heroVideoWrap = document.querySelector('.hero__media');
+
+  if (heroVideo && heroMuteBtn) {
+    var heroMuteFadeTimer = null;
+
+    function syncHeroMuteState() {
+      var muted = heroVideo.muted;
+      heroMuteBtn.classList.toggle('is-muted', muted);
+      heroMuteBtn.setAttribute(
+        'aria-label',
+        muted ? 'تفعيل الصوت' : 'كتم الصوت'
+      );
+
+      // Keep the button visible while muted; fade it out shortly after
+      // unmuting so it stays least intrusive, then reappear on hover/tap.
+      clearTimeout(heroMuteFadeTimer);
+      if (muted) {
+        heroMuteBtn.classList.remove('is-faded');
+        return;
+      }
+      heroMuteFadeTimer = setTimeout(function () {
+        heroMuteBtn.classList.add('is-faded');
+      }, 1500);
+    }
+
+    function onHeroMuteClick(e) {
+      e.preventDefault();
+      heroVideo.muted = !heroVideo.muted;
+      syncHeroMuteState();
+    }
+
+    heroMuteBtn.addEventListener('click', onHeroMuteClick);
+    // Reflect mute changes made via the native controls bar too.
+    heroVideo.addEventListener('volumechange', syncHeroMuteState);
+
+    if (heroVideoWrap) {
+      heroVideoWrap.addEventListener('mouseenter', function () {
+        clearTimeout(heroMuteFadeTimer);
+        heroMuteBtn.classList.remove('is-faded');
+      });
+      heroVideoWrap.addEventListener('mouseleave', function () {
+        if (!heroVideo.muted) syncHeroMuteState();
+      });
+      heroVideoWrap.addEventListener(
+        'touchstart',
+        function () {
+          clearTimeout(heroMuteFadeTimer);
+          heroMuteBtn.classList.remove('is-faded');
+        },
+        { passive: true }
+      );
+    }
+
+    syncHeroMuteState();
+  }
+
   /* ============================================================
      PROBLEM SECTION
      ------------------------------------------------------------

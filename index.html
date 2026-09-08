@@ -27,10 +27,10 @@
   <div class="announcement-bar" id="announcement-bar">
     <div class="announcement-bar__inner">
       <span class="announcement-bar__message announcement-bar__full">
-        🚀 انضم الآن مقابل XXXX DA فقط — عدد الأماكن محدود
+        🚀 انضم الآن مقابل 49000 DA فقط — عدد الأماكن محدود
       </span>
       <span class="announcement-bar__message announcement-bar__mobile">
-        🚀 XXXX DA — أماكن محدودة
+        🚀 49000 DA — أماكن محدودة
       </span>
       <a href="#" class="announcement-bar__cta" data-open-funnel>احجز مكانك</a>
     </div>
@@ -170,10 +170,39 @@
                   <video class="hero__media-video"
                          src="https://ycfoojlrusxfphdnlitw.supabase.co/storage/v1/object/public/VIDEO_SKILLOVA/VIDEO_SKILLOVA.mp4"
                          controls
+                         autoplay
+                         muted
                          preload="metadata"
                          playsinline
+                         controlsList="nodownload"
                          aria-label="فيديو تعريفي"></video>
                 </div>
+
+                <!-- Custom centered mute/unmute control (in addition to the
+                       native controls bar). Autoplay is forced muted by the
+                       browser, so the button starts in the "muted" state and
+                       lets the user turn the sound on. -->
+                <button class="hero__media-mute is-muted" type="button"
+                        aria-label="تفعيل الصوت">
+                  <svg class="hero__mute-icon hero__mute-icon--muted"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round"
+                       stroke-linejoin="round" aria-hidden="true"
+                       focusable="false">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                    <line x1="22" y1="9" x2="14" y2="15"></line>
+                    <line x1="14" y1="9" x2="22" y2="15"></line>
+                  </svg>
+                  <svg class="hero__mute-icon hero__mute-icon--unmuted"
+                       viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       stroke-width="2" stroke-linecap="round"
+                       stroke-linejoin="round" aria-hidden="true"
+                       focusable="false">
+                    <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+                    <path d="M15 9a4 4 0 0 1 0 6"></path>
+                    <path d="M18 6a8 8 0 0 1 0 12"></path>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -1903,9 +1932,9 @@
           <div class="about__visual a-reveal">
             <div class="about__visual-inner">
               <div class="about__portrait">
-                <img class="about__portrait-img" src="assets/trainer-photo.png"
-                  alt="صورة مدرب أكاديمية Skillova"
-                  width="1122" height="1402" loading="lazy" />
+                <img class="about__portrait-img" src="assets/instructor.jpg"
+                  alt="صورة المدرب عبد المجيد بكي في أكاديمية Skillova"
+                  width="765" height="1024" loading="lazy" />
               </div>
 
               <!-- Ambient "UI system" chips around the frame (clear of the face) -->
@@ -2057,11 +2086,9 @@
             <li>Career Community access</li>
           </ul>
 
-          <!-- Price (placeholder) -->
+          <!-- Price -->
           <div class="offer__pricing">
-            <p class="offer__price">XXXX DA</p>
-            <!-- Optional muted strikethrough price placeholder -->
-            <p class="offer__old">[السعر القديم إذا كان حقيقيًا]</p>
+            <p class="offer__price">49000 DA</p>
           </div>
 
           <!-- Primary CTA (reuses .btn / .btn--primary / .btn--hero) -->
@@ -2070,8 +2097,7 @@
           </a>
 
           <!-- Muted scarcity / context note (bracketed, conditional) -->
-          <p class="offer__note">[الأماكن محدودة بسبب نظام الـCoaching والمتابعة الفردية، إذا كانت هذه المعلومة صحيحة
-            فعلًا.]</p>
+          <p class="offer__note">[الأماكن محدودة بسبب نظام الـCoaching والمتابعة الفردية.]</p>
         </div>
 
       </div>

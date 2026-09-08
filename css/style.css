@@ -915,6 +915,21 @@ input, select, textarea {
   display: block;
 }
 
+/* Hide the current-time / duration readout in the native controls bar
+   (the "0:00 / 4:38" display), while keeping play/pause, volume,
+   fullscreen and the more-options menu visible and functional.
+   NOTE: native <video controls> only exposes these pseudo-elements in
+   WebKit-based browsers (Chrome, Safari, Edge). Firefox does not expose
+   per-element selectors for native controls, so those selectors do
+   nothing there and Firefox keeps the default controls as a graceful
+   fallback. True cross-browser control over individual control pieces
+   would require building custom video controls instead of native ones. */
+.hero__media-video::-webkit-media-controls-current-time-display,
+.hero__media-video::-webkit-media-controls-time-remaining-display {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 /* Soft pulsing glow around the video frame's outer edge (brand blue).
    A blurred pseudo-element sits just outside the rounded border and
    gently "breathes" — subtle, ambient, not a hard neon ring. */
@@ -948,6 +963,73 @@ input, select, textarea {
     animation: none;
     opacity: 0.28;
   }
+}
+
+/* Custom centered mute/unmute control layered over the video (in
+   addition to the native controls bar). Circular, semi-transparent navy
+   (the site footer navy) with a blurred backdrop so it reads clearly
+   over the footage without hiding it. */
+.hero__media-mute {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background-color: rgba(11, 27, 51, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.hero__media-mute:hover,
+.hero__media-mute:focus-visible {
+  background-color: rgba(11, 27, 51, 0.7);
+  transform: translate(-50%, -50%) scale(1.06);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.hero__media-mute:active {
+  transform: translate(-50%, -50%) scale(0.98);
+}
+
+/* Speaker icons: 24x24 stroke style, matching the site icon set. */
+.hero__mute-icon {
+  width: 30px;
+  height: 30px;
+  fill: none;
+}
+
+/* Show only the icon matching the current mute state. */
+.hero__media-mute.is-muted .hero__mute-icon--unmuted {
+  display: none;
+}
+
+.hero__media-mute:not(.is-muted) .hero__mute-icon--muted {
+  display: none;
+}
+
+/* Fade the button out once unmuted (least intrusive), reappearing on
+   hover/tap of the video. Hidden buttons can't be focused or clicked. */
+.hero__media-mute.is-faded {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 /* --- Entrance animations (one-time) --------------------------- */
@@ -4645,12 +4727,15 @@ input, select, textarea {
   overflow: hidden;
 }
 
-/* Real trainer photo — fills the portrait slot, crop-to-frame. */
+/* Real trainer photo — fills the portrait slot, crop-to-frame.
+   object-position: top keeps the head fully visible (crop from the
+   bottom instead), since the photo is narrower than the 4/5 slot. */
 .about__portrait-img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top;
   /* subtle entrance settle: starts slightly zoomed, eases to 1 */
   transform: scale(1.055);
   transition: transform var(--dur-slower) var(--ease-out);
@@ -5183,14 +5268,6 @@ input, select, textarea {
   font-weight: var(--fw-extrabold);
   color: var(--clr-brand);
   line-height: 1;
-}
-
-/* Optional muted strikethrough old-price placeholder */
-.offer__old {
-  font-size: var(--fs-sm);
-  color: var(--clr-text);
-  text-decoration: line-through;
-  margin-top: var(--space-2);
 }
 
 /* --- Primary CTA (large brand-blue button) -------------------- */
@@ -5912,6 +5989,24 @@ input, select, textarea {
   .hero__tagline {
     text-align: center;
   }
+
+  /* Enlarge the hero CTA on desktop (~25% bigger) so it reads as the
+     primary action beneath the video. The shimmer / attention-pulse
+     animations are layered via ::before and scale with the button, so
+     they keep working at the new size. */
+  .btn--hero {
+    font-size: 1.375rem;                              /* 22px (vs 18px) */
+    padding: 1.25rem 2.5rem;                          /* 20/40px (vs 16/32) */
+    border-radius: calc(var(--radius-lg) * 1.25);     /* 20px (vs 16px) */
+  }
+
+  /* Pull the trust line close beneath the CTA so it reads as directly
+     associated with the button. Compensates the uniform grid gap with
+     a negative bottom margin (project idiom), landing on ~ --space-3
+     instead of the previous ~80px. */
+  .hero__actions {
+    margin-bottom: calc(var(--space-3) * -3);         /* gap to tagline = 12px */
+  }
 }
 
 /* Small phones: extra-tight type */
@@ -5932,6 +6027,17 @@ input, select, textarea {
   .btn--hero {
     width: 100%;
     padding: 0.9rem 1.25rem;
+  }
+
+  /* Mute button: slightly smaller on compact phones, still tappable */
+  .hero__media-mute {
+    width: 52px;
+    height: 52px;
+  }
+
+  .hero__mute-icon {
+    width: 26px;
+    height: 26px;
   }
 
   /* Proof strip: tighter marquee spacing on narrow widths */
