@@ -3029,11 +3029,16 @@
     phone: {
       input: contactPhone,
       error: document.getElementById('funnel-contact-phone-error'),
+      /* Mirror the server-side rule exactly (Code.gs isValidAlgerianPhone):
+         strip formatting characters the same way the backend does, then
+         require 0 + (5|6|7) + 8 more digits = 10 digits total. Keeping the
+         two in lock-step means the client can never accept a number the
+         backend rejects. */
       test: function (v) {
-        var d = v.replace(/[^\d+]/g, '');
-        return /^\+?\d+$/.test(d) && d.length >= 9 && d.length <= 15;
+        var cleaned = v.replace(/[\s\-\(\)\+]/g, '');
+        return /^0[567]\d{8}$/.test(cleaned);
       },
-      msg: 'أدخل رقم هاتف صحيح (مثلاً +213 5 55 55 55 55)'
+      msg: 'الرقم يجب أن يبدأ بـ 07 أو 06 أو 05 ويتكون من 10 أرقام'
     },
     email: {
       input: contactEmail,
@@ -3049,6 +3054,12 @@
     var value = f.input.value.trim();
     var ok = f.test(value);
     f.input.classList.toggle('is-invalid', !ok && value !== '');
+    /* Green "valid" state is scoped to the phone field only — other fields
+       keep their existing red-only feedback. Empty (untouched) still gets
+       no border color, so first-load is clean. */
+    if (key === 'phone') {
+      f.input.classList.toggle('is-valid', ok && value !== '');
+    }
     if (f.error) {
       f.error.textContent = f.msg;
       f.error.hidden = ok || value === '';
@@ -3366,7 +3377,7 @@
     })
       .then(function (res) {
         return res.json().catch(function () {
-          return { success: false, error: 'BAD_RESPONSE' };
+          return { success: false, error: '' };
         });
       })
       .then(function (data) {
@@ -3383,6 +3394,10 @@
         }
         if (data && data.error === 'SLOT_ALREADY_BOOKED') {
           showContactError('عذرًا، هذا الموعد أصبح محجوز، اختار موعد آخر', true);
+        } else if (data && data.error) {
+          /* Surface the backend's exact message (e.g. "رقم الهاتف غير صالح")
+             so the user knows precisely what to fix. */
+          showContactError('الخطأ: ' + data.error, false);
         } else {
           showContactError('صار خطأ، حاول مرة أخرى', false);
         }

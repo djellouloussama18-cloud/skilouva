@@ -8770,6 +8770,16 @@ input, select, textarea {
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
 }
 
+.funnel__input.is-valid,
+.funnel__textarea.is-valid {
+  border-color: #16a34a;
+}
+
+.funnel__input.is-valid:focus-visible,
+.funnel__textarea.is-valid:focus-visible {
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
 .funnel__field-error {
   font-family: var(--font-primary);
   font-size: var(--fs-xs);
