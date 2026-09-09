@@ -216,6 +216,23 @@
     syncHeroMuteState();
   }
 
+  /* --- 3. iOS-only native control tweak ------------------------- */
+  /* Modern iOS WebKit ("modern media controls" shadow tree, iOS 16+)
+     no longer honors the legacy -webkit-media-controls time pseudo-
+     elements, so the native time readout can only be targeted (best-
+     effort) on iOS. Detect iOS as a PLATFORM — any browser on iPhone/
+     iPad, plus the iPadOS-as-Mac-Safari edge case (platform "MacIntel"
+     with touch points) — and tag the video with .is-ios so the CSS
+     stays scoped to iOS and never touches Android or desktop. */
+  function detectIos() {
+    return /iPhone|iPad|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  if (heroVideo && detectIos()) {
+    heroVideo.classList.add('is-ios');
+  }
+
   /* ============================================================
      PROBLEM SECTION
      ------------------------------------------------------------

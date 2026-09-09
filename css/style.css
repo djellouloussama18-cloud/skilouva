@@ -942,19 +942,31 @@ input, select, textarea {
   display: block;
 }
 
-/* Hide the current-time / duration readout in the native controls bar
-   (the "0:00 / 4:38" display), while keeping play/pause, volume,
-   fullscreen and the more-options menu visible and functional.
-   NOTE: native <video controls> only exposes these pseudo-elements in
-   WebKit-based browsers (Chrome, Safari, Edge). Firefox does not expose
-   per-element selectors for native controls, so those selectors do
-   nothing there and Firefox keeps the default controls as a graceful
-   fallback. True cross-browser control over individual control pieces
-   would require building custom video controls instead of native ones. */
-.hero__media-video::-webkit-media-controls-current-time-display,
-.hero__media-video::-webkit-media-controls-time-remaining-display {
+/* iOS-only (best-effort): attempt to hide the native time readouts
+   ("00:07" / "-04:31") in the video's control bar. Scoped via the
+   `.is-ios` class added by JS only on iPhone/iPad — any browser on iOS
+   (Safari + Chrome + Firefox, incl. the iPadOS-as-Mac edge case) — so
+   Android (handled by the ≤900px block below) and desktop (>900px, which
+   intentionally keeps the readout) are never affected.
+
+   Honest caveat: since iOS 16+ Apple rebuilt the inline media controls as
+   a private "modern media controls" shadow tree that no longer exposes
+   these legacy -webkit-media-controls-* time pseudo-elements to author CSS
+   the way desktop WebKit does, so display:none here is unreliable on
+   iPhone across versions (iOS forces WebKit, so this is genuinely
+   iOS-wide, not browser-specific). The declarations stay deliberately
+   conservative: cropping/resizing -webkit-media-controls-panel or
+   -webkit-media-controls-enclosure to push the text off-frame would also
+   crop play/pause, skip ±10s, the scrubber and mute — all of which must
+   remain usable. A guaranteed remove needs a custom (non-native) controls
+   UI. */
+.hero__media-video.is-ios::-webkit-media-controls-current-time-display,
+.hero__media-video.is-ios::-webkit-media-controls-time-remaining-display,
+.hero__media-video.is-ios::-webkit-media-controls-time-label {
   display: none !important;
   visibility: hidden !important;
+  width: 0 !important;
+  margin: 0 !important;
 }
 
 /* Soft pulsing glow around the video frame's outer edge (brand blue).
@@ -6099,8 +6111,9 @@ input, select, textarea {
      and time-remaining, e.g. "00:06" / "-04:31") beside the scrubber in the
      native controls bar, while keeping play/pause, skip, scrubber and mute
      visible and functional. Scoped to the ≤900px window — desktop (above
-     900px) is untouched. Mirrors the existing global rule in the base hero
-     styles, but confined to this breakpoint. */
+     900px) keeps the readout. This pseudo-element rule works on Android;
+     iOS gets its own best-effort, .is-ios-scoped rule in the base hero
+     styles (iOS's modern controls no longer honor these selectors). */
   .hero__media-video::-webkit-media-controls-current-time-display,
   .hero__media-video::-webkit-media-controls-time-remaining-display {
     display: none !important;
