@@ -85,7 +85,7 @@
   --container-max: 75rem;     /* 1200px max content width */
   --container-pad: 1.25rem;   /* horizontal gutter         */
   --navbar-height: 4.5rem;    /* 72px                     */
-  --announce-bar-h: 2.75rem;  /* 44px announcement strip  */
+  --announce-bar-h: 3.25rem;  /* 52px announcement strip  */
 
   /* --- Border radius scale ------------------------------------- */
   --radius-sm: 0.375rem;   /* 6px   — small elements    */
@@ -313,6 +313,18 @@ input, select, textarea {
   --cta-rest-shadow: var(--shadow-md);
 }
 
+/* Hero CTA only: layer a subtle, continuous pulse-zoom (transform
+   scale only — no layout reflow) on top of the shared btnAttention
+   glow on the SAME element via a comma-separated animation shorthand,
+   so both effects run simultaneously. Scoped through .hero__actions so
+   the final CTA (which also uses .btn--hero .btn--shimmer) and the
+   navbar/drawer shimmer CTAs are untouched. */
+.hero__actions .btn--hero {
+  animation:
+    btnAttention 2.6s ease-in-out infinite,
+    heroCtaPulseZoom 2.8s var(--ease-in-out) infinite;
+}
+
 /* Shimmer: diagonal light band sweeping left -> right, off-screen at
    both ends so only the pass across the button is visible. */
 .btn--shimmer::before {
@@ -366,12 +378,27 @@ input, select, textarea {
   }
 }
 
+/* Hero CTA pulse-zoom: gentle breathing scale (transform only, so no
+   clipping/layout shift). Animates transform only, while btnAttention
+   animates box-shadow only — different properties, so the two can run
+   on the same element without conflict. */
+@keyframes heroCtaPulseZoom {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
 /* Respect prefers-reduced-motion: fully remove both effects. Without
    the animations, the shimmer element rests off-screen (translateX
    -150%) and the base button shadows apply again. */
 @media (prefers-reduced-motion: reduce) {
   .btn--shimmer,
-  .btn--shimmer::before {
+  .btn--shimmer::before,
+  .hero__actions .btn--hero {
     animation: none;
   }
 }
@@ -438,7 +465,7 @@ input, select, textarea {
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: var(--announce-bar-h); /* 44px — slim strip */
+  height: var(--announce-bar-h); /* 52px — slim strip */
   background-color: var(--clr-brand);
   color: #fff;
   padding-inline: var(--space-3);
@@ -457,7 +484,7 @@ input, select, textarea {
 
 .announcement-bar__message {
   font-family: var(--font-primary);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   font-weight: var(--fw-medium);
   line-height: 1;
 }
@@ -474,10 +501,10 @@ input, select, textarea {
   background-color: #fff;
   color: var(--clr-brand);
   font-family: var(--font-primary);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   font-weight: var(--fw-semibold);
   line-height: 1;
-  padding: 0.375rem 0.875rem; /* 6px 14px */
+  padding: 0.5rem 1rem; /* 8px 16px */
   border-radius: var(--radius-full);
   white-space: nowrap;
   text-decoration: none;
@@ -503,12 +530,12 @@ input, select, textarea {
    wrapping/overflow so the whole bar stays on a single line. */
 @media (max-width: 480px) {
   .announcement-bar {
-    height: 2.25rem;      /* 36px */
+    height: 2.625rem;     /* 42px */
     padding-inline: var(--space-2);
   }
 
   :root {
-    --announce-bar-h: 2.25rem; /* bar is slimmer on phones */
+    --announce-bar-h: 2.625rem; /* bar is slimmer on phones */
   }
 
   .announcement-bar__full {
@@ -524,12 +551,12 @@ input, select, textarea {
   }
 
   .announcement-bar__message {
-    font-size: var(--fs-xs);
+    font-size: var(--fs-sm);
   }
 
   .announcement-bar__cta {
-    font-size: var(--fs-xs);
-    padding: 0.25rem 0.625rem; /* 4px 10px */
+    font-size: var(--fs-sm);
+    padding: 0.35rem 0.75rem; /* 5.6px 12px */
   }
 }
 
@@ -989,6 +1016,9 @@ input, select, textarea {
   backdrop-filter: blur(4px);
   box-shadow: var(--shadow-lg);
   cursor: pointer;
+  /* Subtle continuous bounce (transform only) layered on top of the
+     existing centering/fade behavior; see heroMuteBounce keyframes. */
+  animation: heroMuteBounce 1.8s var(--ease-in-out) infinite;
   transition:
     opacity var(--dur-base) var(--ease-out),
     transform var(--dur-fast) var(--ease-out),
@@ -1030,6 +1060,31 @@ input, select, textarea {
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
+}
+
+/* Continuous gentle bounce for the centered mute button. The base
+   centering translate(-50%, -50%) is baked into every keyframe so the
+   animation never overrides the centering or "jumps" out of position
+   mid-fade. Opacity stays fully owned by the JS-driven fade logic —
+   transform and opacity are independent properties, so the two don't
+   fight (the button keeps gliding smoothly during fade-out/in). */
+@keyframes heroMuteBounce {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-4px);
+  }
+}
+
+/* Respect prefers-reduced-motion: no bounce — button rests centered
+   (consistent with the reduced-motion pattern used for decorative
+   animations such as .btn--shimmer / .hero__media::before). */
+@media (prefers-reduced-motion: reduce) {
+  .hero__media-mute {
+    animation: none;
+  }
 }
 
 /* --- Entrance animations (one-time) --------------------------- */
@@ -6038,6 +6093,17 @@ input, select, textarea {
   .hero__mute-icon {
     width: 26px;
     height: 26px;
+  }
+
+  /* Mobile only: hide the native WebKit video time readouts (current time
+     and time-remaining, e.g. "00:06" / "-04:31") beside the scrubber in the
+     native controls bar, while keeping play/pause, skip, scrubber and mute
+     visible and functional. Scoped to the ≤900px window — desktop (above
+     900px) is untouched. Mirrors the existing global rule in the base hero
+     styles, but confined to this breakpoint. */
+  .hero__media-video::-webkit-media-controls-current-time-display,
+  .hero__media-video::-webkit-media-controls-time-remaining-display {
+    display: none !important;
   }
 
   /* Proof strip: tighter marquee spacing on narrow widths */

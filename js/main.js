@@ -2397,7 +2397,7 @@
   /* ============================================================
      QUALIFICATION FUNNEL — FULL-SCREEN OVERLAY
      ----------------------------------------------------------------
-     7 qualification questions + 1 transition screen.
+     8 qualification questions + 1 transition screen.
      goToStep(stepNumber) handles all navigation generically.
      ============================================================ */
   var funnelEl       = document.getElementById('funnel');
@@ -2407,7 +2407,7 @@
 
   var funnelState = {
     current: 0,
-    total:   7,
+    total:   8,
     answers: {},
     sessionId: null
   };
@@ -2468,7 +2468,7 @@
   /* --- Open / Close ------------------------------------------- */
   function openFunnel() {
     if (!funnelEl) return;
-    if (funnelState.current === 11) {
+    if (funnelState.current === 12) {
       resetFunnelForNewRound();
     }
     /* Generate once per funnel session — reused across all steps and the
@@ -2512,10 +2512,10 @@
   });
 
   /* --- goToStep ------------------------------------------------
-     Accepts a 1-based step number. Steps 1–7 are qualification
-     questions. Step 8 is the transition screen. Step 9 is the
-     calendar step. Steps ≥ 10 are placeholders for future steps.
-     The transition screen's progress bar stays at 100%/07 since it
+     Accepts a 1-based step number. Steps 1–8 are qualification
+     questions. Step 9 is the transition screen. Step 10 is the
+     calendar step. Steps ≥ 11 are placeholders for future steps.
+     The transition screen's progress bar stays at 100%/08 since it
      is a non-qualification step. ------------------------------- */
   function goToStep(stepNumber) {
     var allSteps = funnelEl.querySelectorAll('.funnel__step');
@@ -2532,18 +2532,18 @@
     funnelState.current = stepNumber;
 
     /* Terminal success step: hide counter/progress, fill confirm data */
-    if (funnelEl) funnelEl.classList.toggle('funnel--complete', stepNumber === 11);
-    if (stepNumber === 11) populateSuccess();
+    if (funnelEl) funnelEl.classList.toggle('funnel--complete', stepNumber === 12);
+    if (stepNumber === 12) populateSuccess();
 
     /* Progress bar: 100% once past the qualification questions */
-    var pct = (Math.min(stepNumber, 7) / 7) * 100;
+    var pct = (Math.min(stepNumber, 8) / 8) * 100;
     funnelProgress.style.width = pct + '%';
 
     /* Step counter text — only shows qualification step numbers */
-    var counter = Math.min(stepNumber, 7);
+    var counter = Math.min(stepNumber, 8);
     funnelStepText.textContent = counter < 10
-      ? '0' + counter + ' / 07'
-      : counter + ' / 07';
+      ? '0' + counter + ' / 08'
+      : counter + ' / 08';
 
     /* Back link: hide on step 1, show on all others */
     var backLinks = funnelEl.querySelectorAll('[data-funnel-back]');
@@ -2561,7 +2561,7 @@
 
     /* Entering the calendar step — make sure the single all-dates
        availability fetch has been requested (cached for this session) */
-    if (stepNumber === 9) ensureAvailabilityAll();
+    if (stepNumber === 10) ensureAvailabilityAll();
   }
 
   /* --- Option selection (single-choice steps) ------------------ */
@@ -2593,12 +2593,12 @@
 
       /* Progressive save after every qualification answer (Step 4's
          "multi-skill" placeholder is saved only once confirmed via Continue) */
-      if (stepNum >= 1 && stepNum <= 7 && !(stepNum === 4 && value === 'multi-skill')) {
+      if (stepNum >= 1 && stepNum <= 8 && !(stepNum === 4 && value === 'multi-skill')) {
         queueProgressiveSave(buildLeadPayload());
       }
 
-      /* Step 9 contact preference — select but do not auto-advance */
-      if (stepNum === 9) {
+      /* Step 10 contact preference — select but do not auto-advance */
+      if (stepNum === 10) {
         funnelState.contactPreference = value;
         updateContactSubmitBtn();
         queueProgressiveSave(buildLeadPayload());
@@ -2695,7 +2695,7 @@
       goToStep(prevStep);
 
       /* Restore previous answer visual (skip for non-qualification steps) */
-      if (prevStep <= 7) {
+      if (prevStep <= 8) {
         var answer = funnelState.answers['step_' + prevStep];
         if (answer) {
           var prevStepEl = funnelEl.querySelectorAll('.funnel__step')[prevStep - 1];
@@ -2712,24 +2712,24 @@
     });
   }
 
-  /* --- Calendar button (transition screen → step 9) ------------ */
+  /* --- Calendar button (transition screen → step 10) ---------- */
   if (funnelBody) {
     funnelBody.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-funnel-action="calendar"]');
       if (!btn) return;
-      goToStep(9);
+      goToStep(10);
     });
   }
 
   /* ============================================================
-     CALENDAR STEP (Step 8) — date + time slot selection
+     CALENDAR STEP (Step 10) — date + time slot selection
      ----------------------------------------------------------------
      Reads availability from the Netlify Function on date change.
      ============================================================ */
 
-  /* Slots: 14 × 60-min slots, 08:00 start … 21:00 start */
+  /* Slots: 15 × 60-min slots, 09:00 start … 23:00 start */
   var funnelSlots = [];
-  for (var sH = 8; sH <= 21; sH++) {
+  for (var sH = 9; sH <= 23; sH++) {
     var hh = (sH < 10 ? '0' : '') + sH;
     funnelSlots.push(hh + ':00');
   }
@@ -2751,7 +2751,7 @@
   };
 
   /* Single all-dates availability map, fetched once per funnel session:
-     { "YYYY-MM-DD": ["08:00", "09:00", ...] } — arrays of OPEN start times.
+     { "YYYY-MM-DD": ["09:00", "10:00", ...] } — arrays of OPEN start times.
      Date switching after the first fetch is instant (local lookup). */
   var availabilityMap = null;
   var availabilityLoading = false;
@@ -2976,7 +2976,7 @@
       funnelState.appointmentDate = calendarState.selectedDate;
       funnelState.appointmentTime = calendarState.selectedTime;
 
-      goToStep(10);
+      goToStep(11);
       updateContactSubmitBtn();
     });
   }
@@ -2989,7 +2989,7 @@
   }
 
   /* ============================================================
-     CONTACT STEP (Step 9) — form validation + lead submission
+     CONTACT STEP (Step 11) — form validation + lead submission
      ============================================================ */
   var contactForm       = document.getElementById('funnel-contact-form');
   var contactName       = document.getElementById('funnel-contact-name');
@@ -3149,6 +3149,13 @@
       'flexible': 'حسب وقتي المتاح'
     },
     step_7: {
+      'ready-now': '🚀 نعم، مستعد نبدأ ونطبق من اليوم',
+      'ready-with-guidance': '💪 نعم، بصح نحتاج شوية توجيه في البداية',
+      'later': '🕐 حاب نبدأ، بصح مازال ماشي الوقت المناسب',
+      'need-understanding': '🤔 مازال نحتاج نفهم أكثر قبل ما نقرر',
+      'not-ready': '❌ حاليًا ما نيش مستعد نبدأ'
+    },
+    step_8: {
       'ready': '✅ نعم، مستعد نبدأ',
       'if-suitable': '👍 نعم، إذا كان البرنامج مناسب لاحتياجاتي',
       'need-more-info': 'ℹ️ نحتاج نعرف تفاصيل أكثر قبل ما نقرر',
@@ -3198,7 +3205,8 @@
       skillInterest:       skillInterest,
       mainChallenge:       translateLabel(ARABIC_LABELS.step_5, amap['step_5']),
       weeklyTime:          translateLabel(ARABIC_LABELS.step_6, amap['step_6']),
-      investmentReadiness: translateLabel(ARABIC_LABELS.step_7, amap['step_7']),
+      readinessToStart:    translateLabel(ARABIC_LABELS.step_7, amap['step_7']),
+      investmentReadiness: translateLabel(ARABIC_LABELS.step_8, amap['step_8']),
       appointmentDate:     funnelState.appointmentDate || '',
       appointmentTime:     funnelState.appointmentTime || '',
       source:              source,
@@ -3276,7 +3284,7 @@
   if (contactRebook) {
     contactRebook.addEventListener('click', function () {
       hideContactError();
-      goToStep(9);
+      goToStep(10);
     });
   }
 
@@ -3353,7 +3361,7 @@
           funnelState.email = payload.email;
           funnelState.notes = payload.notes;
           funnelState.submitted = true;
-          goToStep(11);
+          goToStep(12);
           return;
         }
         if (data && data.error === 'SLOT_ALREADY_BOOKED') {
@@ -3370,7 +3378,7 @@
   }
 
   /* ============================================================
-     SUCCESS STEP (Step 10) — confirmation screen
+     SUCCESS STEP (Step 12) — confirmation screen
      ============================================================ */
   function populateSuccess() {
     var dateEl = document.getElementById('funnel-success-date');

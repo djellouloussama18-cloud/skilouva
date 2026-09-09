@@ -48,24 +48,24 @@ C:\Users\pC\SKILLOVA\
 ├── google-apps-script\
 │   └── Code.gs                           → كود Google Apps Script الكامل (يُلصق يدويًا — خارج Git)
 │
-└── assets\                               → مجلد فارغ (لا توجد أصول خارجية)
+├── assets\                               → مجلد يحتوي على صورة المدرب الحقيقية `instructor.jpg`
 ```
 
 ### أحجام الملفات الحالية
 | الملف | الحجم |
 | --- | --- |
-| `index.html` | 148,629 بايت (2925 سطرًا) |
-| `css/style.css` | 220,501 بايت (8593 سطرًا) |
-| `js/main.js` | 128,692 بايت (3397 سطرًا) |
+| `index.html` | 151,218 بايت (2967 سطرًا) |
+| `css/style.css` | 231,347 بايت (8863 سطرًا) |
+| `js/main.js` | 131,150 بايت (3465 سطرًا) |
 | `netlify/functions/_gas.js` | 2,477 بايت (73 سطرًا) |
 | `netlify/functions/get-availability.js` | 1,250 بايت (35 سطرًا) |
 | `netlify/functions/check-slot.js` | 1,039 بايت (41 سطرًا) |
 | `netlify/functions/check-duplicate-phone.js` | 1,047 بايت (41 سطرًا) |
 | `netlify/functions/update-lead.js` | 1,227 بايت (44 سطرًا) |
 | `netlify/functions/confirm-booking.js` | 1,518 بايت (49 سطرًا) |
-| `google-apps-script/Code.gs` | 419 سطرًا |
-| `dev-server.js` | 131 سطرًا |
-| `package.json` | 16 سطرًا |
+| `google-apps-script/Code.gs` | 19,599 بايت (419 سطرًا) |
+| `dev-server.js` | 4,223 بايت (131 سطرًا) |
+| `package.json` | 275 بايت (16 سطرًا) |
 | `netlify.toml` | 58 بايت (3 أسطر) |
 
 ---
@@ -98,7 +98,7 @@ C:\Users\pC\SKILLOVA\
 
 ## 4) نظام التصميم (Design Tokens)
 
-كل القيم متغيرة عبر CSS Custom Properties في `:root` داخل `css/style.css` (يبدأ عند السطر 24 فصاعدًا).
+كل القيم متغيرة عبر CSS Custom Properties في `:root` داخل `css/style.css` (يبدأ عند السطر 24 فصاعدًا — `:root` يمتد حتى السطر 113).
 
 ### الألوان
 | المتغير | القيمة | الاستخدام |
@@ -118,15 +118,16 @@ C:\Users\pC\SKILLOVA\
 - وارتفاعات أسطر: `--leading-tight:1.15` … `--leading-loose:1.8`.
 
 ### المسافات (قاعدة 4px)
-`--space-1:4px` → `--space-12:128px`. والتخطيط: `--container-max:75rem` (1200px)، `--container-pad:1.25rem`، `--navbar-height:72px`.
+`--space-1:4px` → `--space-12:128px`. والتخطيط: `--container-max:75rem` (1200px)، `--container-pad:1.25rem`، `--navbar-height:4.5rem` (72px)، `--announce-bar-h:2.75rem` (44px).
 
 ### الحواف والظلال
 - Radii: `--radius-sm:6px` / `--radius-md:10px` / `--radius-lg:16px` / `--radius-xl:24px` / `--radius-full:9999px`.
 - Shadows: `--shadow-sm/md/lg`.
 
 ### الحركة
-- Easing: `--ease-out` / `--ease-in-out` / `--ease-spring`.
+- Easing: `--ease-out` / `--ease-in-out` / `--ease-spring` (`cubic-bezier(0.34, 1.3, 0.42, 1)` — bounce خفيف).
 - المدد: `--dur-fast:150ms` … `--dur-slower:800ms`.
+- مساعد: `--nav-entrance-delay:100ms`.
 
 ### قواعد
 - اللون البراندي (الأزرق) **مخصص فقط للتمييز** في معظم الأقسام، ويستعمل كخلفية كاملة في قسمي **Offer** (و**الشريط العلوي الإعلاني**).
@@ -136,43 +137,44 @@ C:\Users\pC\SKILLOVA\
 
 ## 5) أقسام الصفحة الرئيسية (بالترتيب من الأعلى)
 
-### 5.1 الشريط الإعلاني + شريط التنقل Navbar (الأسطر 20–110)
-- **الشريط الإعلاني** فوق الـNavbar: سطر عرضي + زر «احجز مكانك» `data-open-funnel`.
+### 5.1 الشريط الإعلاني + شريط التنقل Navbar (الأسطر 21–104)
+- **الشريط الإعلاني** فوق الـNavbar (الأسطر 21–38): سطر عرضي بسعر 14900 DA + رسالة ندرة + زر «احجز مكانك» `data-open-funnel`. رسالتان مخصصتان (desktop/mobile).
 - **الشعار**: `SKILL<em>OVA</em>` (روابط لقسم #program).
 - **روابط مركزية**: البرنامج، ماذا ستتعلم، المسار المهني، الأسئلة الشائعة.
 - **زر CTA**: «احجز استشارتك المجانية الآن» مع `data-open-funnel` والصنف `btn--shimmer` و`data-animate="cta"` (دخول بنبضة + توهج مقيم سباقًا).
 - **قائمة هامبرغر** للجوال (أقل من 900px) مع Inset كاملة ومغلقة عبر `<div hidden>`، وزر CTA موازٍ «احجز استشارتك المجانية الآن» `btn--shimmer`.
 - JS: يضيف `data-scrolled="true/false"` عند تمرير يفوق 40px، يفتح/يغلق القائمة، يقفل تحريك الخلفية عند الفتح، ويتعامل مع زر Escape والنقر خارج القائمة ومقياس matchMedia عند العودة لسطح المكتب.
 
-### 5.2 قسم الـHero (الأسطر 111–199)
+### 5.2 قسم الـHero (الأسطر 106–211)
 - عنوان رئيسي: «ما تتعلمش Skill باش تزيد شهادة… تعلّم Skill تقدر تخدم بيها.»
 - وصف + CTA `data-open-funnel` «احجز استشارتك المجانية الآن» (صنفا `btn--hero` و`btn--shimmer`) + سطر شارة.
 - **التركيبة البصرية**: فقاعة زرقاء ضبابية + إطار فيديو (`hero-video-embed` — مكان مُعلَّم للصق كود تضمين لاحقًا مثل Vimeo/Loom) مع Placeholder (زر تشغيل + «فيديو تعريفي قريبًا») + ثلاث شارات معلقة (Sales / Closing / Customer Service).
+- **زر كتم/تشغيل الفيديو** (`.hero__media-mute`): يتوقف عند `is-muted`/`is-unmuted`، يُبدّل `aria-label` عربيًا، ويتلاشى تدريجيًا (1.5s fade-out) عند التشغيل. يستجيب لـ`click`/`volumechange`/`mouseenter`/`mouseleave`/`touchstart`.
 - JS: تأثير Parallax خفيف على المركّبة البصرية (مقارب rAF، معطل عند reduced-motion).
 
-### 5.3 شريط الإثبات Proof Strip (الأسطر 200–252)
+### 5.3 شريط الإثبات Proof Strip (الأسطر 213–257)
 - **Marquee مستمر** (CSS): عناصر `Live Sessions / One-to-One Coaching / Practical Training / Career Preparation` مكررة مرتين لانزلاق سلس `translateX(0%→-50%)`، مع توقف عند hover/focus لسهولة الوصول، وتعطيل كامل عند reduced-motion.
 
-### 5.4 لمن هذا القسم؟ Who Is This For (الأسطر 253–401)
+### 5.4 لمن هذا القسم؟ Who Is This For (الأسطر 259–414)
 - شبكة **Bento غير متماثلة** من 9 بطاقات بدون تخطيط منتظم:
   - خلية كبيرة مميزة: **الطلبة والخريجين** (تمتد عمودين).
   - **المبتدئين**، **الباحثين عن عمل**.
   - بطاقات صغيرة: **اللي حاب يخدم في الخارج**، **موظفي الـSales**، **موظفي Customer Service**، **Entrepreneurs**، **Freelancers**، + خلية واسعة **اللي حاب يحول Skill إلى مصدر دخل**.
 - أيقونات SVG داخلية، تدرّج بالألوان الخفيفة على بعض البطاقات، وreveal جماعي ضمني بمساعدة `IntersectionObserver`.
 
-### 5.5 قسم المشكلة Problem (الأسطر 402–464)
+### 5.5 قسم المشكلة Problem (الأسطر 416–477)
 - تركيبة تحريرية تيبوغرافية (بدون كروت): عنوان كبير «عندك الرغبة، بصح مازال ما عندكش Skill واضحة تقدر تعتمد عليها؟»
 - عمودان: بيان كبير + قائمة مرقمة من 6 مشاكل (أول وظيفة، تغيير المجال، تعلم البيع، التعامل مع الاعتراضات، Follow-up، تقديم Skill للشركات).
 - عبارات ختامية عاطفية مع تأكيد «المشكلة هو أنك مازلت ما بنيتش الـSkills اللي تخليك تستغل هذي الفرص».
 
-### 5.6 منهجية Skillova Method (الأسطر 465–538)
+### 5.6 منهجية Skillova Method (الأسطر 479–549)
 - شعار: «Bootcamp Closer ماشي غير برنامج تتعلم فيه وتحبس.»
 - **سطر داعم** (جديد): «تتعلم، تتدرب، تطبق داخل Skillova، وتبني مهارة تستحق الأجر.» — تُعرض فيه المصطلحات اللاتينية داخل `span.method__lat` (`dir="ltr"` + `unicode-bidi: isolate`).
 - وصف مرحلة **Practice**: «تطبيق حقيقي داخل Skillova مع عملاء حقيقيين وبمقابل».
 - **رحلة أفقية بـ5 مراحل**: `Learn → Coach → Practice → Grow → Opportunities` مع خط اتصال مستمر يمتلئ باللون البراندي حسب التمرير + **نقطة ضوئية متحركة (pulse)** تتبع حافة التعبئة.
 - يتحقق ذلك عبر الـ**Scroll-Fill Helper** المشترك في JS (يرسم التعبئة width أو height حسب وضع الأفقي/العمودي، مقاربًا بـrAF، ويديره استجابة للـscroll/resize/breakpoints/load).
 
-### 5.7 المنهج Curriculum (قسم #program) (الأسطر 539–696)
+### 5.7 المنهج Curriculum (قسم #program) (الأسطر 551–708)
 - عنوان: «واش راح تتعلم داخل البرنامج؟»
 - **شبكة 2×5 من 10 بطاقات وحدات** بأرقام خلفية كبيرة (بدون أيقونة لبعضها، وأيقونات SVG لمجموعة منها):
   1. Sales Fundamentals
@@ -186,19 +188,19 @@ C:\Users\pC\SKILLOVA\
   9. Practical Sales — الوصف المحدّث: «تطبق مهاراتك مع عملاء حقيقيين داخل Skillova،…» (بفقرة `span.curriculum__lat`)
   10. Career Skills
 
-### 5.8 الجلسات المباشرة + الـCoaching الفردي live (الأسطر 697–933)
+### 5.8 الجلسات المباشرة + الـCoaching الفردي live (الأسطر 710–944)
 - شعار: «التعلم وحده ما يكفيش.»
 - **الجزء 1 — الـLive Sessions**: نص + **لوحة واجهة جلسة مباشرة** (SKILLOVA LIVE مع مؤشر LIVE نابض، اعتراض عينة «غالي»، تعليمة «How would you respond?»، قائمة ميزات، وشارة «Feedback received ✓» تظهر وتختفي بطريقة قصة مصغّرة).
 - **الجزء 2 — الـOne-to-One Coaching**: نص + **لوحة التوازن/الداشبورد** (ONE-TO-ONE SESSION) مع أشرطة تقدم 85%/70%/60%/75% وحلقات تغذية راجعة وحالة «Next improvement».
 - سطر وصل مركزي ونهاية.
 
-### 5.9 المسار المهني Career Path (قسم #career-path) (الأسطر 934–1125)
+### 5.9 المسار المهني Career Path (قسم #career-path) (الأسطر 946–1133)
 - **خط زمني عمودي بواقع 7 مراحل** يتناوب العرض يمين/يسار، مع تعبئة خط أزرق تُملأ بالتمرير، وخانات بحالات (قادمة/مكتملة/نشطة):
   1. DISCOVER → 2. COACH → 3. PRACTICE → 4. PROVE YOURSELF → 5. PAID PRACTICE → 6. TEAM OPPORTUNITY → 7. CAREER OPPORTUNITIES
 - وصف المرحلة الثالثة **PRACTICE** (محدّث): «طبق المهارات وتدرّب على مواقف البيع الحقيقية.»
 - **على الجوال (≤900px)**: يتحول إلى **شريط أفقي قابل للسحب/التمرير بنقاط تقدم** + **نافذة كروت مشتقة (Modal)** واحدة تُملأ بالـJS عند النقر على أي عمود (وتقرأ الوصف من نسخة سطح المكتب فتظل متزامنة تلقائيًا).
 
-### 5.10 التحضير المهني Career Preparation (قسم #career-preparation) (الأسطر 1126–1326)
+### 5.10 التحضير المهني Career Preparation (قسم #career-preparation) (الأسطر 1135–1334)
 - شعار: «راح نعلموك كيفاش تبحث على الخدمة أيضًا.»
 - **لوحة أعمال واحدة** («CAREER PREPARATION») بدل شبكة:
   - **الحالة البنائية**: قائمة الملف التعريفي (CV، LinkedIn، Job Search، Applications، Remote Opportunities) + شريط جاهزية يوصل إلى 0% ثم يتقدم (Reached rows يتحول إلى أزرق).
@@ -206,25 +208,25 @@ C:\Users\pC\SKILLOVA\
 - **نصوص مصاحبة (Notes) حقوق** تتزامن مع الصفوف (allah فعال فقط العنصر النشط).
 - يظهر الصفوف وهي تتقدم بالتتابع أثناء التمرير بمساعدة `IntersectionObserver`، وعند reduced-motion تُعرض الحالة النهائية مباشرة.
 
-### 5.11 التطبيق المدفوع Paid Practice (الأسطر 1327–1385)
+### 5.11 التطبيق المدفوع Paid Practice (الأسطر 1336–1405)
 - شعار كبير: «التعلم يفتح الباب… التطبيق يبني الخبرة.»
 - **خط أفقى من 4 مراحل**: LEARN → PRACTICE → GET PAID → BUILD EXPERIENCE مع تعبئة أزرق تتبع التمرير.
 - ملاحظة اعتراضية واضحة: «التطبيق العملي المدفوع متاح للطلاب المؤهلين فقط، وليس مضمونًا لجميع المشاركين.»
 
-### 5.12 مجتمع Skillova المهني Career Community (الأسطر 1386–1538)
+### 5.12 مجتمع Skillova المهني Career Community (الأسطر 1407–1551)
 - شعار «Skillova Career Community» — **تحول بصري لدخول «منصة الوظائف»**:
   - شريط بحث زخرفي مع **كتابة آلة Typewriter** + caret نابض.
   - **تبويبات فئات** (الكل/Algeria/Remote/International) مع شريط سفلي منزلق + **دوري تصفية تجريبي للعروض** (4 عروض عمل حقيقية placeholder: Sales Representative، Customer Service، Appointment Setter، Business Development).
   - ملاحظة موضحة «نموذج توضيحي لفرص يتم مشاركتها عبر المجتمع».
   - **جسر مصغر** YOUR SKILL → Employee / Freelancer / Service Provider.
 
-### 5.13 تحويل المهارة إلى خدمة Skill-to-Service (الأسطر 1539–1647)
+### 5.13 تحويل المهارة إلى خدمة Skill-to-Service (الأسطر 1553–1660)
 - شعار: «Turn Your Skill Into a Service.»
 - **خريطة مهارات (Hub-and-Spoke)**: عقدة مركزية `SKILL` + 8 خطوط SVG تتسع للخارج (Sales، Closing، Appointment Setting، Lead Qualification، Customer Service، Follow-up، Sales Support، LinkedIn/CV Services) — على الجوال تتحول إلى **خريطة متفرعة عمودية** مع جذع وخطوط zigzag.
 - **إصلاح الخطوط الأفقية**: الخطّان الأفقيّان (Appointment Setting يمينٌ / Sales Support يسارٌ) قُصّر طرفاهما إلى حافة العقدة الفرعية (`stop = R - halfW - edgeGap`) بدل التمدد حتى المركز — داخل `layoutSkillMap()` في js/main.js.
 - **مسار مهني**: Employee → Freelancer → Service Provider → Sales Professional (يعيد استخدام نمط Paid flow).
 
-### 5.14 ماذا ستحصل عليه What You Get (الأسطر 1648–1733)
+### 5.14 ماذا ستحصل عليه What You Get (الأسطر 1662–1740)
 - شعار «واش تحصل عليه بانضمامك للبرنامج؟»
 - **هيكل Hub واحد**: عنصر `SKILLOVA PROGRAM` + 4 أعمدة مميزة مفصولة فقط بشقوق عمودية رفيعة، كل عمود قائمة بنقاط زرقاء صغيرة (بدون أيقونات/كروت):
   - **Training** (5 بنود، آخرها «شهادة إتمام البرنامج 🎓»).
@@ -233,7 +235,7 @@ C:\Users\pC\SKILLOVA\
   - العمود الرابع أصبح **Career Opportunities** (3 بنود) بدل «Opportunities».
 - ملاحظة مرجعية محدثة «* حسب معايير الأكاديمية…» بأسماء المصطلحات اللاتينية داخل `span.get__lat`.
 
-### 5.15 لماذا Skillova؟ Why Skillova (الأسطر 1734–1801)
+### 5.15 لماذا Skillova؟ Why Skillova (الأسطر 1742–1810)
 - شعار «علاش Skillova؟»
 - **كتابة ضخمة وسطية `SKILLOVA`** (مرساة تيبوغرافية) + 5 أعمدة: LEARN / IMPROVE / PRACTICE / BUILD EXPERIENCE / FIND OPPORTUNITIES — كل عمود كلمة حرفية + سطر عربي واحد، والمصطلحات اللاتينية داخل `span.why__lat` لاتجاهها الصحيح (LTR معزول):
   - LEARN: «تتعلّم البيع والإقناع من الصفر…»
@@ -243,40 +245,47 @@ C:\Users\pC\SKILLOVA\
   - FIND OPPORTUNITIES: «تصلك فرص عمل وشراكات…»
 - خاتمة: «Skillova يجمع بين…».
 
-### 5.16 عن Skillova About (الأسطر 1802–1944)
-- **انقسام 40% بصري (صورة المدرب placeholder بوضعية شهرية 4/5) / 60% نص**: شارة، عنوان، فقرة، مصطلحات تمييز (Sales • Closing • Customer Service • Communication)، سطرا بيان، وكتلة بيانات المدرب placeholder (`[اسم المدرب]` / `[نبذة…]`).
+### 5.16 عن Skillova About (الأسطر 1812–1956)
+- **انقسام 40% بصري (صورة المدرب placeholder بوضعية شهرية 4/5) / 60% نص**: شارة، عنوان، فقرة، مصطلحات تمييز (Sales • Closing • Customer Service • Communication)، سطرا بيان، وكتلة بيانات المدرب: `Al-USTADH Abdelmadjid Baki` / `[نبذة…]` مع 4 عناصر تحقق و5 وسوم خبرة.
+- **الصورة الحقيقية**: `assets/instructor.jpg` — الصورة الوحيدة في الصفحة (باستثناء فيديو الـHero)، محاطة بشعارات UI فرعية (SALES, CLOSING, COACHING, PRACTICE).
+- **كشف متتابع**: عناصر `.a-reveal` و`.about-reveal` بتأخيرات `--a-delay` فردية لكل ابن (شارة → عنوان → تاجلاين → lead → LEARN/PRACTICE/OPPORTUNITY).
 
-### 5.17 شهادات الطلاب Testimonials (الأسطر 1945–2037)
+### 5.17 شهادات الطلاب Testimonials (الأسطر 1958–2043)
 - **3 بطاقات متناظرة** (صغير | مميز | صغير) بترجمات placeholder حقيقية (محمد ب./سارة ك./ياسين م.) مع صور رمزية SVG وحواف Five-star — **بدون تقييمات نجوم حقيقية، كلمات فقط**.
 - **على الجوال (≤900px)**: يتحول إلى **كروسل يدوي بسيط** (بطاقة واحدة في كل مرة، بدون auto-advance) مع أزرار prev/next + نقاط dots + سحب أساسي.
 
-### 5.18 العرض Offer (الأسطر 2038–2098)
+### 5.18 العرض Offer (الأسطر 2045–2104)
 - **لحظة التحويل الرئيسية** — القسم الوحيد تقريبًا الذي يستخدم الأزرق كخلفية كاملة:
   - شعار أبيض فوق `SKILLOVA PROGRAM` (على خلفية زرقاء).
   - **لوحة بيضاء عائمة** تكشف مرة واحدة: قائمة فحص قصيرة، سعر `XXXX DA` placeholder + سعر قديم، CTA «أريد الانضمام إلى Skillova 🚀» (`data-open-funnel` — بدون shimmer)، وملاحظة ندرة.
 
-### 5.19 الأسئلة الشائعة FAQ (الأسطر 2099–2286)
+### 5.19 الأسئلة الشائعة FAQ (الأسطر 2106–2293)
 - عنوان «الأسئلة الشائعة» — **أكورديون احترافي وبدون كروت** (صفوف على حدود سفلية فقط).
 - **11 سؤالًا** (خبرة سابقة، مقتصر على الـClosers؟، تطبيق عملي، مدفوع؟، توظيف مضمون؟، Coaching فردي، Live Sessions، CV، LinkedIn، فرص عمل، ضمان وظيفة).
 - أكورديون قابل للوصول بلوحة مفاتيح مع `aria-expanded/aria-controls`، إجابة عبر `grid-template-rows 0fr→1fr`، رمز زائد مرسوم بـCSS يدور 45° ليصبح ×.
 
-### 5.20 الختام Final CTA (الأسطر 2287–2331)
+### 5.20 الختام Final CTA (الأسطر 2295–2344)
 - جملة إعراض كبيرة + سلسلة أسطر إنجليزية منفصلة «Learn Sales. Improve Closing. … Find Opportunities.» + `🚀 جاهز تبدأ؟` مع CTA `data-open-funnel` **«احجز استشارتك المجانية الآن»** (صنف `btn--shimmer` + `finalcta-reveal` `data-delay="9"`) + سطر لاتيني `Skillova — Learn. Practice. Grow.`.
 - Reveal مرتب: `--delay` × 90ms، line 0→8، kick+CTA(9)، tagline(10).
 
-### 5.21 الفوتر Footer (الأسطر 2332–2368)
+### 5.22 زر CTA الجوال العائم Floating Mobile CTA (الأسطر 2390–2402)
+- **زر ثابت (FAB)** يظهر فقط على الجوال أثناء التمرير، مخفي تلقائيًا عند فتح القمع (`is-hidden`).
+- يُستعاد تلقائيًا عند إغلاق القمع عبر `closeFunnel()`.
+
+### 5.23 الفوتر Footer (الأسطر 2347–2388)
 - داكن (كحلي) ومستقر (لا رسوم): شعار `SKILL<em>OVA</em>` + تاجلاين LTR + روابط تذييل (البرنامج، المسار المهني، FAQ، تواصل معنا) + سطر حقوق `© <span id="footer-year">2026</span>` — **تملأ السنة ديناميكيًا** عبر JS لتبقى محدّثة.
 
 ---
 
 ## 6) القمع — استبيان التأهيل (Qualification Funnel)
 
-**التعريف**: نافذة Overlay كاملة الشاشة (`#funnel`، HTML الأسطر 2370–2920) تُفتح عند النقر على أي عنصر يحمل `[data-open-funnel]`. تُغلق بزر الإغلاق `funnel-close` أو Escape أو قفل تمرير الخلفية (`document.body.style.overflow`).
+**التعريف**: نافذة Overlay كاملة الشاشة (`#funnel`، HTML الأسطر 2404–2961) تُفتح عند النقر على أي عنصر يحمل `[data-open-funnel]`. تُغلق بزر الإغلاق `funnel-close` أو Escape أو قفل تمرير الخلفية (`document.body.style.overflow`).
 
 **مواضع الأزرار** `[data-open-funnel]`:
 - «احجز مكانك» — الشريط الإعلاني (سطر 35).
-- «احجز استشارتك المجانية الآن» — الـNavbar (سطر 70، `btn--shimmer`)، درج الجوال (سطر 98، `btn--shimmer`)، الـHero (سطر 138، `btn--hero btn--shimmer`)، الختام (سطر 2308، `btn--shimmer`).
-- «أريد الانضمام إلى Skillova 🚀» — الـOffer (سطر 2067).
+- «احجز استشارتك المجانية الآن» — الـNavbar (سطر 70، `btn--shimmer`)، درج الجوال (سطر 98، `btn--shimmer`)، الـHero (سطر 138، `btn--hero btn--shimmer`)، الختام (سطر ~2308، `btn--shimmer`).
+- «أريد الانضمام إلى Skillova 🚀» — الـOffer (سطر ~2067).
+- زر الجوال العائم (سطر ~2395) — FAB يُخفي عند فتح القمع.
 
 **عناصر الهيكل**:
 - شريط علوي: شعار + عدّاد الخطوات `funnel-step-count` (صيغة «07 / 07»).
@@ -288,19 +297,19 @@ C:\Users\pC\SKILLOVA\
 
 | عنصر DOM (`data-step`) | `goToStep()` | الوصف |
 | --- | --- | --- |
-| `1` (سطر 2390) | 1 | الوضعية الحالية |
-| `2` (2448) | 2 | الهدف الرئيسي |
-| `3` (2506) | 3 | المستوى الحالي في Sales |
-| `4` (2546) | 4 | أي Skill تريد تطويرها (**الاختيار المتعدد**) |
-| `5` (2637) | 5 | أكبر تحدي |
-| `6` (2697) | 6 | وقتك الأسبوعي |
-| `7` (2732) | 7 | الجاهزية للاستثمار |
-| `done` (2767) | **8** | شاشة الانتقال («ممتاز، بقيت خطوة أخيرة 🚀») |
-| `8` — التقويم (2780) | **9** | اختيار الموعد |
-| `9` — الاتصال (2822) | **10** | معلومات الاتصال + الإرسال |
-| `10` — النجاح (2895) | **11** | شاشة نجاح الحجز |
+| `1` (سطر 2431) | 1 | الوضعية الحالية |
+| `2` (2489) | 2 | الهدف الرئيسي |
+| `3` (2547) | 3 | المستوى الحالي في Sales |
+| `4` (2587) | 4 | أي Skill تريد تطويرها (**الاختيار المتعدد**) |
+| `5` (2678) | 5 | أكبر تحدي |
+| `6` (2738) | 6 | وقتك الأسبوعي |
+| `7` (2773) | 7 | الجاهزية للاستثمار |
+| `done` (2808) | **8** | شاشة الانتقال («ممتاز، بقيت خطوة أخيرة 🚀») |
+| `8` — التقويم (2821) | **9** | اختيار الموعد |
+| `9` — الاتصال (2863) | **10** | معلومات الاتصال + الإرسال |
+| `10` — النجاح (2936) | **11** | شاشة نجاح الحجز |
 
-### 6.2 محرك `goToStep(stepNumber)` (js/main.js:2452)
+### 6.2 محرك `goToStep(stepNumber)` (js/main.js:2514)
 - يستقبل رقم خطوة **1-based** ويحوله إلى فهرس `stepNumber - 1` في `querySelectorAll('.funnel__step')`.
 - يخزن `funnelState.current = stepNumber`.
 - شريط التقدم: `pct = (min(stepNumber,7)/7)*100` → **يثبت عند 100% ابتداءً من الشاشة الانتقالية (8)**.
@@ -310,10 +319,10 @@ C:\Users\pC\SKILLOVA\
 - عند خطوة النجاح (11): يُضاف `funnel--complete` وتُملأ شاشة النجاح عبر `populateSuccess()`.
 
 ### 6.3 جلسة واحدة — `session_id`
-- عند فتح القمع يُولَّد `sessionId` (عبر `generateSessionId()`) ويُحفظ في `funnelState.sessionId` (أسطر 2350/2414).
-- كل اتصال بـ`update-lead` أو `confirm-booking` يحمل `{ session_id, data }` (أسطر 2381/3272).
+- عند فتح القمع يُولَّد `sessionId` (عبر `generateSessionId()`) ويُحفظ في `funnelState.sessionId` (أسطر 2397–2410).
+- كل اتصال بـ`update-lead` أو `confirm-booking` يحمل `{ session_id, data }` (أسطر 2440/3337).
 
-### 6.4 اختيار الخيار الواحد (js/main.js:2503)
+### 6.4 اختيار الخيار الواحد (js/main.js:2567)
 - النقر على `.funnel__option` يزيل التحديد من الأشقاء ثم يضيف `is-selected`.
 - يخزن القيمة في `funnelState.answers['step_' + stepNum]` مع console.log.
 - **حفظ تدريجي (Progressive save)**: بعد كل إجابة تأهيل (1–7) يُستدعى `queueProgressiveSave(buildLeadPayload())` → `POST /.netlify/functions/update-lead` (تُستثنى قيمة `multi-skill` في خطوة 4 حتى يقرَّ بها زر «متابعة»).
@@ -321,7 +330,7 @@ C:\Users\pC\SKILLOVA\
 - **فرع خطوة الاتصال (data-step≈9)**: اختيار «طريقة التواصل المفضلة» يحدّث الحالة ولا يقفز تلقائيًا.
 - بقية الخطوات: انقر فوق تلقائي إلى `stepNumber + 1` بعد **250ms**.
 
-### 6.5 التنقل الرجعي (js/main.js:2609)
+### 6.5 التنقل الرجعي (js/main.js:2676)
 - الافتراضي `prevStep = funnelState.current - 1`.
 - يدعم `data-back-step` لهدف صريح (رابط «اختار موعد آخر» من فشل الحجز يعود إلى خطوة التقويم 9).
 - إذا `prevStep ≤ 7` يُستعاد التحديد البصري السابق من `answers` — لا تُستعاد الشاشة الانتقالية/التقويم/الاتصال.
@@ -330,7 +339,7 @@ C:\Users\pC\SKILLOVA\
 
 ## 7) خطوة التقويم (Order «8» — goToStep 9)
 
-**الموقع**: HTML الأسطر 2780–2821؛ التنسيق `funnel__step--calendar` في CSS؛ المنطق في JS (الأسطر 2656–2922).
+**الموقع**: HTML الأسطر 2821–2861؛ التنسيق `funnel__step--calendar` في CSS؛ المنطق في JS (الأسطر 2724–2989).
 
 ### 7.1 اصطلاحات البيانات
 ```js
@@ -443,35 +452,36 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 
 | السطر | القسم | المهام |
 | --- | --- | --- |
-| 11–112 | NAVBAR IA Router | scroll-state (40px)، toggle الجوال، إغلاق خارجي/Escape/breakpoint |
-| 113–156 | HERO | parallax خفيف على المركّبة البصرية |
-| 157–206 | PROBLEM | IntersectionObserver reveal موقّت |
-| 207–278 | SHARED SCROLL-FILL HELPER | «الخط يمتلئ أثناء التمرير» مولد؛ rAF + scroll/resize/breakpoints/load؛ تقارير تقدم per-section |
-| 279–375 | SKILLOVA METHOD | تعبئة الخط الأفقية + حالات المراحل + تحريك النّبض الضوئي مع حافة التعبئة |
-| 376–425 | CURRICULUM | wave-card reveals |
-| 426–510 | LIVE SESSIONS + COACHING | reveals نص/لوحة |
-| 511–574 | ONE-TO-ONE COACHING DASHBOARD | أشرطة التقدم/الشفافيات تحديث بعد reveal |
-| 575–807 | LIVE PANEL MICRO-DEMO | دورة أكتباك جلسة: quote → prompt → features → badge «Feedback received ✓» ثم fade |
-| 808–841 | LIVE TEXT REVEAL | توقيت reveal عمود النص |
-| 842–939 | CAREER PATH | تعبئة خط زمني عمودي + حالات المراحل (desktop) |
-| 940–1110 | CAREER MOBILE STRIP + MODAL | شريط منزلق أفقي، dots، نافذة محتوى واحدة، اختيار عمود (وصف مقروء من نسخة desktop) |
-| 1111–1305 | CAREER PREPARATION | fall-indexes + `IntersectionObserver`: صفوف → Readiness % → CAREER READY؛ مراقبة الوضع المتناظر |
-| 1306–1382 | PAID PRACTICE | تعبئة خط التدفق + الحالات |
-| 1383–1618 | CAREER COMMUNITY | Typewriter، دورية demo للتبويبات (underline منزلق)، دورة دوائر العمل؛ مع reduced-motion تعطّل الدومو |
-| 1619–1770 | SKILL TO SERVICE | multi-step reveal: core scale → الخطوط تتسع → 8 فروع pop → career path (+ **إصلاح الخطوط الأفقية** i=2/i=6 في `layoutSkillMap`) |
-| 1771–1817 | WHO IS THIS FOR | bento network reveal |
-| 1818–1885 | WHAT YOU GET | hub + 4 clusters reveal |
-| 1886–1962 | WHY SKILLOVA | wordmark scale + 5 principles + closing |
-| 1963–2012 | ABOUT SKILLOVA | image slow fade ثم text block |
-| 2013–2158 | TESTIMONIALS | desktop 3-col، موبايل manual carousel (prev/next/dots/swipe) — no auto-advance |
-| 2159–2205 | OFFER | لوحة entrance |
-| 2206–2276 | FAQ | accordion toggle + focus trapping بسيط |
-| 2277–2322 | FINAL CTA | reveal بترتيب `--delay × 90ms` |
-| 2323–2334 | FOOTER | `footer-year` سنة الجاري |
-| 2335–2655 | QUALIFICATION FUNNEL | session_id، open/close/goToStep، options، multiselect، back، **حفظ تدريجي عبر update-lead** |
-| 2656–2922 | CALENDAR STEP | date pills (Intl ar-DZ)، جلب خريطة التوفر كاملة مرة واحدة، time slots، confirm → `goToStep(10)` |
-| 2923–3303 | CONTACT STEP + SUBMIT FLOW | تحقق (اسم/هاتف/بريد/تفضيل) + buildLeadPayload + حفظ تدريجي؛ سلسلة الإرسال: duplicate-phone guard → check-slot freshness → confirm-booking؛ `SLOT_ALREADY_BOOKED`/rebook؛ resetFunnelForNewRound |
-| 3304–3397 | SUCCESS STEP (11) | تعبئة شاشة النجاح (التاريخ/الوقت/الوسيلة) + إغلاق |
+| 14–47 | NAVBAR IA Router | scroll-state (40px)، toggle الجوال، إغلاق خارجي/Escape/breakpoint |
+| 128–155 | HERO | parallax خفيف على المركّبة البصرية |
+| 157–217 | HERO VIDEO MUTE CONTROL *(جديد)* | زر كتم/تشغيل الفيديو، `syncHeroMuteState()`، تلاشي 1.5s، `aria-label` عربي |
+| 235–267 | PROBLEM | IntersectionObserver reveal موقّت |
+| 283–339 | SHARED SCROLL-FILL HELPER | «الخط يمتلئ أثناء التمرير» مولد؛ rAF + scroll/resize/breakpoints/load؛ تقارير تقدم per-section |
+| 358–436 | SKILLOVA METHOD | تعبئة الخط الأفقية + حالات المراحل + تحريك النّبض الضوئي مع حافة التعبئة |
+| 451–486 | CURRICULUM | wave-card reveals |
+| 502–571 | LIVE SESSIONS + COACHING | reveals نص/لوحة |
+| 589–635 | ONE-TO-ONE COACHING DASHBOARD | أشرطة التقدم/الشفافيات تحديث بعد reveal |
+| 656–868 | LIVE PANEL MICRO-DEMO | دورة أكتباك جلسة: quote → prompt → features → badge «Feedback received ✓» ثم fade |
+| 878–902 | LIVE TEXT REVEAL | توقيت reveal عمود النص |
+| 916–1000 | CAREER PATH | تعبئة خط زمني عمودي + حالات المراحل (desktop) |
+| 1019–1171 | CAREER MOBILE STRIP + MODAL | شريط منزلق أفقي، dots، نافذة محتوى واحدة، اختيار عمود (وصف مقروء من نسخة desktop) |
+| 1193–1366 | CAREER PREPARATION | fall-indexes + `IntersectionObserver`: صفوف → Readiness % → CAREER READY؛ مراقبة الوضع المتناظر |
+| 1382–1443 | PAID PRACTICE | تعبئة خط التدفق + الحالات |
+| 1466–1679 | CAREER COMMUNITY | Typewriter، دورية demo للتبويبات (underline منزلق)، دورة دوائر العمل؛ مع reduced-motion تعطّل الدومو |
+| 1703–1831 | SKILL TO SERVICE | multi-step reveal: core scale → الخطوط تتسع → 8 فروع pop → career path (+ **إصلاح الخطوط الأفقية** i=2/i=6 في `layoutSkillMap`) |
+| 1844–1878 | WHO IS THIS FOR | bento network reveal |
+| 1896–1946 | WHAT YOU GET | hub + 4 clusters reveal |
+| 1967–2023 | WHY SKILLOVA | wordmark scale + 5 principles + closing |
+| 2041–2073 | ABOUT SKILLOVA | per-child stagger reveal (`.a-reveal` + `.about-reveal`) — **مُعاد تصميمه** |
+| 2093–2219 | TESTIMONIALS | desktop 3-col، موبايل manual carousel (prev/next/dots/swipe) — no auto-advance |
+| 2234–2266 | OFFER | لوحة entrance |
+| 2287–2337 | FAQ | accordion toggle + focus trapping بسيط |
+| 2351–2383 | FINAL CTA | reveal بترتيب `--delay × 90ms` |
+| 2392–2395 | FOOTER | `footer-year` سنة الجاري |
+| 2397–2490 | QUALIFICATION FUNNEL | session_id، open/close (مع إخفاء Floating Mobile CTA)، goToStep، options، multiselect، back، **حفظ تدريجي عبر update-lead** |
+| 2724–2989 | CALENDAR STEP | date pills (Intl ar-DZ)، جلب خريطة التوفر كاملة مرة واحدة، time slots، confirm → `goToStep(10)` |
+| 2991–3396 | CONTACT STEP + SUBMIT FLOW | تحقق (اسم/هاتف/بريد/تفضيل) + `buildLeadPayload` + `ARABIC_LABELS` + حفظ تدريجي؛ سلسلة الإرسال: duplicate-phone guard → check-slot freshness → confirm-booking؛ `SLOT_ALREADY_BOOKED`/rebook؛ `resetFunnelForNewRound` |
+| 3398–3465 | SUCCESS STEP (11) + INIT | تعبئة شاشة النجاح (التاريخ/الوقت/الوسيلة) + إغلاق + `buildDateScroller()` + `goToStep(1)` |
 
 كلها داخل **IIFE** (`(function(){ 'use strict'; … })()`) بحيث لا توجد متغيرات عالمية.
 
@@ -484,7 +494,7 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 3. **لا يجوز** إضافة مكتبات خارجية أو Frameworks.
 4. **لا يجوز** كشف رابط GAS أو `GAS_SHARED_SECRET` في الجانب العميل — يمرّان فقط عبر دوال Netlify من متغيرات البيئة.
 5. صياغة المحتوى بحذر: التطبيق المدفوع/فرص العمل **غير مضمونة** (تُستخدم صيغ مشروطة).
-6. الحقوق التنسيقية placeholder (`[…]`) تبقى حتى تُستبدل بمحتوى حقيقي (المدرب، السعر، التوظيف، فيديو الـHero، رمز البكسل).
+6. الحقوق التنسيقية placeholder (`[…]`) تبقى حتى تُستبدل بمحتوى حقيقي (المدرب، السعر، فيديو الـHero، رمز البكسل). **ملاحظة**: صورة المدرب `assets/instructor.jpg` موجودة فعلًا (وليست placeholder).
 7. **المصطلحات اللاتينية داخل العربية** توضع دائمًا في عنصر بـ`dir="ltr"` + `unicode-bidi: isolate` (أنماط `method__lat`, `curriculum__lat`, `get__lat`, `why__lat`).
 8. `submit-lead.js` لم يعد موجودًا — سلسلة الإرسال الحالية: `check-duplicate-phone` → `check-slot` → `confirm-booking`.
 
@@ -498,12 +508,15 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 | خطوة التقويم 9 (خريطة توفر كاملة + خانات + confirm) | ✔ منجز |
 | خطوة الاتصال 10 (تحقق + duplicate-phone + نضارة slot) | ✔ منجز |
 | شاشة النجاح 11 + إعادة فتح نظيفة (`resetFunnelForNewRound`) | ✔ منجز |
+| **تحكم كتم/تشغيل فيديو الـHero** | ✔ منجز |
+| **زر الجوال العائم (Floating Mobile CTA)** | ✔ منجز |
+| **إعادة تصميم قسم About (صورة المدرب الفعلية + كشف متتابع)** | ✔ منجز |
 | دوال Netlify: `_gas.js` + `get-availability` / `check-slot` / `check-duplicate-phone` / `update-lead` / `confirm-booking` | ✔ منجز (تُختبر عبر dev-server و`npm run dev`) |
 | `google-apps-script/Code.gs` | ✔ مكتوب في المستودع — ⏳ إلصاق يدوي في Apps Script + إعادة نشر |
 | خاصية `GAS_SHARED_SECRET` في Apps Script + متغيرا `GAS_WEBAPP_URL`/`GAS_SHARED_SECRET` في Netlify | ⏳ إضافة |
 | مولّد المواعيد (`setupDailyTrigger()` / `generateAvailability()`) | ⏳ تشغيل يدوي لمرة |
 | Meta Conversions API | ⏳ معطّل بانتظار بيانات Skillova |
-| صورة/معلومات المدرب، السعر، فيديو الـHero | ⏳ محتوى placeholder |
+| معلومات المدرب (نبذة كاملة)، السعر النهائي، فيديو الـHero | ⏳ محتوى placeholder / قيد التجهيز |
 
 ---
 
@@ -512,7 +525,8 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 - **اللغة العربية للتقويم**: أسماء أيام/أشهر تأتي من `Intl.DateTimeFormat('ar-DZ', …)` — لا تُغيَّر بأي حال إلى مصفوفات مكتوبة يدويًا (سبب أخطاء التوجيه السابقة؛ وكانت الحاوية بحاجة إلى `direction: rtl; unicode-bidi: plaintext;` على النصوص المولّدة ديناميكيًا).
 - **الاتجاه في الأجزاء اللاتينية**: `.skill__path`, `.why__wordmark`, `.finalcta__lines`, وكل `…__lat` (`method__lat`, `curriculum__lat`, `get__lat`, `why__lat`) تستخدم `direction: ltr` / `unicode-bidi: isolate` لقراءة إنجليزية سليمة داخل صفحة RTL.
 - **زر CTA المتحرك `btn--shimmer`** (css/style.css ~249–335): يشمل 4 أزرار (Navbar، درج الجوال، Hero، Final CTA) — شريط لمعان منزلق عبر `::before` (`translateX(-150%→150%)`) + توهج مقيم `btnAttention` (يقترض `--cta-rest-shadow`: `shadow-sm` افتراضيًا، `shadow-md` لـ`.btn--hero`)؛ **معطّل كليًا عند `prefers-reduced-motion`**. أزرار الشريط الإعلاني والـOffer بلا shimmer.
-- **الفواصل**: شعار تكسير الجوال عند 900px (56.25rem)، وأيضًا بقية نقاط بيكسل الحالية: 992px، 480px (30rem).
+- **الفواصل**: شعار تكسير الجوال عند 900px (56.25rem)، وأيضًا بقية نقاط بيكسل الحالية: 992px، 480px (30rem). الفاصل الرئيسي للجوال ≤900px.
 - **السرعة/المقاربات**: تُستخدم rAF + scroll listeners سلبية؛ عند تفعيل `prefers-reduced-motion` تُلغى حركات التكرار/الـmarquee/اللمعان/الدوران وتُعرض الحالات النهائية الساكنة.
 - **إمكانية الوصول**: `aria-expanded/controls`، أدوار `role="tablist/tab"`، `role="dialog" aria-modal`، `aria-hidden` للمحتوى المتكرر في الـmarquee، ووصف نصي لجميع الأزرار الأيقونية.
 - **تطوير محلي**: `npm run dev` لا يتطلب نشرًا؛ الدوال تُختبر عبر `/.netlify/functions/*` مع `.env` (المتغيران الإلزاميان).
+- **زر الجوال العائم**: `btn--float-mobile` في `index.html` (سطر ~2390) — FAB ثابت على الجوال فقط، يُخفي تلقائيًا عند فتح القمع ويُعاد عند إغلاقه (المنطق في `js/main.js` lines 2479–2490).

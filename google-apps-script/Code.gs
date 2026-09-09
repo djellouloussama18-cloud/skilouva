@@ -40,12 +40,12 @@
 const SHEET_LEADS_NAME = 'العملاء المحتملون';
 const SHEET_AVAILABILITY_NAME = 'الأوقات المتاحة';
 
-/* أعمدة الورقة — Skillova (18 عمودًا رئيسيًا + عمودين داخليين للتتبع) */
+/* أعمدة الورقة — Skillova (19 عمودًا رئيسيًا + عمودين داخليين للتتبع) */
 const LEADS_HEADERS = [
   'التاريخ', 'الاسم الكامل', 'رقم الهاتف', 'البريد الإلكتروني',
   'طريقة التواصل المفضلة', 'الوضعية الحالية', 'الهدف المهني',
   'مستوى الخبرة', 'المهارة المطلوبة', 'أكبر تحدي',
-  'الوقت الأسبوعي المتاح', 'جاهزية الاستثمار', 'تاريخ الموعد',
+  'الوقت الأسبوعي المتاح', 'الجاهزية للبدء الفوري', 'جاهزية الاستثمار', 'تاريخ الموعد',
   'وقت الموعد', 'المصدر', 'تفاصيل UTM', 'حالة العميل', 'ملاحظة',
   'معرف الجلسة', 'حالة التسجيل'
 ];
@@ -74,6 +74,7 @@ const FIELD_MAP = {
   skillInterest:       'المهارة المطلوبة',
   mainChallenge:       'أكبر تحدي',
   weeklyTime:          'الوقت الأسبوعي المتاح',
+  readinessToStart:    'الجاهزية للبدء الفوري',
   investmentReadiness: 'جاهزية الاستثمار',
   appointmentTime:     'وقت الموعد',
   source:              'المصدر',
@@ -160,6 +161,7 @@ function updateLead(body) {
     skillInterest:       sanitizeValue(Array.isArray(data.skillInterest) ? data.skillInterest.join(', ') : (data.skillInterest || '')),
     mainChallenge:       sanitizeValue(data.mainChallenge || ''),
     weeklyTime:          sanitizeValue(data.weeklyTime || ''),
+    readinessToStart:    sanitizeValue(data.readinessToStart || ''),
     investmentReadiness: sanitizeValue(data.investmentReadiness || ''),
     appointmentTime:     sanitizeValue(data.appointmentTime || ''),
     source:              sanitizeValue(data.source || ''),
@@ -320,12 +322,12 @@ function confirmBooking(body) {
 }
 
 /* ==========================================================
-   توليد المواعيد — نافذة 14 يومًا، أوقات 08:00 → 21:00
+   توليد المواعيد — نافذة 14 يومًا، أوقات 09:00 → 23:00
    ========================================================== */
 
 const AVAILABILITY_WINDOW_DAYS = 14;
-const SLOT_START_HOUR = 8;
-const SLOT_END_HOUR = 22; // الحدّ: الحلقة تولّد أوقات بدء 08:00..21:00 (14 خانة/يوم)
+const SLOT_START_HOUR = 9;
+const SLOT_END_HOUR = 24; // الحدّ: الحلقة تولّد أوقات بدء 09:00..23:00 (15 خانة/يوم)
 
 function generateAvailability() {
   const sheet = getAvailabilitySheet();
@@ -340,7 +342,7 @@ function generateAvailability() {
     const targetDate = new Date(today); targetDate.setDate(today.getDate() + d);
     const dateKey = Utilities.formatDate(targetDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
     if (!existingDates.has(dateKey)) {
-      // أوقات بدء 08:00 حتى 21:00 (حصريًا < 22) = 14 خانة/يوم
+      // أوقات بدء 09:00 حتى 23:00 (حصريًا < 24) = 15 خانة/يوم
       for (let hour = SLOT_START_HOUR; hour < SLOT_END_HOUR; hour++) {
         const timeStr = (hour < 10 ? '0' + hour : hour) + ':00';
         rowsToAdd.push([dateKey, timeStr, false, '']);
