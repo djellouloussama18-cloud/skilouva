@@ -1414,6 +1414,7 @@ input, select, textarea {
    ============================================================ */
 .method {
   background-color: var(--clr-bg); /* full contrast vs Problem above */
+  border-top: 1px solid var(--clr-border); /* hairline break from white About above */
   padding-block: var(--space-11) var(--space-10);
   overflow: hidden;
 }
@@ -4920,7 +4921,7 @@ input, select, textarea {
 }
 
 .about__visual.a-reveal.is-visible {
-  transform: translateX(0) scale(1);
+  transform: translateX(0) translateY(-1rem) scale(1);
 }
 
 /* Text: gentle fade up as one block, shortly after the image */
@@ -7791,6 +7792,14 @@ input, select, textarea {
     width: 100%;
     margin-inline: auto;
     order: -1; /* ensure the visual sits above the text when stacked */
+  }
+
+  .about__visual.a-reveal.is-visible {
+    transform: translateY(-0.5rem) scale(1);
+  }
+
+  .about__chip--br {
+    bottom: 3.5rem;
   }
 
   .about__text {

@@ -638,6 +638,152 @@
     </section>
 
     <!-- ============================================================
+           ABOUT SKILLOVA SECTION
+           A deliberately HUMAN, calm "about who we are" split layout —
+           a calm breather sitting right after the Problem section.
+           Reuses the Hero visual-placeholder technique & the Live
+           split editorial layout (grid + logical properties), but with
+           a 40%/60% split and a portrait 4/5 photo placeholder instead
+           of a small avatar/card. Two columns on desktop:
+             visual (40%, sits visually LEFT in RTL): a tall, rounded
+                     portrait placeholder using the Hero's muted
+                     gradient + border + shadow, with a centered muted
+                     label "صورة المدرب" so it reads as a swap-in slot
+             text   (60%, visually RIGHT): eyebrow, heading, body w/
+                     brand-accented inline terms, two medium statement
+                     lines, and a thin-top-bordered "trainer
+                     credentials" placeholder block ([اسم المدرب]/[نبذة…])
+           Animation strength LOW (⭐⭐): image fades in slowly first,
+           text column fades up as one block after it — calm, no heavy
+           per-line stagger. White bg (--clr-bg). js/main.js reveal.
+           ============================================================ -->
+    <section id="about-skillova" class="about" aria-labelledby="about-heading">
+      <div class="container">
+        <div class="about__grid">
+
+          <!-- Text column (60%, visually RIGHT in RTL — first item) -->
+          <div class="about__text">
+            <!-- Eyebrow -->
+            <p class="about__eyebrow about-reveal">من نحن؟</p>
+
+            <!-- Heading -->
+            <h2 class="about__heading about-reveal" id="about-heading">Skillova</h2>
+
+            <!-- Short tagline (emphasized) -->
+            <p class="about__tagline about-reveal">نتعلم المهارة باش نقدروا نطبقوها.</p>
+
+            <!-- Lead copy block: intro + skill tags + mission statements -->
+            <div class="about__lead about-reveal">
+              <p class="about__copy">
+                Skillova هي أكاديمية عملية هدفها مساعدة الشباب على بناء مهارات
+                حقيقية مرتبطة بسوق العمل، في:
+              </p>
+
+              <!-- Emphasized inline terms (brand-blue accent) -->
+              <p class="about__skills">
+                <span class="about__accent">Sales</span>
+                <span class="about__sep">•</span>
+                <span class="about__accent">Closing</span>
+                <span class="about__sep">•</span>
+                <span class="about__accent">Customer Service</span>
+                <span class="about__sep">•</span>
+                <span class="about__accent">Communication</span>
+              </p>
+
+              <p class="about__copy">لكن بالنسبة لنا، التعلم ما يوقفش عند مشاهدة الدروس.</p>
+              <p class="about__copy">
+                تتعلم، تتدرب، تحصل على Feedback، تطور مستواك، وبعدها تفتح لك
+                المهارة أبوابًا حقيقية للتطبيق والفرص المهنية.
+              </p>
+            </div>
+
+            <!-- 3 stat-style items (LEARN / PRACTICE / OPPORTUNITY) -->
+            <div class="about__stats">
+              <div class="about__stat about-reveal">
+                <span class="about__stat-label" dir="ltr">LEARN</span>
+                <p class="about__stat-desc">نبني المهارة.</p>
+              </div>
+              <div class="about__stat about-reveal">
+                <span class="about__stat-label" dir="ltr">PRACTICE</span>
+                <p class="about__stat-desc">نحول المعرفة إلى قدرة حقيقية.</p>
+              </div>
+              <div class="about__stat about-reveal">
+                <span class="about__stat-label" dir="ltr">OPPORTUNITY</span>
+                <p class="about__stat-desc">نساعدك تكون جاهز للفرص المهنية.</p>
+              </div>
+            </div>
+
+            <!-- Trainer credentials (real profile) -->
+            <div class="about__creds about-reveal">
+              <p class="about__creds-name">الأستاذ عبد المجيد بكي</p>
+              <p class="about__creds-role">خبير في المبيعات والتسويق الرقمي</p>
+              <p class="about__creds-bio">
+                أكثر من 3 سنوات من الخبرة في المبيعات، مع تجربة في إغلاق
+                الصفقات والتسويق الرقمي والعمل مع أسواق الجزائر ودول الخليج.
+              </p>
+
+              <!-- Key highlights -->
+              <ul class="about__creds-list">
+                <li class="about__creds-item">
+                  <span class="about__creds-check" aria-hidden="true">✓</span>
+                  <span>أكثر من 3 سنوات خبرة في المبيعات</span>
+                </li>
+                <li class="about__creds-item">
+                  <span class="about__creds-check" aria-hidden="true">✓</span>
+                  <span>خبرة في <span class="about__lat" dir="ltr">Closing &amp; Negotiation</span></span>
+                </li>
+                <li class="about__creds-item">
+                  <span class="about__creds-check" aria-hidden="true">✓</span>
+                  <span>تجربة في أسواق الجزائر ودول الخليج</span>
+                </li>
+                <li class="about__creds-item">
+                  <span class="about__creds-check" aria-hidden="true">✓</span>
+                  <span>خبرة في <span class="about__lat" dir="ltr">Digital Marketing &amp; Lead Generation</span></span>
+                </li>
+              </ul>
+
+              <hr class="about__creds-divider" />
+
+              <!-- Areas of expertise -->
+              <p class="about__creds-tags-title">مجالات الخبرة</p>
+              <ul class="about__creds-tags">
+                <li class="about__creds-tag">Sales</li>
+                <li class="about__creds-tag">Negotiation</li>
+                <li class="about__creds-tag">Closing</li>
+                <li class="about__creds-tag">Digital Marketing</li>
+                <li class="about__creds-tag">Marketing Strategy</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Portrait photo (visual, 40%, LEFT in RTL) -->
+          <div class="about__visual a-reveal">
+            <div class="about__visual-inner">
+              <div class="about__portrait">
+                <img class="about__portrait-img" src="assets/instructor.jpg"
+                  alt="صورة المدرب عبد المجيد بكي في أكاديمية Skillova"
+                  width="765" height="1024" loading="lazy" />
+              </div>
+
+              <!-- Ambient "UI system" chips around the frame (clear of the face) -->
+              <span class="about__chip about__chip--tl">SALES</span>
+              <span class="about__chip about__chip--tr">CLOSING</span>
+              <span class="about__chip about__chip--bl">COACHING</span>
+              <span class="about__chip about__chip--br">PRACTICE</span>
+
+              <!-- Floating badge overlapping the frame's bottom edge -->
+              <div class="about__badge">
+                <span class="about__badge-title">SKILLOVA ACADEMY</span>
+                <span class="about__badge-sub" dir="ltr">Learn → Practice → Opportunity</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
            SKILLOVA METHOD SECTION
            Scroll-driven horizontal journey/flow (not cards).
            ============================================================ -->
@@ -1967,152 +2113,6 @@
         <p class="why__close w-reveal">
           Skillova يجمع بين التعلم، التدريب والاستعداد الحقيقي لسوق العمل.
         </p>
-      </div>
-    </section>
-
-    <!-- ============================================================
-           ABOUT SKILLOVA SECTION
-           A deliberately HUMAN, calm "about who we are" split layout —
-           a deliberate breather after all the data-driven sections.
-           Reuses the Hero visual-placeholder technique & the Live
-           split editorial layout (grid + logical properties), but with
-           a 40%/60% split and a portrait 4/5 photo placeholder instead
-           of a small avatar/card. Two columns on desktop:
-             visual (40%, sits visually LEFT in RTL): a tall, rounded
-                     portrait placeholder using the Hero's muted
-                     gradient + border + shadow, with a centered muted
-                     label "صورة المدرب" so it reads as a swap-in slot
-             text   (60%, visually RIGHT): eyebrow, heading, body w/
-                     brand-accented inline terms, two medium statement
-                     lines, and a thin-top-bordered "trainer
-                     credentials" placeholder block ([اسم المدرب]/[نبذة…])
-           Animation strength LOW (⭐⭐): image fades in slowly first,
-           text column fades up as one block after it — calm, no heavy
-           per-line stagger. White bg (--clr-bg). js/main.js reveal.
-           ============================================================ -->
-    <section id="about-skillova" class="about" aria-labelledby="about-heading">
-      <div class="container">
-        <div class="about__grid">
-
-          <!-- Text column (60%, visually RIGHT in RTL — first item) -->
-          <div class="about__text">
-            <!-- Eyebrow -->
-            <p class="about__eyebrow about-reveal">من نحن؟</p>
-
-            <!-- Heading -->
-            <h2 class="about__heading about-reveal" id="about-heading">Skillova</h2>
-
-            <!-- Short tagline (emphasized) -->
-            <p class="about__tagline about-reveal">نتعلم المهارة باش نقدروا نطبقوها.</p>
-
-            <!-- Lead copy block: intro + skill tags + mission statements -->
-            <div class="about__lead about-reveal">
-              <p class="about__copy">
-                Skillova هي أكاديمية عملية هدفها مساعدة الشباب على بناء مهارات
-                حقيقية مرتبطة بسوق العمل، في:
-              </p>
-
-              <!-- Emphasized inline terms (brand-blue accent) -->
-              <p class="about__skills">
-                <span class="about__accent">Sales</span>
-                <span class="about__sep">•</span>
-                <span class="about__accent">Closing</span>
-                <span class="about__sep">•</span>
-                <span class="about__accent">Customer Service</span>
-                <span class="about__sep">•</span>
-                <span class="about__accent">Communication</span>
-              </p>
-
-              <p class="about__copy">لكن بالنسبة لنا، التعلم ما يوقفش عند مشاهدة الدروس.</p>
-              <p class="about__copy">
-                تتعلم، تتدرب، تحصل على Feedback، تطور مستواك، وبعدها تفتح لك
-                المهارة أبوابًا حقيقية للتطبيق والفرص المهنية.
-              </p>
-            </div>
-
-            <!-- 3 stat-style items (LEARN / PRACTICE / OPPORTUNITY) -->
-            <div class="about__stats">
-              <div class="about__stat about-reveal">
-                <span class="about__stat-label" dir="ltr">LEARN</span>
-                <p class="about__stat-desc">نبني المهارة.</p>
-              </div>
-              <div class="about__stat about-reveal">
-                <span class="about__stat-label" dir="ltr">PRACTICE</span>
-                <p class="about__stat-desc">نحول المعرفة إلى قدرة حقيقية.</p>
-              </div>
-              <div class="about__stat about-reveal">
-                <span class="about__stat-label" dir="ltr">OPPORTUNITY</span>
-                <p class="about__stat-desc">نساعدك تكون جاهز للفرص المهنية.</p>
-              </div>
-            </div>
-
-            <!-- Trainer credentials (real profile) -->
-            <div class="about__creds about-reveal">
-              <p class="about__creds-name">الأستاذ عبد المجيد بكي</p>
-              <p class="about__creds-role">خبير في المبيعات والتسويق الرقمي</p>
-              <p class="about__creds-bio">
-                أكثر من 3 سنوات من الخبرة في المبيعات، مع تجربة في إغلاق
-                الصفقات والتسويق الرقمي والعمل مع أسواق الجزائر ودول الخليج.
-              </p>
-
-              <!-- Key highlights -->
-              <ul class="about__creds-list">
-                <li class="about__creds-item">
-                  <span class="about__creds-check" aria-hidden="true">✓</span>
-                  <span>أكثر من 3 سنوات خبرة في المبيعات</span>
-                </li>
-                <li class="about__creds-item">
-                  <span class="about__creds-check" aria-hidden="true">✓</span>
-                  <span>خبرة في <span class="about__lat" dir="ltr">Closing &amp; Negotiation</span></span>
-                </li>
-                <li class="about__creds-item">
-                  <span class="about__creds-check" aria-hidden="true">✓</span>
-                  <span>تجربة في أسواق الجزائر ودول الخليج</span>
-                </li>
-                <li class="about__creds-item">
-                  <span class="about__creds-check" aria-hidden="true">✓</span>
-                  <span>خبرة في <span class="about__lat" dir="ltr">Digital Marketing &amp; Lead Generation</span></span>
-                </li>
-              </ul>
-
-              <hr class="about__creds-divider" />
-
-              <!-- Areas of expertise -->
-              <p class="about__creds-tags-title">مجالات الخبرة</p>
-              <ul class="about__creds-tags">
-                <li class="about__creds-tag">Sales</li>
-                <li class="about__creds-tag">Negotiation</li>
-                <li class="about__creds-tag">Closing</li>
-                <li class="about__creds-tag">Digital Marketing</li>
-                <li class="about__creds-tag">Marketing Strategy</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Portrait photo (visual, 40%, LEFT in RTL) -->
-          <div class="about__visual a-reveal">
-            <div class="about__visual-inner">
-              <div class="about__portrait">
-                <img class="about__portrait-img" src="assets/instructor.jpg"
-                  alt="صورة المدرب عبد المجيد بكي في أكاديمية Skillova"
-                  width="765" height="1024" loading="lazy" />
-              </div>
-
-              <!-- Ambient "UI system" chips around the frame (clear of the face) -->
-              <span class="about__chip about__chip--tl">SALES</span>
-              <span class="about__chip about__chip--tr">CLOSING</span>
-              <span class="about__chip about__chip--bl">COACHING</span>
-              <span class="about__chip about__chip--br">PRACTICE</span>
-
-              <!-- Floating badge overlapping the frame's bottom edge -->
-              <div class="about__badge">
-                <span class="about__badge-title">SKILLOVA ACADEMY</span>
-                <span class="about__badge-sub" dir="ltr">Learn → Practice → Opportunity</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
       </div>
     </section>
 
