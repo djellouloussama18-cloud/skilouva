@@ -414,6 +414,167 @@
     </section>
 
     <!-- ============================================================
+           OFFER SECTION
+           The main conversion moment. One of the only places on the
+           whole site allowed to use --clr-brand as a FULL section
+           background. Centered on that blue field floats a WHITE
+           "offer panel" (rounded, generous padding, --shadow-lg),
+           max-width constrained so it reads as a card floating on the
+           blue — NOT full-bleed white.
+           Inside the panel, in order:
+             heading          مستعد تبني Skill... (white, above panel)
+             program label    SKILLOVA PROGRAM (small, light-tinted pill)
+             short list       conversion-relevant highlights only
+                              (genuinely short, reuse the accent-dot
+                              list pattern — no icons)
+             price            XXXX DA (placeholder, keep literal)
+             old price        [السعر القديم إذا كان حقيقيًا] (muted
+                              strikethrough placeholder)
+             CTA              أريد الانضمام إلى Skillova 🚀 (large
+                              brand-blue button, .btn--hero treatment)
+             note             muted bracketed scarcity context
+           Animation LOW (⭐⭐): the white panel fades/scales in once as
+           a whole. CTA hover reuses the existing .btn--hero treatment.
+           ============================================================ -->
+    <section id="offer" class="offer" aria-labelledby="offer-heading">
+      <div class="container">
+
+        <!-- Heading (white text, above the panel) -->
+        <h2 class="offer__heading o-reveal" id="offer-heading">
+          مستعد تبني Skill تقدر تستعملها في سوق العمل؟
+        </h2>
+
+        <!-- White flo floating offer panel -->
+        <div class="offer__panel o-reveal">
+          <!-- Program label (small, light-tinted pill) -->
+          <span class="offer__label">SKILLOVA PROGRAM</span>
+
+          <!-- Value stack: each component with its individual value -->
+          <ul class="offer__stack">
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">Bootcamp عملي في Sales &amp; Closing</span>
+              <span class="offer__stack-price">15,000 دج</span>
+            </li>
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">تدريب Customer Service &amp; Communication</span>
+              <span class="offer__stack-price">7,000 دج</span>
+            </li>
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">Live Sessions + تطبيق عملي</span>
+              <span class="offer__stack-price">8,000 دج</span>
+            </li>
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">متابعة وتقييم مستمر خلال البرنامج</span>
+              <span class="offer__stack-price">5,000 دج</span>
+            </li>
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">CV + LinkedIn + Job Search Training</span>
+              <span class="offer__stack-price">5,000 دج</span>
+            </li>
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">Skillova Career Community والفرص المتاحة</span>
+              <span class="offer__stack-price">5,000 دج</span>
+            </li>
+            <li class="offer__stack-item">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">تطبيق المهارات في سيناريوهات عملية</span>
+              <span class="offer__stack-price">5,000 دج</span>
+            </li>
+            <li class="offer__stack-item offer__stack-item--priceless">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">فرصة التطبيق العملي المدفوع للطلاب المؤهلين*</span>
+              <span class="offer__stack-price offer__stack-price--priceless">لا تُقدّر بثمن</span>
+            </li>
+            <li class="offer__stack-item offer__stack-item--priceless">
+              <span class="offer__stack-check" aria-hidden="true">
+                <svg viewBox="0 0 24 24" class="offer__stack-check-icon">
+                  <path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="3"
+                    stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </span>
+              <span class="offer__stack-label">🧑‍💼 One-to-One شخصي مع عبد المجيد</span>
+              <span class="offer__stack-price offer__stack-price--priceless">لا تُقدّر بثمن</span>
+            </li>
+          </ul>
+
+          <!-- Divider + total value -->
+          <div class="offer__divider" role="separator"></div>
+          <div class="offer__total">
+            <span class="offer__total-label">القيمة الإجمالية</span>
+            <span class="offer__total-price">50,000 دج</span>
+          </div>
+
+          <!-- Highlighted price box (actual registration fee) -->
+          <div class="offer__box">
+            <span class="offer__box-label">رسوم التسجيل</span>
+            <span class="offer__box-price">14,900 دج</span>
+          </div>
+
+          <!-- Supporting line -->
+          <p class="offer__supporting">تكوين + Coaching + تطبيق + خبرة + فرص مهنية في مسار واحد.</p>
+
+          <!-- Primary CTA (reuses .btn / .btn--primary / .btn--hero) -->
+          <a href="#" class="btn btn--primary btn--hero offer__cta" data-open-funnel>
+            أريد الانضمام إلى Skillova 🚀
+          </a>
+
+          <!-- Muted scarcity / context note (bracketed, conditional) -->
+          <p class="offer__note">[الأماكن محدودة بسبب نظام الـCoaching والمتابعة الفردية.]</p>
+
+          <!-- Footnote: conditional perks are not guaranteed for everyone -->
+          <p class="offer__footnote">* التطبيق المدفوع وفرص الانضمام إلى فريق <span class="get__lat" dir="ltr">Skillova</span> تخضع لمعايير الأكاديمية ومستوى المتدرب والفرص المتاحة.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================
            PROBLEM SECTION
            Editorial typographic composition — no cards, no grid of boxes.
            ============================================================ -->
@@ -2043,67 +2204,6 @@
     </section>
 
     <!-- ============================================================
-           OFFER SECTION
-           The main conversion moment. One of the only places on the
-           whole site allowed to use --clr-brand as a FULL section
-           background. Centered on that blue field floats a WHITE
-           "offer panel" (rounded, generous padding, --shadow-lg),
-           max-width constrained so it reads as a card floating on the
-           blue — NOT full-bleed white.
-           Inside the panel, in order:
-             heading          مستعد تبني Skill... (white, above panel)
-             program label    SKILLOVA PROGRAM (small, light-tinted pill)
-             short list       conversion-relevant highlights only
-                              (genuinely short, reuse the accent-dot
-                              list pattern — no icons)
-             price            XXXX DA (placeholder, keep literal)
-             old price        [السعر القديم إذا كان حقيقيًا] (muted
-                              strikethrough placeholder)
-             CTA              أريد الانضمام إلى Skillova 🚀 (large
-                              brand-blue button, .btn--hero treatment)
-             note             muted bracketed scarcity context
-           Animation LOW (⭐⭐): the white panel fades/scales in once as
-           a whole. CTA hover reuses the existing .btn--hero treatment.
-           ============================================================ -->
-    <section id="offer" class="offer" aria-labelledby="offer-heading">
-      <div class="container">
-
-        <!-- Heading (white text, above the panel) -->
-        <h2 class="offer__heading o-reveal" id="offer-heading">
-          مستعد تبني Skill تقدر تستعملها في سوق العمل؟
-        </h2>
-
-        <!-- White flo floating offer panel -->
-        <div class="offer__panel o-reveal">
-          <!-- Program label (small, light-tinted pill) -->
-          <span class="offer__label">SKILLOVA PROGRAM</span>
-
-          <!-- Short conversion-focused feature list -->
-          <ul class="offer__list">
-            <li>Sales, Closing &amp; Customer Service Training</li>
-            <li>Live Sessions &amp; One-to-One Coaching</li>
-            <li>Career Preparation (CV, LinkedIn, Job Search)</li>
-            <li>Career Community access</li>
-          </ul>
-
-          <!-- Price -->
-          <div class="offer__pricing">
-            <p class="offer__price">14900 DA</p>
-          </div>
-
-          <!-- Primary CTA (reuses .btn / .btn--primary / .btn--hero) -->
-          <a href="#" class="btn btn--primary btn--hero offer__cta" data-open-funnel>
-            أريد الانضمام إلى Skillova 🚀
-          </a>
-
-          <!-- Muted scarcity / context note (bracketed, conditional) -->
-          <p class="offer__note">[الأماكن محدودة بسبب نظام الـCoaching والمتابعة الفردية.]</p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- ============================================================
            FAQ SECTION
            A clean, low-key counterpoint after the high-intensity Offer
            panel. No cards here — each question is a plain typographic
@@ -2433,15 +2533,9 @@
         <h2 class="funnel__heading">وش هي وضعيتك الحالية؟</h2>
 
         <div class="funnel__options">
-          <button type="button" class="funnel__option" data-value="student">
+          <button type="button" class="funnel__option" data-value="student-graduate">
             <span class="funnel__option-emoji">🎓</span>
-            <span class="funnel__option-label">طالب</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="graduate">
-            <span class="funnel__option-emoji">🎓</span>
-            <span class="funnel__option-label">خريج جامعي</span>
+            <span class="funnel__option-label">طالب / خريج جامعي</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
@@ -2457,26 +2551,9 @@
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="business-owner">
+          <button type="button" class="funnel__option" data-value="business-owner-freelancer">
             <span class="funnel__option-emoji">🚀</span>
-            <span class="funnel__option-label">صاحب مشروع</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="freelancer">
-            <span class="funnel__option-emoji">💻</span>
-            <span class="funnel__option-label">Freelancer</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="career-change">
-            <span class="funnel__option-emoji">🔄</span>
-            <span class="funnel__option-label">حاب نبدل المجال المهني</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="other">
-            <span class="funnel__option-label">أخرى</span>
+            <span class="funnel__option-label">صاحب مشروع / Freelancer</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2503,39 +2580,15 @@
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="improve-sales">
+          <button type="button" class="funnel__option" data-value="improve-sales-closing-cs">
             <span class="funnel__option-emoji">📈</span>
-            <span class="funnel__option-label">نطور مستواي في Sales</span>
+            <span class="funnel__option-label">نطور مستواي في Sales / Closing / Customer Service</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="master-closing">
-            <span class="funnel__option-emoji">🎯</span>
-            <span class="funnel__option-label">نولي محترف في Closing</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="improve-cs">
-            <span class="funnel__option-emoji">🤝</span>
-            <span class="funnel__option-label">نطور Customer Service</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="freelance">
-            <span class="funnel__option-emoji">💻</span>
-            <span class="funnel__option-label">نبدأ نخدم Freelance</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="remote">
-            <span class="funnel__option-emoji">🌍</span>
-            <span class="funnel__option-label">نبحث على Remote / International Opportunities</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="grow-business">
+          <button type="button" class="funnel__option" data-value="grow-business-freelance">
             <span class="funnel__option-emoji">🚀</span>
-            <span class="funnel__option-label">نطور الـBusiness تاعي</span>
+            <span class="funnel__option-label">نطور الـBusiness تاعي / نبدأ نخدم Freelance</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2567,15 +2620,9 @@
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="currently-working">
-            <span class="funnel__option-emoji">🔵</span>
-            <span class="funnel__option-label">نخدم حاليًا في Sales / Customer Service</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
           <button type="button" class="funnel__option" data-value="experienced">
             <span class="funnel__option-emoji">🟣</span>
-            <span class="funnel__option-label">عندي خبرة جيدة وحاب نطور مستواي</span>
+            <span class="funnel__option-label">عندي خبرة جيدة ونحب نطور مستواي</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2612,63 +2659,6 @@
             <span class="funnel__option-label">Appointment Setting</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
-
-          <button type="button" class="funnel__option" data-value="communication">
-            <span class="funnel__option-emoji">🧠</span>
-            <span class="funnel__option-label">Communication</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="lead-qualification">
-            <span class="funnel__option-emoji">🔎</span>
-            <span class="funnel__option-label">Lead Qualification</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="multi-skill">
-            <span class="funnel__option-emoji">🔥</span>
-            <span class="funnel__option-label">أكثر من Skill</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-        </div>
-
-        <!-- Multi-select panel (hidden by default, shown when "أكثر من Skill" is selected) -->
-        <div class="funnel__multiselect" aria-hidden="true">
-          <p class="funnel__multiselect-desc">اختار المهارات اللي حاب تطورها:</p>
-          <div class="funnel__checkboxes">
-            <label class="funnel__checkbox">
-              <input type="checkbox" name="skills" value="sales">
-              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
-              Sales
-            </label>
-            <label class="funnel__checkbox">
-              <input type="checkbox" name="skills" value="closing">
-              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
-              Closing
-            </label>
-            <label class="funnel__checkbox">
-              <input type="checkbox" name="skills" value="customer-service">
-              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
-              Customer Service
-            </label>
-            <label class="funnel__checkbox">
-              <input type="checkbox" name="skills" value="communication">
-              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
-              Communication
-            </label>
-            <label class="funnel__checkbox">
-              <input type="checkbox" name="skills" value="appointment-setting">
-              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
-              Appointment Setting
-            </label>
-            <label class="funnel__checkbox">
-              <input type="checkbox" name="skills" value="lead-qualification">
-              <span class="funnel__checkbox-visual" aria-hidden="true"></span>
-              Lead Qualification
-            </label>
-          </div>
-          <button type="button" class="btn btn--primary funnel__continue-btn" disabled data-funnel-action="next">متابعة
-            &larr;</button>
         </div>
 
         <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
@@ -2680,53 +2670,27 @@
         <h2 class="funnel__heading">وش هو أكبر تحدي واقف قدامك اليوم باش توصل لهدفك؟</h2>
 
         <div class="funnel__options">
-          <button type="button" class="funnel__option" data-value="no-clear-skills">
-            <span class="funnel__option-label">ما عنديش Skill واضحة نقدر نعتمد عليها</span>
+          <button type="button" class="funnel__option" data-value="lack-knowledge">
+            <span class="funnel__option-emoji">📚</span>
+            <span class="funnel__option-label">ناقصني المعرفة والخبرة</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="no-experience">
-            <span class="funnel__option-label">ما عنديش خبرة عملية</span>
+          <button type="button" class="funnel__option" data-value="need-opportunities">
+            <span class="funnel__option-emoji">💼</span>
+            <span class="funnel__option-label">نحتاج نلقى فرص وخدمة</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="dont-know-where">
-            <span class="funnel__option-label">ما نعرفش منين نبدأ</span>
+          <button type="button" class="funnel__option" data-value="improve-communication">
+            <span class="funnel__option-emoji">🗣️</span>
+            <span class="funnel__option-label">نحتاج نطور التواصل والإقناع</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="communication-difficulty">
-            <span class="funnel__option-label">نلقى صعوبة في التواصل مع العملاء</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="fear-of-rejection">
-            <span class="funnel__option-label">نخاف من البيع ورفض العملاء</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="closing-difficulty">
-            <span class="funnel__option-label">نلقى صعوبة في Closing</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="cant-find-jobs">
-            <span class="funnel__option-label">ما نعرفش كيفاش نلقى فرص العمل</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="cant-present-skills">
-            <span class="funnel__option-label">عندي Skills بصح ما نعرفش كيفاش نقدم نفسي للشركات</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="need-coaching">
-            <span class="funnel__option-label">احتاج Coaching ومتابعة</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="other">
-            <span class="funnel__option-label">أخرى</span>
+          <button type="button" class="funnel__option" data-value="dont-know-how-to-start">
+            <span class="funnel__option-emoji">🎯</span>
+            <span class="funnel__option-label">ما نعرفش كيفاش نبدأ ونطبق</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2772,7 +2736,7 @@
 
       <!-- ===== STEP 07 — Readiness to Start ===== -->
       <div class="funnel__step" data-step="7">
-        <h2 class="funnel__heading">إذا لقيت التكوين المناسب، هل أنت مستعد تبدأ تخدم وتطبق من اليوم؟</h2>
+        <h2 class="funnel__heading">هل أنت مستعد تبدأ تخدم وتطبق من اليوم؟</h2>
 
         <div class="funnel__options">
           <button type="button" class="funnel__option" data-value="ready-now">
@@ -2787,21 +2751,15 @@
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="later">
-            <span class="funnel__option-emoji">🕐</span>
-            <span class="funnel__option-label">حاب نبدأ، بصح مازال ماشي الوقت المناسب</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
           <button type="button" class="funnel__option" data-value="need-understanding">
             <span class="funnel__option-emoji">🤔</span>
             <span class="funnel__option-label">مازال نحتاج نفهم أكثر قبل ما نقرر</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="not-ready">
-            <span class="funnel__option-emoji">❌</span>
-            <span class="funnel__option-label">حاليًا ما نيش مستعد نبدأ</span>
+          <button type="button" class="funnel__option" data-value="later">
+            <span class="funnel__option-emoji">🕐</span>
+            <span class="funnel__option-label">حاب نبدأ، بصح مازال ماشي الوقت المناسب</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2848,57 +2806,14 @@
       <!-- ===== TRANSITION SCREEN — after Step 8 ===== -->
       <div class="funnel__step funnel__transition" data-step="done">
         <h2 class="funnel__heading funnel__heading--done">ممتاز، بقيت خطوة أخيرة 🚀</h2>
-        <p class="funnel__transition-text">بناءً على إجاباتك، الخطوة التالية هي اختيار موعد للتواصل مع فريق Skillova
-          ومعرفة تفاصيل الدفعة الحالية وطريقة الانضمام.</p>
+        <p class="funnel__transition-text"> Wheel terhawk fi Skillova — dibdir ma yranech  Ylaq bina !!! </p>
         <div class="funnel__transition-action">
-          <button type="button" class="btn btn--primary funnel__calendar-btn" data-funnel-action="calendar">اختار موعدك
-            &larr;</button>
+          <button type="button" class="btn btn--primary funnel__calendar-btn" data-funnel-action="contact">تابع
+            &rarr;</button>
         </div>
         <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
       </div>
       <!-- / TRANSITION SCREEN -->
-
-      <!-- ===== STEP 09 — Calendar / Appointment Selection ===== -->
-      <div class="funnel__step funnel__step--calendar" data-step="9">
-        <h2 class="funnel__heading">اختار الموعد اللي يناسبك</h2>
-        <p class="funnel__calendar-desc">اختار اليوم والوقت اللي يناسبك، وراح يتواصل معاك فريق Skillova في الموعد
-          المحدد.</p>
-
-        <!-- Date scroller -->
-        <div class="funnel__date-scroller" id="funnel-date-scroller">
-          <!-- JS populates this -->
-        </div>
-
-        <!-- Time slots area -->
-        <div class="funnel__timeslots" id="funnel-timeslots">
-          <p class="funnel__timeslots-placeholder">اختار يوم أولاً باش تشوف المواعيد المتاحة</p>
-        </div>
-
-        <!-- Slot-taken inline notice (shown by check-slot when the picked
-               time was booked meanwhile) -->
-        <p class="funnel__field-error" id="funnel-timeslots-notice" hidden>هذا الموعد أصبح محجوز، اختار وقت آخر</p>
-
-        <!-- Loading state -->
-        <div class="funnel__timeslots funnel__timeslots--loading" id="funnel-timeslots-loading" style="display:none">
-          <div class="funnel__loader"></div>
-          <p class="funnel__timeslots-loading-text">جاري تحميل المواعيد...</p>
-        </div>
-
-        <!-- Error state -->
-        <div class="funnel__timeslots funnel__timeslots--error" id="funnel-timeslots-error" style="display:none">
-          <p class="funnel__timeslots-error-text">ما قدرناش نجيب المواعيد المتاحة، حاول مرة أخرى</p>
-          <button type="button" class="funnel__timeslots-retry" id="funnel-timeslots-retry">إعادة المحاولة</button>
-        </div>
-
-        <!-- Confirm button -->
-        <div class="funnel__calendar-confirm">
-          <button type="button" class="btn btn--primary funnel__calendar-confirm-btn" id="funnel-calendar-confirm"
-            disabled>متابعة &larr;</button>
-        </div>
-
-        <a href="#" class="funnel__back" data-funnel-back data-back-step="9">&larr; السابق</a>
-      </div>
-      <!-- / STEP 09 -->
 
       <!-- ===== STEP 10 — Contact Information ===== -->
       <div class="funnel__step funnel__step--contact" data-step="10">
@@ -2956,8 +2871,6 @@
 
           <p class="funnel__contact-error" id="funnel-contact-error" role="alert" hidden>
             <span class="funnel__contact-error-text" id="funnel-contact-error-text"></span>
-            <button type="button" class="funnel__contact-rebook" id="funnel-contact-back-to-slots" hidden>اختار موعد
-              آخر</button>
           </p>
 
           <!-- Duplicate-phone friendly notice (blocks a second confirmed
@@ -2969,7 +2882,7 @@
           </p>
         </form>
 
-        <a href="#" class="funnel__back" data-funnel-back data-back-step="10">&larr; السابق</a>
+        <a href="#" class="funnel__back" data-funnel-back data-back-step="9">&larr; السابق</a>
       </div>
       <!-- / STEP 10 -->
 
@@ -2978,10 +2891,6 @@
         <h2 class="funnel__heading">تم تسجيل طلبك بنجاح 🎉</h2>
 
         <div class="funnel__success-details">
-          <p class="funnel__success-line">
-            <span class="funnel__success-label">موعدك:</span>
-            <span class="funnel__success-value" id="funnel-success-date"></span>
-          </p>
           <p class="funnel__success-line">
             <span class="funnel__success-label">طريقة التواصل:</span>
             <span class="funnel__success-value" id="funnel-success-pref"></span>

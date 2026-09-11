@@ -3,18 +3,14 @@
  * SKILLOVA — Google Apps Script Web App (ADAPTED BACKEND)
  * ============================================================================
  * What this script does:
- *   Deployable Google Apps Script Web App that powers the SKILLOVA booking
- *   funnel. It is adapted from a robust real-estate lead-funnel reference
- *   script and provides shared-secret auth, honeypot spam protection,
+ *   Deployable Google Apps Script Web App that powers the SKILLOVA lead
+ *   funnel. It provides shared-secret auth, honeypot spam protection,
  *   formula-injection sanitization, progressive (session_id-based) lead saving,
- *   LockService-protected booking confirmation, an auto-generating availability
- *   sheet with a daily trigger, duplicate-phone checking, and a ready-but-
- *   currently-inactive Meta Conversions API integration.
+ *   duplicate-phone checking, and a ready-but-currently-inactive Meta
+ *   Conversions API integration.
  *
  * Single routing entry point (doPost) switches on body.action:
  *   update_lead           -> updateLead
- *   get_availability      -> getAvailability
- *   check_slot            -> checkSlot
  *   check_duplicate_phone -> checkDuplicatePhone
  *   confirm_booking       -> confirmBooking
  *   anything else         -> "إجراء غير معروف"
@@ -22,14 +18,25 @@
  * All requests MUST send the shared secret in the JSON body as
  * body.shared_secret, matching the Script Property GAS_SHARED_SECRET.
  *
+ * COLUMN WIRING (IMPORTANT):
+ *   This backend always writes to the sheet BY HEADER NAME, never by fixed
+ *   column index. updateLead reads row 1 of the live sheet, maps each header
+ *   back to a payload key via getPayloadKeyForHeader(), and writes the value
+ *   to that header's position. This keeps data aligned even if the user
+ *   reorders columns in the spreadsheet.
+ *
+ *   If your live sheet was built by an OLDER version of this script (header
+ *   'جاهزية الاستثمار' at column 12, no 'الجاهزية للبدء الفوري' column),
+ *   run migrateSheet() once from the Apps Script editor to restructure the
+ *   sheet to the current LEADS_HEADERS while preserving all existing rows.
+ *   Run runSheetDiagnostics() first to see what is actually in the sheet.
+ *
  * DEPLOYMENT NOTE (IMPORTANT):
  *   Paste this file ENTIRELY into the Google Apps Script editor as Code.gs,
  *   REPLACING whatever is already deployed there (handled manually). This repo
  *   cannot deploy to Apps Script itself (no clasp config). After pasting you
  *   must ALSO (manually):
  *     - Set Script Property GAS_SHARED_SECRET to the secret you choose.
- *     - Run setupDailyTrigger() once to schedule daily slot generation.
- *     - Run generateAvailability() once immediately so slots exist now.
  *     - Redeploy as a Web App (Anyone) under the SAME URL.
  * ============================================================================
  */
@@ -38,16 +45,16 @@
    إعدادات عامة — أوراق العمل
    ========================================================== */
 const SHEET_LEADS_NAME = 'العملاء المحتملون';
-const SHEET_AVAILABILITY_NAME = 'الأوقات المتاحة';
 
-/* أعمدة الورقة — Skillova (19 عمودًا رئيسيًا + عمودين داخليين للتتبع) */
+/* أعمدة الورقة — Skillova (14 عمودًا رئيسيًا + عمودين داخليين للتتبع).
+   الترتيب النهائي المعتمد من طرف العميل — لا تغيّره إلا بعد تنسيق live sheet
+   عبر migrateSheet(). */
 const LEADS_HEADERS = [
   'التاريخ', 'الاسم الكامل', 'رقم الهاتف', 'البريد الإلكتروني',
   'طريقة التواصل المفضلة', 'الوضعية الحالية', 'الهدف المهني',
   'مستوى الخبرة', 'المهارة المطلوبة', 'أكبر تحدي',
-  'الوقت الأسبوعي المتاح', 'الجاهزية للبدء الفوري', 'جاهزية الاستثمار', 'تاريخ الموعد',
-  'وقت الموعد', 'المصدر', 'تفاصيل UTM', 'حالة العميل', 'ملاحظة',
-  'معرف الجلسة', 'حالة التسجيل'
+  'الوقت الأسبوعي المتاح', 'الجاهزية للبدء الفوري', 'جاهزية الاستثمار',
+  'الملاحظة', 'معرف الجلسة', 'حالة التسجيل'
 ];
 
 /* أعمدة داخلية يُديرها السكربت تلقائيًا */
@@ -60,10 +67,9 @@ const STATUS_CONFIRMED = 'مؤكد';
  * FIELD_MAP — يرتب كل حقل يرسله الفرونت-إند (funnelState / buildLeadPayload)
  * باسم العمود العربي. المفاتيح تطابق بالضبط أسماء خصائص funnelState في
  * js/main.js (camelCase) — لا تتم أي ترجمة في Netlify Functions، بل تُمرَّر
- * مباشرة كما هي.
+ * مباشرة كما هي. الكتابة تتم دائمًا بالاسم عبر getPayloadKeyForHeader().
  */
 const FIELD_MAP = {
-  appointmentDate:     'تاريخ الموعد',
   fullName:            'الاسم الكامل',
   phone:               'رقم الهاتف',
   email:               'البريد الإلكتروني',
@@ -76,11 +82,27 @@ const FIELD_MAP = {
   weeklyTime:          'الوقت الأسبوعي المتاح',
   readinessToStart:    'الجاهزية للبدء الفوري',
   investmentReadiness: 'جاهزية الاستثمار',
-  appointmentTime:     'وقت الموعد',
-  source:              'المصدر',
-  utm:                 'تفاصيل UTM',
-  notes:               'ملاحظة'
+  notes:               'الملاحظة'
 };
+
+/*
+ * getPayloadKeyForHeader — يعيد مفتاح payload لكل اسم عمود، بما في ذلك
+ * الأسماء التاريخية القديمة حتى لا تنكسر الورقة القديمة. هذا هو المكان
+ * الوحيد الذي يتم فيه الربط بين اسم العمود الفعلي في الورقة والبيانات.
+ */
+function getPayloadKeyForHeader(header) {
+  if (!header) return null;
+  const h = String(header).toString().trim();
+  if (h === '' ) return null;
+  /* الاستثمار — الأسماء الجديدة والقديمة معًا */
+  if (h === 'جاهزية الاستثمار' || h === 'الجاهزية للاستثمار' || h === 'الاستعداد للاستثمار') return 'investmentReadiness';
+  /* البدء الفوري — الأسماء الجديدة والقديمة معًا */
+  if (h === 'الجاهزية للبدء الفوري' || h === 'جاهزية البدء الفوري' || h === 'الاستعداد للبدء الفوري') return 'readinessToStart';
+  /* الملاحظة — بمسمّيين قديم/جديد */
+  if (h === 'الملاحظة' || h === 'ملاحظة') return 'notes';
+  /* ±غرها من الحقول حسب FIELD_MAP */
+  return Object.keys(FIELD_MAP).find(k => FIELD_MAP[k] === h) || null;
+}
 
 /* ==========================================================
    نقاط الدخول (Entry Points)
@@ -97,8 +119,6 @@ function doPost(e) {
     let result;
     switch (action) {
       case 'update_lead': result = updateLead(body); break;
-      case 'get_availability': result = getAvailability(); break;
-      case 'check_slot': result = checkSlot(body); break;
       case 'check_duplicate_phone': result = checkDuplicatePhone(body); break;
       case 'confirm_booking': result = confirmBooking(body); break;
       default: result = { success: false, error: 'إجراء غير معروف' };
@@ -121,18 +141,35 @@ function getLeadsSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_LEADS_NAME);
   if (!sheet) sheet = ss.insertSheet(SHEET_LEADS_NAME);
-  if (sheet.getLastRow() === 0) sheet.appendRow(LEADS_HEADERS);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(LEADS_HEADERS);
+    sheet.setFrozenRows(1);
+  } else {
+    /* ضمان أن كل أعمدة LEADS_HEADERS موجودة حتى لو كانت الورقة قديمة */
+    const existing = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).trim());
+    let added = false;
+    LEADS_HEADERS.forEach(header => {
+      if (!existing.includes(header)) {
+        sheet.getRange(1, sheet.getLastColumn() + 1).setValue(header);
+        added = true;
+      }
+    });
+    if (added) Logger.log('getLeadsSheet: تمت إضافة أعمدة ناقصة إلى ' + SHEET_LEADS_NAME);
+  }
   return sheet;
 }
 
-function getAvailabilitySheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  return ss.getSheetByName(SHEET_AVAILABILITY_NAME);
+function getActualHeaders(sheet) {
+  if (sheet.getLastRow() === 0) return LEADS_HEADERS.slice();
+  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).trim());
 }
 
 function findRowBySessionId(sheet, sessionId) {
   const data = sheet.getDataRange().getValues();
-  const sessionIdCol = LEADS_HEADERS.indexOf(SESSION_HEADER);
+  if (data.length <= 1) return -1;
+  const actualHeaders = data[0].map(h => String(h).trim());
+  const sessionIdCol = actualHeaders.indexOf(SESSION_HEADER);
+  if (sessionIdCol === -1) return -1;
   for (let i = 1; i < data.length; i++) {
     if (data[i][sessionIdCol] === sessionId) return i + 1;
   }
@@ -140,7 +177,7 @@ function findRowBySessionId(sheet, sessionId) {
 }
 
 /* ==========================================================
-   update_lead — حفظ تدريجي عبر session_id
+   update_lead — حفظ تدريجي عبر session_id (يتعامل مع الأعمدة بالاسم)
    ========================================================== */
 
 function updateLead(body) {
@@ -150,7 +187,6 @@ function updateLead(body) {
   const data = body.data || {};
   const now = new Date();
   const combined = {
-    appointmentDate:     sanitizeValue(data.appointmentDate || ''),
     fullName:            sanitizeValue(data.fullName || ''),
     phone:               sanitizeValue(data.phone || ''),
     email:               sanitizeValue(data.email || ''),
@@ -158,39 +194,48 @@ function updateLead(body) {
     currentStatus:       sanitizeValue(data.currentStatus || ''),
     careerGoal:          sanitizeValue(data.careerGoal || ''),
     experienceLevel:     sanitizeValue(data.experienceLevel || ''),
-    skillInterest:       sanitizeValue(Array.isArray(data.skillInterest) ? data.skillInterest.join(', ') : (data.skillInterest || '')),
+    skillInterest:       sanitizeValue(data.skillInterest || ''),
     mainChallenge:       sanitizeValue(data.mainChallenge || ''),
     weeklyTime:          sanitizeValue(data.weeklyTime || ''),
     readinessToStart:    sanitizeValue(data.readinessToStart || ''),
     investmentReadiness: sanitizeValue(data.investmentReadiness || ''),
-    appointmentTime:     sanitizeValue(data.appointmentTime || ''),
-    source:              sanitizeValue(data.source || ''),
-    utm:                 sanitizeValue(data.utm || ''),
     notes:               sanitizeValue(buildNote(data)),
   };
+
+  const actualHeaders = getActualHeaders(sheet);
+
   let row = findRowBySessionId(sheet, sessionId);
   if (row === -1) {
-    const newRow = new Array(LEADS_HEADERS.length).fill('');
-    LEADS_HEADERS.forEach((header, idx) => {
-      const key = Object.keys(FIELD_MAP).find(k => FIELD_MAP[k] === header);
-      if (key && combined[key] !== undefined) newRow[idx] = combined[key];
+    const newRow = new Array(actualHeaders.length).fill('');
+    actualHeaders.forEach((header, idx) => {
+      const key = getPayloadKeyForHeader(header);
+      if (key && combined[key] !== undefined && combined[key] !== '') newRow[idx] = combined[key];
     });
-    newRow[LEADS_HEADERS.indexOf('التاريخ')] = now; // عمود التاريخ — طابع زمني من الخادم
-    newRow[LEADS_HEADERS.indexOf(STATUS_HEADER)] = STATUS_PARTIAL;
-    newRow[LEADS_HEADERS.indexOf(SESSION_HEADER)] = sessionId;
-    sheet.appendRow(newRow);
+    const dateCol = actualHeaders.indexOf('التاريخ');
+    const statusCol = actualHeaders.indexOf(STATUS_HEADER);
+    const sessionCol = actualHeaders.indexOf(SESSION_HEADER);
+    if (dateCol !== -1) newRow[dateCol] = now;
+    if (statusCol !== -1) newRow[statusCol] = STATUS_PARTIAL;
+    if (sessionCol !== -1) newRow[sessionCol] = sessionId;
+    sheet.getRange(sheet.getLastRow() + 1, 1, 1, actualHeaders.length).setValues([newRow]);
+    Logger.log('updateLead: سطر جديد — readinessToStart="' + combined.readinessToStart + '" investmentReadiness="' + combined.investmentReadiness + '" (row ' + (sheet.getLastRow()) + ')');
   } else {
-    LEADS_HEADERS.forEach((header, idx) => {
-      const key = Object.keys(FIELD_MAP).find(k => FIELD_MAP[k] === header);
-      if (key && combined[key]) sheet.getRange(row, idx + 1).setValue(combined[key]);
+    const rowValues = sheet.getRange(row, 1, 1, actualHeaders.length).getValues()[0];
+    actualHeaders.forEach((header, idx) => {
+      const key = getPayloadKeyForHeader(header);
+      if (key && combined[key]) rowValues[idx] = combined[key];
     });
+    sheet.getRange(row, 1, 1, actualHeaders.length).setValues([rowValues]);
+    Logger.log('updateLead: تحديث سطر ' + row + ' — readinessToStart="' + combined.readinessToStart + '" investmentReadiness="' + combined.investmentReadiness + '"');
   }
   return { success: true };
 }
 
 function buildNote(data) {
   let parts = [];
-  if (data.notes) parts.push(data.notes);
+  if (data.notes && String(data.notes).trim() !== '') parts.push(String(data.notes).trim());
+  if (data.source && String(data.source).trim() !== '') parts.push('المصدر: ' + String(data.source).trim());
+  if (data.utm && String(data.utm).trim() !== '') parts.push('UTM: ' + String(data.utm).trim());
   return parts.join(' | ');
 }
 
@@ -214,58 +259,14 @@ function isValidAlgerianPhone(phone) {
   return /^0[567]\d{8}$/.test(cleaned);
 }
 
-/* ==========================================================
-   get_availability — يعيد المواعيد المتاحة لكامل النافذة
-   ========================================================== */
-
-function getAvailability() {
-  const sheet = getAvailabilitySheet();
-  if (!sheet) return { success: true, availability: {} };
-  const data = sheet.getDataRange().getValues();
-  const availability = {};
-  for (let i = 1; i < data.length; i++) {
-    const date = data[i][0];
-    const time = data[i][1];
-    const isBooked = data[i][2];
-    if (isBooked !== true && isBooked !== 'TRUE') {
-      const dateKey = formatDateKey(date);
-      const timeKey = formatTimeKey(time);
-      if (!availability[dateKey]) availability[dateKey] = [];
-      availability[dateKey].push(timeKey);
-    }
-  }
-  return { success: true, availability: availability };
-}
-
-function formatTimeKey(timeValue) {
-  if (timeValue instanceof Date) return Utilities.formatDate(timeValue, Session.getScriptTimeZone(), 'HH:mm');
-  return timeValue.toString();
-}
-
-function formatDateKey(dateValue) {
-  if (dateValue instanceof Date) return Utilities.formatDate(dateValue, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-  return dateValue.toString();
-}
-
-function checkSlot(body) {
-  const sheet = getAvailabilitySheet();
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    const dateKey = formatDateKey(data[i][0]).trim();
-    const time = formatTimeKey(data[i][1]).trim();
-    const isBooked = data[i][2];
-    if (dateKey === String(body.data.date).trim() && time === String(body.data.time).trim()) {
-      return { success: true, available: !(isBooked === true || isBooked === 'TRUE') };
-    }
-  }
-  return { success: true, available: false };
-}
-
 function checkDuplicatePhone(body) {
   const sheet = getLeadsSheet();
   const data = sheet.getDataRange().getValues();
-  const phoneCol = LEADS_HEADERS.indexOf('رقم الهاتف');
-  const statusCol = LEADS_HEADERS.indexOf(STATUS_HEADER);
+  if (data.length <= 1) return { success: true, isDuplicate: false };
+  const actualHeaders = data[0].map(h => String(h).trim());
+  const phoneCol = actualHeaders.indexOf('رقم الهاتف');
+  const statusCol = actualHeaders.indexOf(STATUS_HEADER);
+  if (phoneCol === -1 || statusCol === -1) return { success: true, isDuplicate: false };
   for (let i = 1; i < data.length; i++) {
     const phone = (data[i][phoneCol] || '').toString().trim();
     const status = data[i][statusCol];
@@ -277,98 +278,116 @@ function checkDuplicatePhone(body) {
 }
 
 /* ==========================================================
-   confirm_booking — تأكيد الحجز بحماية LockService
+   confirm_booking — تأكيد التسجيل (updateLead + حالة «مؤكد»)
    ========================================================== */
 
 function confirmBooking(body) {
+  const startTime = Date.now();
   if (isHoneypotTriggered(body.data)) return { success: true };
   if (!isValidAlgerianPhone(body.data && body.data.phone)) return { success: false, error: 'رقم الهاتف غير صالح' };
-  const lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(10000);
-    const leadResult = updateLead(body);
-    // Meta CAPI معطّل مؤقتًا — أعد تفعيله فقط بعد ضبط META_PIXEL_ID وMETA_ACCESS_TOKEN لـ Skillova.
-    // sendLeadToMetaCAPI(body.data);
-    const sheet = getLeadsSheet();
-    const row = findRowBySessionId(sheet, body.session_id);
-    if (row !== -1) sheet.getRange(row, LEADS_HEADERS.indexOf(STATUS_HEADER) + 1).setValue(STATUS_CONFIRMED);
-    const availSheet = getAvailabilitySheet();
-    if (availSheet && body.data.appointmentDate && body.data.appointmentTime) {
-      const data = availSheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        const sessionIdCol = data[i][3];
-        const isBookedCol = data[i][2];
-        if (sessionIdCol === body.session_id && (isBookedCol === true || isBookedCol === 'TRUE')) {
-          const stillNewSlot = formatDateKey(data[i][0]).trim() === String(body.data.appointmentDate).trim() && formatTimeKey(data[i][1]).trim() === String(body.data.appointmentTime).trim();
-          if (!stillNewSlot) { availSheet.getRange(i + 1, 3).setValue(false); availSheet.getRange(i + 1, 4).setValue(''); }
-        }
-      }
-      let matched = false;
-      for (let i = 1; i < data.length; i++) {
-        const dateKey = formatDateKey(data[i][0]).trim();
-        const time = formatTimeKey(data[i][1]).trim();
-        if (dateKey === String(body.data.appointmentDate).trim() && time === String(body.data.appointmentTime).trim()) {
-          availSheet.getRange(i + 1, 3).setValue(true);
-          availSheet.getRange(i + 1, 4).setValue(body.session_id);
-          matched = true;
-          break;
-        }
-      }
+  updateLead(body);
+  const sheet = getLeadsSheet();
+  const row = findRowBySessionId(sheet, body.session_id);
+  if (row !== -1) {
+    const actualHeaders = getActualHeaders(sheet);
+    const statusCol = actualHeaders.indexOf(STATUS_HEADER);
+    if (statusCol !== -1) {
+      sheet.getRange(row, statusCol + 1, 1, 1).setValues([[STATUS_CONFIRMED]]);
     }
-    return { success: true };
-  } finally {
-    lock.releaseLock();
   }
+  console.log('confirm_booking completed in ' + (Date.now() - startTime) + ' ms');
+  return { success: true };
 }
 
 /* ==========================================================
-   توليد المواعيد — نافذة 14 يومًا، أوقات 09:00 → 23:00
+   تشخيص الورقة + ترحيل (تشغيل يدوي مرة واحدة من المحرر)
    ========================================================== */
 
-const AVAILABILITY_WINDOW_DAYS = 14;
-const SLOT_START_HOUR = 9;
-const SLOT_END_HOUR = 24; // الحدّ: الحلقة تولّد أوقات بدء 09:00..23:00 (15 خانة/يوم)
+/*
+ * runSheetDiagnostics — يسجل في Logger كل ما يوجد فعليًا في الجدول:
+ *   - الأعمدة الحالية بالترتيب وموقعها
+ *   - هل تطابق LEADS_HEADERS؟
+ *   - عدد الصفوف
+ * شغّلها من المحرر: Run > runSheetDiagnostics ثم عرض السجل.
+ */
+function runSheetDiagnostics() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  Logger.log('=== تشخيص الورقة ===');
+  if (!sheet) {
+    Logger.log('لا توجد ورقة باسم "' + SHEET_LEADS_NAME + '" — سيتم إنشاؤها بأول استدعاء.');
+    return;
+  }
+  Logger.log('اسم الورقة: ' + sheet.getName());
+  Logger.log('آخر صف: ' + sheet.getLastRow() + ' | آخر عمود: ' + sheet.getLastColumn());
+  if (sheet.getLastRow() === 0) {
+    Logger.log('الورقة فارغة.');
+    return;
+  }
+  const actualHeaders = getActualHeaders(sheet);
+  Logger.log('الأعمدة الفعلية في الورقة (' + actualHeaders.length + '):');
+  actualHeaders.forEach(function (h, i) { Logger.log('  [' + (i + 1) + '] ' + h); });
+  Logger.log('--- تطابق مع LEADS_HEADERS ---');
+  LEADS_HEADERS.forEach((h, i) => {
+    const pos = actualHeaders.indexOf(h);
+    Logger.log('  ' + h + ' => في الورقة: ' + (pos === -1 ? 'مفقود' : 'العمود ' + (pos + 1)) + (pos === i ? ' ✓' : (pos === -1 ? '' : ' (يُتوقع ' + (i + 1) + ')')));
+  });
+  Logger.log('الأعمدة الزائدة (غير مطلوبة): ' + actualHeaders.filter(h => !LEADS_HEADERS.includes(h)).join(' ، '));
+  Logger.log('=== نهاية التشخيص ===');
+}
 
-function generateAvailability() {
-  const sheet = getAvailabilitySheet();
-  if (!sheet) throw new Error('ورقة "الأوقات المتاحة" غير موجودة.');
-  if (sheet.getLastRow() === 0) sheet.appendRow(['التاريخ', 'الوقت', 'محجوز', 'معرف الجلسة الحاجزة']);
-  const data = sheet.getDataRange().getValues();
-  const existingDates = new Set();
-  for (let i = 1; i < data.length; i++) existingDates.add(formatDateKey(data[i][0]));
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const rowsToAdd = [];
-  for (let d = 0; d < AVAILABILITY_WINDOW_DAYS; d++) {
-    const targetDate = new Date(today); targetDate.setDate(today.getDate() + d);
-    const dateKey = Utilities.formatDate(targetDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    if (!existingDates.has(dateKey)) {
-      // أوقات بدء 09:00 حتى 23:00 (حصريًا < 24) = 15 خانة/يوم
-      for (let hour = SLOT_START_HOUR; hour < SLOT_END_HOUR; hour++) {
-        const timeStr = (hour < 10 ? '0' + hour : hour) + ':00';
-        rowsToAdd.push([dateKey, timeStr, false, '']);
+/*
+ * migrateSheet — يهيكل الورقة الحية وفق LEADS_HEADERS:
+ *   1) يُنشئ ورقة جديدة مؤقتة بأعمدة LEADS_HEADERS الصحيحة
+ *   2) ينسخ كل الصفوف ناقلاً كل قيمة حسب اسم العمود (بالاسم، لا بالموقع)
+ *   3) يحذف الورقة القديمة، ويعيد تسمية الجديدة
+ * الآمن تشغيله مرة واحدة فقط بعد أخذ نسخة احتياطية. يمكنك أيضًا التراجع
+ * يدويًا من نسخة الجدول. الأعمدة المزالة (المصدر/UTM/حالة العميل/تاريخ الموعد/وقت الموعد)
+ * لن تُنقل.
+ */
+function migrateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let oldSheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  if (!oldSheet) {
+    Logger.log('لا توجد ورقة "' + SHEET_LEADS_NAME + '" — إنشاء ورقة جديدة بأعمدة LEADS_HEADERS.');
+    ss.insertSheet(SHEET_LEADS_NAME);
+    getLeadsSheet();
+    Logger.log('تم إنشاء الورقة الجديدة.');
+    return;
+  }
+  const tmpName = SHEET_LEADS_NAME + '_OLD_BACKUP';
+  const tmp = ss.insertSheet(tmpName);
+  const data = oldSheet.getDataRange().getValues();
+
+  /* تهيئة الأعمدة في الورقة الجديدة */
+  tmp.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
+  tmp.setFrozenRows(1);
+
+  const oldHeaders = (data.length > 0) ? data[0].map(h => String(h).trim()) : [];
+
+  let copied = 0;
+  for (let r = 1; r < data.length; r++) {
+    const newRow = new Array(LEADS_HEADERS.length).fill('');
+    LEADS_HEADERS.forEach((header, newIdx) => {
+      /* تطابق بالاسم، وإن لم يوجد نطابق عبر مفتاح payload (للأسماء القديمة) */
+      let oldIdx = oldHeaders.indexOf(header);
+      if (oldIdx === -1) {
+        const key = getPayloadKeyForHeader(header);
+        if (key) oldIdx = oldHeaders.findIndex(h => getPayloadKeyForHeader(h) === key);
       }
-    }
+      if (oldIdx !== -1) newRow[newIdx] = data[r][oldIdx];
+    });
+    tmp.getRange(r + 1, 1, 1, newRow.length).setValues([newRow]);
+    copied++;
   }
-  if (rowsToAdd.length > 0) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, rowsToAdd.length, 4).setValues(rowsToAdd);
-  }
-  cleanupPastDates(sheet, today);
-}
 
-function cleanupPastDates(sheet, today) {
-  const data = sheet.getDataRange().getValues();
-  const rowsToDelete = [];
-  for (let i = 1; i < data.length; i++) {
-    const rowDate = new Date(formatDateKey(data[i][0]));
-    if (rowDate < today) rowsToDelete.push(i + 1);
-  }
-  for (let i = rowsToDelete.length - 1; i >= 0; i--) sheet.deleteRow(rowsToDelete[i]);
-}
+  /* حذف القديمة وإعادة التسمية */
+  ss.deleteSheet(oldSheet);
+  tmp.setName(SHEET_LEADS_NAME);
 
-function setupDailyTrigger() {
-  const triggers = ScriptApp.getProjectTriggers();
-  triggers.forEach(function (t) { if (t.getHandlerFunction() === 'generateAvailability') ScriptApp.deleteTrigger(t); });
-  ScriptApp.newTrigger('generateAvailability').timeBased().everyDays(1).atHour(0).create();
+  Logger.log('migrateSheet: تم ترحيل ' + copied + ' صفًا إلى الأعمدة الجديدة.');
+  Logger.log('الورقة الآن بترتيب: ' + LEADS_HEADERS.join(' | '));
+  Logger.log('الورقة الاحتياطية القديمة حُذفت. إن أردت الاحتفاظ بها استخدم خيار "Duplicate" في Google Sheets قبل الترحيل.');
 }
 
 /* ==========================================================

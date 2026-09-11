@@ -39,32 +39,31 @@ C:\Users\pC\SKILLOVA\
 ├── netlify\
 │   └── functions\
 │       ├── _gas.js                       → مساعد مشترك: callGasApp() + jsonResponse() + السر المشترك
-│       ├── get-availability.js           → خريطة التوفر الكاملة لنافذة 14 يومًا (get_availability)
-│       ├── check-slot.js                 → فحص خانة واحدة (check_slot)
 │       ├── check-duplicate-phone.js      → فحص تكرار الهاتف (check_duplicate_phone)
 │       ├── update-lead.js                → حفظ تدريجي عبر session_id (update_lead)
-│       └── confirm-booking.js            → تأكيد الحجز النهائي (confirm_booking) — يخلف submit-lead.js المحذوف
+│       └── confirm-booking.js            → تأكيد التسجيل النهائي (confirm_booking) — يخلف submit-lead.js المحذوف
 │
 ├── google-apps-script\
 │   └── Code.gs                           → كود Google Apps Script الكامل (يُلصق يدويًا — خارج Git)
 │
-├── assets\                               → مجلد يحتوي على صورة المدرب الحقيقية `instructor.jpg`
+├── assets\                               → مجلد يحتوي على صورة المدرب الحقيقية `instructor.jpg` + صورة بديلة `trainer-photo.png`
+├── .env.example                          → نموذج متغيرات البيئة (GAS_WEBAPP_URL / GAS_SHARED_SECRET)
+├── .gitignore                            → ملفات مُستبعدة من Git
+└── deno.lock                             → ملف قفل Deno (غير مستخدم حاليًا — مرجعي فقط)
 ```
 
 ### أحجام الملفات الحالية
 | الملف | الحجم |
 | --- | --- |
-| `index.html` | 151,218 بايت (2967 سطرًا) |
-| `css/style.css` | 231,347 بايت (8863 سطرًا) |
-| `js/main.js` | 131,150 بايت (3465 سطرًا) |
-| `netlify/functions/_gas.js` | 2,477 بايت (73 سطرًا) |
-| `netlify/functions/get-availability.js` | 1,250 بايت (35 سطرًا) |
-| `netlify/functions/check-slot.js` | 1,039 بايت (41 سطرًا) |
-| `netlify/functions/check-duplicate-phone.js` | 1,047 بايت (41 سطرًا) |
-| `netlify/functions/update-lead.js` | 1,227 بايت (44 سطرًا) |
-| `netlify/functions/confirm-booking.js` | 1,518 بايت (49 سطرًا) |
-| `google-apps-script/Code.gs` | 19,599 بايت (419 سطرًا) |
-| `dev-server.js` | 4,223 بايت (131 سطرًا) |
+| `index.html` | 159,544 بايت (2803 سطرًا) |
+| `css/style.css` | 238,174 بايت (9098 سطرًا) |
+| `js/main.js` | 133,393 بايت (3505 سطرًا) |
+| `netlify/functions/_gas.js` | 2,477 بايت (64 سطرًا) |
+| `netlify/functions/check-duplicate-phone.js` | 1,047 بايت (34 سطرًا) |
+| `netlify/functions/update-lead.js` | 1,227 بايت (37 سطرًا) |
+| `netlify/functions/confirm-booking.js` | 1,518 بايت (42 سطرًا) |
+| `google-apps-script/Code.gs` | 19,779 بايت (385 سطرًا) |
+| `dev-server.js` | 4,223 بايت (114 سطرًا) |
 | `package.json` | 275 بايت (16 سطرًا) |
 | `netlify.toml` | 58 بايت (3 أسطر) |
 
@@ -118,7 +117,7 @@ C:\Users\pC\SKILLOVA\
 - وارتفاعات أسطر: `--leading-tight:1.15` … `--leading-loose:1.8`.
 
 ### المسافات (قاعدة 4px)
-`--space-1:4px` → `--space-12:128px`. والتخطيط: `--container-max:75rem` (1200px)، `--container-pad:1.25rem`، `--navbar-height:4.5rem` (72px)، `--announce-bar-h:2.75rem` (44px).
+`--space-1:4px` → `--space-12:128px`. والتخطيط: `--container-max:75rem` (1200px)، `--container-pad:1.25rem`، `--navbar-height:4.5rem` (72px)، `--announce-bar-h:3.25rem` (52px).
 
 ### الحواف والظلال
 - Radii: `--radius-sm:6px` / `--radius-md:10px` / `--radius-lg:16px` / `--radius-xl:24px` / `--radius-full:9999px`.
@@ -138,7 +137,7 @@ C:\Users\pC\SKILLOVA\
 ## 5) أقسام الصفحة الرئيسية (بالترتيب من الأعلى)
 
 ### 5.1 الشريط الإعلاني + شريط التنقل Navbar (الأسطر 21–104)
-- **الشريط الإعلاني** فوق الـNavbar (الأسطر 21–38): سطر عرضي بسعر 14900 DA + رسالة ندرة + زر «احجز مكانك» `data-open-funnel`. رسالتان مخصصتان (desktop/mobile).
+- **الشريط الإعلاني** فوق الـNavbar (الأسطر 21–38): سطر عرضي بسعر 14900 DA + رسالة ندرة + زر «احجز مكانك» `data-open-funnel`. رسالتان مخصصتان (desktop/mobile). خطوط أكبر (`--fs-base`) وحشوة أوسع (`0.5rem 1rem`) بعد التحديث الأخير.
 - **الشعار**: `SKILL<em>OVA</em>` (روابط لقسم #program).
 - **روابط مركزية**: البرنامج، ماذا ستتعلم، المسار المهني، الأسئلة الشائعة.
 - **زر CTA**: «احجز استشارتك المجانية الآن» مع `data-open-funnel` والصنف `btn--shimmer` و`data-animate="cta"` (دخول بنبضة + توهج مقيم سباقًا).
@@ -149,7 +148,7 @@ C:\Users\pC\SKILLOVA\
 - عنوان رئيسي: «ما تتعلمش Skill باش تزيد شهادة… تعلّم Skill تقدر تخدم بيها.»
 - وصف + CTA `data-open-funnel` «احجز استشارتك المجانية الآن» (صنفا `btn--hero` و`btn--shimmer`) + سطر شارة.
 - **التركيبة البصرية**: فقاعة زرقاء ضبابية + إطار فيديو (`hero-video-embed` — مكان مُعلَّم للصق كود تضمين لاحقًا مثل Vimeo/Loom) مع Placeholder (زر تشغيل + «فيديو تعريفي قريبًا») + ثلاث شارات معلقة (Sales / Closing / Customer Service).
-- **زر كتم/تشغيل الفيديو** (`.hero__media-mute`): يتوقف عند `is-muted`/`is-unmuted`، يُبدّل `aria-label` عربيًا، ويتلاشى تدريجيًا (1.5s fade-out) عند التشغيل. يستجيب لـ`click`/`volumechange`/`mouseenter`/`mouseleave`/`touchstart`.
+- **زر كتم/تشغيل الفيديو** (`.hero__media-mute`): يتوقف عند `is-muted`/`is-unmuted`، يُبدّل `aria-label` عربيًا، ويتلاشى تدريجيًا (1.5s fade-out) عند التشغيل. يستجيب لـ`click`/`volumechange`/`mouseenter`/`mouseleave`/`touchstart`. **إخفاء عدّاد الوقت على iOS**: كشف `detectIos()` يضيف `.is-ios` لفيديو الـHero ويُخفي عناصر الوقت (`-webkit-media-controls-current-time-display` / `-time-remaining-display` / `-time-label`) عبر `display:none !important` — مقاربة أفضل ممكنة مع iOS 16+؛ على Android يُطبَّق بدون بادئة `.is-ios`.
 - JS: تأثير Parallax خفيف على المركّبة البصرية (مقارب rAF، معطل عند reduced-motion).
 
 ### 5.3 شريط الإثبات Proof Strip (الأسطر 213–257)
@@ -288,35 +287,36 @@ C:\Users\pC\SKILLOVA\
 - زر الجوال العائم (سطر ~2395) — FAB يُخفي عند فتح القمع.
 
 **عناصر الهيكل**:
-- شريط علوي: شعار + عدّاد الخطوات `funnel-step-count` (صيغة «07 / 07»).
+- شريط علوي: شعار + عدّاد الخطوات `funnel-step-count` (صيغة «08 / 08»).
 - شريط تقدم `funnel-progress-fill` (دالت من 0→100%).
-- حاوية `funnel__body` تحوي 11 عنصر `.funnel__step`.
+- حاوية `funnel__body` تحوي 12 عنصر `.funnel__step` (8 أسئلة تأهيل + شاشة انتقال + تقويم + اتصال + نجاح).
 
 ### 6.1 خريطة الخطوات (DOM → رقم `goToStep()`)
 **الاتفاقية**: `goToStep(n)` يعرض العنصر ذا الفهرس `n-1` في قائمة `.funnel__step` (ترتيب DOM). خاصية `data-step` على العنصر هي وسم منطقي، وليست بالضرورة الرقم نفسها.
 
 | عنصر DOM (`data-step`) | `goToStep()` | الوصف |
 | --- | --- | --- |
-| `1` (سطر 2431) | 1 | الوضعية الحالية |
-| `2` (2489) | 2 | الهدف الرئيسي |
-| `3` (2547) | 3 | المستوى الحالي في Sales |
-| `4` (2587) | 4 | أي Skill تريد تطويرها (**الاختيار المتعدد**) |
-| `5` (2678) | 5 | أكبر تحدي |
-| `6` (2738) | 6 | وقتك الأسبوعي |
-| `7` (2773) | 7 | الجاهزية للاستثمار |
-| `done` (2808) | **8** | شاشة الانتقال («ممتاز، بقيت خطوة أخيرة 🚀») |
-| `8` — التقويم (2821) | **9** | اختيار الموعد |
-| `9` — الاتصال (2863) | **10** | معلومات الاتصال + الإرسال |
-| `10` — النجاح (2936) | **11** | شاشة نجاح الحجز |
+| `1` | 1 | الوضعية الحالية |
+| `2` | 2 | الهدف الرئيسي |
+| `3` | 3 | المستوى الحالي في Sales |
+| `4` | 4 | أي Skill تريد تطويرها (**الاختيار المتعدد**) |
+| `5` | 5 | أكبر تحدي |
+| `6` | 6 | وقتك الأسبوعي |
+| `7` | 7 | **الجاهزية للبدء** (جديد — مستعد/يحتاج توجيه/لاحق/يحتاج فهم/غير مستعد) |
+| `8` | 8 | الجاهزية للاستثمار (كانت الخطوة 7 سابقًا) |
+| `done` | **9** | شاشة الانتقال («ممتاز، بقيت خطوة أخيرة 🚀») |
+| `9` — التقويم | **10** | اختيار الموعد |
+| `10` — الاتصال | **11** | معلومات الاتصال + الإرسال |
+| `11` — النجاح | **12** | شاشة نجاح الحجز |
 
-### 6.2 محرك `goToStep(stepNumber)` (js/main.js:2514)
+### 6.2 محرك `goToStep(stepNumber)` (js/main.js:2531)
 - يستقبل رقم خطوة **1-based** ويحوله إلى فهرس `stepNumber - 1` في `querySelectorAll('.funnel__step')`.
 - يخزن `funnelState.current = stepNumber`.
-- شريط التقدم: `pct = (min(stepNumber,7)/7)*100` → **يثبت عند 100% ابتداءً من الشاشة الانتقالية (8)**.
-- العدّاد: `counter = min(stepNumber,7)` → **يثبت عند «07 / 07»** (لا يُعرض سوى أرقام أسئلة التأهيل).
+- شريط التقدم: `pct = (min(stepNumber,8)/8)*100` → **يثبت عند 100% ابتداءً من الشاشة الانتقالية (9)**.
+- العدّاد: `counter = min(stepNumber,8)` → **يثبت عند «08 / 08»** (لا يُعرض سوى أرقام أسئلة التأهيل الثمانية).
 - روابط «السابق» `[data-funnel-back]`: تُخفى على الخطوة 1 وتظهر في غيرها، وتدعم هدفًا صريحًا عبر `data-back-step`.
-- عند دخول خطوة التقويم (9): يُستدعى `ensureAvailabilityAll()` لجلب خريطة التوفر مرة واحدة.
-- عند خطوة النجاح (11): يُضاف `funnel--complete` وتُملأ شاشة النجاح عبر `populateSuccess()`.
+- عند دخول خطوة التقويم (10): يُستدعى `ensureAvailabilityAll()` لجلب خريطة التوفر مرة واحدة.
+- عند خطوة النجاح (12): يُضاف `funnel--complete` وتُملأ شاشة النجاح عبر `populateSuccess()`.
 
 ### 6.3 جلسة واحدة — `session_id`
 - عند فتح القمع يُولَّد `sessionId` (عبر `generateSessionId()`) ويُحفظ في `funnelState.sessionId` (أسطر 2397–2410).
@@ -325,57 +325,24 @@ C:\Users\pC\SKILLOVA\
 ### 6.4 اختيار الخيار الواحد (js/main.js:2567)
 - النقر على `.funnel__option` يزيل التحديد من الأشقاء ثم يضيف `is-selected`.
 - يخزن القيمة في `funnelState.answers['step_' + stepNum]` مع console.log.
-- **حفظ تدريجي (Progressive save)**: بعد كل إجابة تأهيل (1–7) يُستدعى `queueProgressiveSave(buildLeadPayload())` → `POST /.netlify/functions/update-lead` (تُستثنى قيمة `multi-skill` في خطوة 4 حتى يقرَّ بها زر «متابعة»).
-- **فرع خطوة 4**: اختيار `multi-skill` يُظهر `.funnel__multiselect` (6 خانات) ويعيد ضبطها، وزر «متابعة» يعمل فقط عند اختيار ≥1 ثم `goToStep(5)`.
+- **حفظ تدريجي (Progressive save)**: بعد كل إجابة تأهيل (1–8) يُستدعى `queueProgressiveSave(buildLeadPayload())` → `POST /.netlify/functions/update-lead`.
+- **خطوة 4**: سؤال اختيار واحد عادي (مثل باقي الخطوات) بـ 4 خيارات (Sales، Closing، Customer Service، Appointment Setting) تخزَّن في `step_4` مع حفظ تدريجي وقفز تلقائي.
 - **فرع خطوة الاتصال (data-step≈9)**: اختيار «طريقة التواصل المفضلة» يحدّث الحالة ولا يقفز تلقائيًا.
 - بقية الخطوات: انقر فوق تلقائي إلى `stepNumber + 1` بعد **250ms**.
 
 ### 6.5 التنقل الرجعي (js/main.js:2676)
 - الافتراضي `prevStep = funnelState.current - 1`.
-- يدعم `data-back-step` لهدف صريح (رابط «اختار موعد آخر» من فشل الحجز يعود إلى خطوة التقويم 9).
-- إذا `prevStep ≤ 7` يُستعاد التحديد البصري السابق من `answers` — لا تُستعاد الشاشة الانتقالية/التقويم/الاتصال.
+- يدعم `data-back-step` لهدف صريح (رابط «اختار موعد آخر» من فشل الحجز يعود إلى خطوة التقويم 10).
+- إذا `prevStep ≤ 8` يُستعاد التحديد البصري السابق من `answers` — لا تُستعاد الشاشة الانتقالية/التقويم/الاتصال.
 
 ---
 
-## 7) خطوة التقويم (Order «8» — goToStep 9)
+## 7) خطوة التقويم — محذوفة
 
-**الموقع**: HTML الأسطر 2821–2861؛ التنسيق `funnel__step--calendar` في CSS؛ المنطق في JS (الأسطر 2724–2989).
-
-### 7.1 اصطلاحات البيانات
-```js
-var funnelSlots = [];                              // 14 خانة
-for (var sH = 8; sH <= 21; sH++) funnelSlots.push(hh + ':00');
-   // → ["08:00","09:00",…,"21:00"]  (60 دقيقة لكل خانة)
-var BOOKING_WINDOW_DAYS = 14;                      // نافذة 14 يومًا
-```
-
-### 7.2 حالة التقويم
-```js
-var calendarState = {
-  selectedDate: null,     // "YYYY-MM-DD"
-  selectedTime: null,     // "HH:00"
-  buildsInited: false
-};
-var availabilityMap = null;        // { "YYYY-MM-DD": ["08:00", …] } — الخانات المتاحة فقط
-var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلسة قمع
-```
-
-### 7.3 عجلة التاريخ (buildDateScroller)
-- يبني **14 زرًّا (pills)** من اليوم حتى +13 عبر `Intl.DateTimeFormat('ar-DZ', { weekday:'long' })` و`{ month:'long' }` — **لا تُغيَّر إلى مصفوفات يدوية** (حل سابق لأخطاء اتجاه bidi؛ راجع ملاحظة 1 في §13).
-
-### 7.4 جلب التوفر (ensureAvailabilityAll → loadAvailabilityAll)
-- عند دخول خطوة التقويم يُستدعى `ensureAvailabilityAll()` **مرة واحدة لكل جلسة** (`loadAvailabilityAll()` تنفّذ الجلب الفعلي):
-  - `GET /.netlify/functions/get-availability` (بدون معامل `?date=`) → `{ success, availability: { "YYYY-MM-DD": ["08:00", …] } }`.
-  - الخريطة تُخزَّن في `availabilityMap`؛ تغيير التاريخ بعد الجلب الأول = بحث محلي فوري.
-  - عند الخطأ: `funnel__timeslots--error` مع زر «إعادة المحاولة» يعيد الجلب.
-
-### 7.5 قائمة الأوقات (renderTimeSlots + selectTime)
-- تستعرض `availabilityMap[selectedDate]` — الغايب = محجوز أو ماضٍ (لا حاجة لقوائم محجوزة منفصلة).
-- عند النقر: `is-selected` + `calendarState.selectedTime` + `updateCalendarConfirmBtn()` (الزر لا يعمل دون تاريخ ووقت).
-
-### 7.6 زر التأكيد
-- يخزن `funnelState.appointmentDate` / `funnelState.appointmentTime` (مع console.log) ثم `goToStep(10)` → **خطوة معلومات الاتصال**.
-- **فحص نضارة نهائي عند الإرسال**: بعد ملء نموذج الاتصال تُجرى دورة `check-slot` أخيرة قبل `confirm-booking` لكشف «هذا الموعد أصبح محجوز» حتى لو كانت الخريطة المختزنة قديمة (انظر §9.3).
+**أُزيلت نهائيًا**. كانت تسمح باختيار موعد («الوقت المتاح») قبل معلومات الاتصال. بعد الحذف:
+- القمع أصبح: تأهيل 1–8 → شاشة انتقال → معلومات الاتصال → شاشة النجاح.
+- حُذفت معها صفحة **«الأوقات المتاحة»** في Google Sheets، ودوال `getAvailability()` / `checkSlot()` / `generateAvailability()` / `setupDailyTrigger()` في `Code.gs`، وNetlify Functions `get-availability.js` / `check-slot.js`.
+- القمع لا يرسل `appointmentDate` / `appointmentTime`؛ `confirm_booking` يكتفي بتأكيد التسجيل (حالة «مؤكد»).
 
 ---
 
@@ -391,39 +358,34 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
   - **لا يسجّل ولا يعيد قيمة السر أبدًا.**
 - `jsonResponse(statusCode, body)` → JSON مع `Cache-Control: no-store`.
 
-### 8.1 الدوال الخمس الظاهرة (خلف `_gas.js`)
+### 8.1 الدوال الحالية (خلف `_gas.js`)
 | الدالة | الأسلوب | الإدخال ← الإخراج | action داخل GAS |
 | --- | --- | --- | --- |
-| `get-availability` | GET | (لا شيء) ← `{ success:true, availability:{"YYYY-MM-DD":["HH:MM",…]} }` — النافذة كاملة، الخانات المتاحة فقط (المحجوزة/الماضية غائبة) | `get_availability` |
-| `check-slot` | POST | `{ data:{ date, time } }` ← `{ success:true, available:bool }` | `check_slot` |
 | `check-duplicate-phone` | POST | `{ data:{ phone } }` ← `{ success:true, isDuplicate:bool }` | `check_duplicate_phone` |
 | `update-lead` | POST | `{ session_id, data }` ← `{ success:true }` (حفظ تدريجي) | `update_lead` |
 | `confirm-booking` | POST | `{ session_id, data }` ← `{ success:true }` أو `{ success:false, error:… }` | `confirm_booking` |
 
-- قيود عامة: غير-الطريقة المتوقعة → 405؛ JSON غير صالح → 400؛ `check-slot`/`check-duplicate-phone` يتطلبان `data.*`؛ `update-lead`/`confirm-booking` يتطلبان `session_id` (و`data` للحجز).
+- قيود عامة: غير-الطريقة المتوقعة → 405؛ JSON غير صالح → 400؛ `check-duplicate-phone` يتطلب `data.*`؛ `update-lead`/`confirm-booking` يتطلبان `session_id` (و`data`).
 - **`confirm-booking` يحل محل `submit-lead.js` (حُذف من المستودع)** — نفس الدور ضد الواجهة الجديدة المعتمدة على الأكشنات.
-- `get-availability` (النسخة الحالية) **لا يقبل `?date=`**؛ يُجلب مرة واحدة كاملة ويُخزن عميلًا لكل جلسة.
+- **حُذفا**: `get-availability.js` و`check-slot.js` (مع صفحة «الأوقات المتاحة» في Google Sheets — لم تعد الواجهة تستخدمهما).
 
 ### 8.2 كود Google Apps Script — `google-apps-script/Code.gs`
-- الكود الكامل (419 سطرًا) موجود في المستودع، **يُلصق يدويًا** في محرر Apps Script (لا يوجد إعداد clasp — التطبيق لا يمكنه النشر بنفسه).
+- الكود الكامل (385 سطرًا) موجود في المستودع، **يُلصق يدويًا** في محرر Apps Script (لا يوجد إعداد clasp — التطبيق لا يمكنه النشر بنفسه).
 - **البنية**: نقطة دخول وحيدة `doPost(e)` تتحقق من `body.shared_secret` مقابل خاصية البرنامج `GAS_SHARED_SECRET` («Unauthorized» إن لم يطابق) ثم توجّه حسب `body.action`؛ `doGet` مجرد فحص صحة.
-- **الأوراق**: «العملاء المحتملون» (18 عمودًا عربيًا + عمودا تتبع داخليان: `معرف الجلسة` و`حالة التسجيل`) و«الأوقات المتاحة» (التاريخ / الوقت / محجوز / معرف الجلسة الحاجزة).
-- **`FIELD_MAP`**: يربط أسماء خصائص `funnelState` (camelCase) بأسماء أعمدة الورقة العربية — والواجهة تمرّرها كما هي.
+- **الأوراق**: «العملاء المحتملون» (14 عمودًا عربيًا + عمودا تتبع داخليان: `معرف الجلسة` و`حالة التسجيل` — 16 عمودًا إجمالًا). **حُذفت**: صفحة «الأوقات المتاحة»، وأعمدة `المصدر` و`تفاصيل UTM` و`حالة العميل` و`تاريخ الموعد` و`وقت الموعد` نهائيًا (المصدر/UTM يندمجان الآن في «الملاحظة»). الترتيب النهائي: من `أكبر تحدي` فصاعدًا → `الوقت الأسبوعي المتاح` → `الجاهزية للبدء الفوري` → `جاهزية الاستثمار` → `الملاحظة` → `معرف الجلسة` → `حالة التسجيل`.
+- **`FIELD_MAP`**: يربط أسماء خصائص `funnelState` (camelCase) بأسماء أعمدة الورقة العربية — والواجهة تمرّرها كما هي. **يحتوي على حقل `readinessToStart`** (الجاهزية للبدء الفوري) وحقل `investmentReadiness` (جاهزية الاستثمار). **الربط بالعمود يتم بالاسم فقط** عبر `getPayloadKeyForHeader()` الذي يتعامل مع الأسماء القديمة (مثلاً `الجاهزية للاستثمار` القديمة و`ملاحظة` القديمة) — فلا تكسر الورقة القديمة بعد إعادة الهيكلة.
 - **الأكشنات**:
   - `update_lead` — حفظ تدريجي/استرجاع (upsert عبر `session_id`)، مع honeypot (`data.website_url` غير فارغ = يتجاهل)، `sanitizeValue` ضد حقن صيغ الجداول (`=+-@...` → يُسبق بـ`'`)، حالة «جزئي»، وعمود «التاريخ» من توقيت الخادم.
-  - `get_availability` — يبني الخريطة من ورقة «الأوقات المتاحة» (يستثني الخلايا التي `محجوز=true`).
-  - `check_slot` — يتأكد أن تاريخًا+وقتًا محددين غير محجوزين (غياب الصف = `available:false`).
   - `check_duplicate_phone` — تكرار فقط مقابل العملاء ذوي الحالة «مؤكد» (+`0[567]XXXXXXXX` هي قاعدة رقم الهاتف).
-  - `confirm_booking` — `LockService` (`waitLock(10000)`)، تأكيد الـLead (حالة «مؤكد»)، تحصين خانة الموعد (`محجوز=true` + `معرف الجلسة`)، ورفض `رقم الهاتف غير صالح`.
+  - `confirm_booking` — `updateLead` + تأكيد الـLead (حالة «مؤكد»)، ورفض `رقم الهاتف غير صالح`.
   - غير المعروف → «إجراء غير معروف».
-- **مولّد المواعيد**: `generateAvailability()` يملا نافذة 14 يومًا (08:00–21:00، 14 خانة/يوم) ويمسح الماضي (`cleanupPastDates`)؛ `setupDailyTrigger()` يبرمجه يوميًا عند منتصف الليل.
 - **Meta Conversions API**: جاهز لكن **معطّل مؤقتًا** (SHA-256 للهاتف/البريد، `META_API_VERSION = 'v21.0'`، مع `META_PIXEL_ID` placeholder) — يُفعَّل بإعداد البيانات الخاصة ثم إلغاء تعليق `sendLeadToMetaCAPI(...)` في `confirmBooking`.
 
 > **الطريقة اليدوية المطلوبة**:
 > 1. لصق `google-apps-script/Code.gs` كاملًا في المحرر **مكان أي كود سابق**.
 > 2. ضبط خاصية البرنامج `GAS_SHARED_SECRET` على القيمة المختارة.
-> 3. تشغيل `setupDailyTrigger()` مرة ثم `generateAvailability()` مرة (من المحرر) ليتوافر المواعيد فورًا.
-> 4. إعادة نشر Web App (تنفيذ «أي شخص») **بنفس الـURL الحالي** (أو تحديث `GAS_WEBAPP_URL` في Netlify عند تغييره).
+> 3. إعادة نشر Web App (تنفيذ «أي شخص») **بنفس الـURL الحالي** (أو تحديث `GAS_WEBAPP_URL` في Netlify عند تغييره).
+> 4. **مرة واحدة**: شغّل `runSheetDiagnostics()` من المحرر (لو الكتابة تُظهر تبادلًا في أعمدة الجاهزية/الاستثمار أو كانت الورقة قديمة)، ثم `migrateSheet()` ليعيد هيكلة الورقة الحية وفق `LEADS_HEADERS` الجديدة مع الحفاظ على كل الصفوف (انقل القيم بالاسم، حرفيًا — بيانات الكهنة القديمة تُحفظ؛ الأعمدة الملغاة لا تُنقل).
 
 ---
 
@@ -439,12 +401,11 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 - `netlify.toml` ينشر جذر المشروع (لاحظ `publish = "."`) مع الـFunctions في `netlify/functions`.
 - **مؤخرًا أُضيف `package.json`**: سكربت `dev` + `netlify-cli` كاعتماد تطويري فقط — النشر بلا خطوة build.
 - التطوير المحلي: `npm run dev` → `dev-server.js` (ثابت + بروكسي `/.netlify/functions/*`، يقرأ `.env`، منفذ 8888 ثم 8889 عند حجز).
-- الخطوات اليدوية حتى يعمل إرسال الحجز كليًا:
+- الخطوات اليدوية حتى يعمل إرسال التسجيل كليًا:
   1. لصق `google-apps-script/Code.gs` كاملًا في محرر Apps Script مكان أي كود سابق.
   2. ضبط خاصية البرنامج `GAS_SHARED_SECRET` على القيمة المختارة.
-  3. تشغيل `setupDailyTrigger()` ثم `generateAvailability()` (مرة واحدة من المحرر).
-  4. إعادة نشر Web App (تنفيذ «أي شخص») بنفس الـURL.
-  5. إضافة `GAS_WEBAPP_URL` + `GAS_SHARED_SECRET` في Netlify (Environment Variables) وإعادة النشر.
+  3. إعادة نشر Web App (تنفيذ «أي شخص») بنفس الـURL.
+  4. إضافة `GAS_WEBAPP_URL` + `GAS_SHARED_SECRET` في Netlify (Environment Variables) وإعادة النشر.
 
 ---
 
@@ -452,9 +413,10 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 
 | السطر | القسم | المهام |
 | --- | --- | --- |
-| 14–47 | NAVBAR IA Router | scroll-state (40px)، toggle الجوال، إغلاق خارجي/Escape/breakpoint |
+| 1–112 | NAVBAR IA Router | scroll-state (40px)، toggle الجوال، إغلاق خارجي/Escape/breakpoint |
 | 128–155 | HERO | parallax خفيف على المركّبة البصرية |
-| 157–217 | HERO VIDEO MUTE CONTROL *(جديد)* | زر كتم/تشغيل الفيديو، `syncHeroMuteState()`، تلاشي 1.5s، `aria-label` عربي |
+| 157–217 | HERO VIDEO MUTE CONTROL | زر كتم/تشغيل الفيديو، `syncHeroMuteState()`، تلاشي 1.5s، `aria-label` عربي |
+| 218–238 | HERO iOS VIDEO FIX | `detectIos()` يضيف `.is-ios` + إخفاء عناصر الوقت عبر `-webkit-media-controls` |
 | 235–267 | PROBLEM | IntersectionObserver reveal موقّت |
 | 283–339 | SHARED SCROLL-FILL HELPER | «الخط يمتلئ أثناء التمرير» مولد؛ rAF + scroll/resize/breakpoints/load؛ تقارير تقدم per-section |
 | 358–436 | SKILLOVA METHOD | تعبئة الخط الأفقية + حالات المراحل + تحريك النّبض الضوئي مع حافة التعبئة |
@@ -479,9 +441,10 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 | 2351–2383 | FINAL CTA | reveal بترتيب `--delay × 90ms` |
 | 2392–2395 | FOOTER | `footer-year` سنة الجاري |
 | 2397–2490 | QUALIFICATION FUNNEL | session_id، open/close (مع إخفاء Floating Mobile CTA)، goToStep، options، multiselect، back، **حفظ تدريجي عبر update-lead** |
-| 2724–2989 | CALENDAR STEP | date pills (Intl ar-DZ)، جلب خريطة التوفر كاملة مرة واحدة، time slots، confirm → `goToStep(10)` |
-| 2991–3396 | CONTACT STEP + SUBMIT FLOW | تحقق (اسم/هاتف/بريد/تفضيل) + `buildLeadPayload` + `ARABIC_LABELS` + حفظ تدريجي؛ سلسلة الإرسال: duplicate-phone guard → check-slot freshness → confirm-booking؛ `SLOT_ALREADY_BOOKED`/rebook؛ `resetFunnelForNewRound` |
-| 3398–3465 | SUCCESS STEP (11) + INIT | تعبئة شاشة النجاح (التاريخ/الوقت/الوسيلة) + إغلاق + `buildDateScroller()` + `goToStep(1)` |
+| 2531–2582 | goToStep() | محرك التنقل الداخلي: شريط تقدم 8/8، عدّاد 08/08، شاشة إكمال عند الخطوة 12 |
+| 2724–2989 | CALENDAR STEP | date pills (Intl ar-DZ)، جلب خريطة التوفر كاملة مرة واحدة، time slots (09:00–23:00)، confirm → `goToStep(11)` |
+| 2991–3396 | CONTACT STEP + SUBMIT FLOW | تحقق (اسم/هاتف جزائري/بريد/تفضيل) + `buildLeadPayload` + `ARABIC_LABELS` + حفظ تدريجي؛ سلسلة الإرسال: duplicate-phone guard → confirm-booking؛ `resetFunnelForNewRound` |
+| 3398–3505 | SUCCESS STEP (12) + INIT | تعبئة شاشة النجاح (التاريخ/الوقت/الوسيلة) + إغلاق + `buildDateScroller()` + `goToStep(1)` |
 
 كلها داخل **IIFE** (`(function(){ 'use strict'; … })()`) بحيث لا توجد متغيرات عالمية.
 
@@ -489,14 +452,14 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 
 ## 11) قواعد عدم التجاوز (Constraints) السارية حاليًا
 
-1. **خطوات القمع ومحتواها لا تُعدَّل في المستقبل بدون طلب** — الترقيم الحالي: 1–7 تأهيل، **8** شاشة انتقال، **9** التقويم، **10** الاتصال، **11** النجاح (خاصيات `data-step`: `done`/`8`/`9`/`10`).
+1. **خطوات القمع ومحتواها لا تُعدَّل في المستقبل بدون طلب** — الترقيم الحالي: 1–8 تأهيل (8 أسئلة)، **9** شاشة انتقال، **10** التقويم، **11** الاتصال، **12** النجاح (خواص `data-step`: `done`/`9`/`10`/`11`).
 2. **لا تُرسَل بيانات إحصائية/تحليلات** خارجية — بيانات الحجز تُرسل فقط عبر `confirm-booking` (إيصال المنتج). حفظ `update-lead` التدريجي وسيط لحفظ الجلسة. **Meta CAPI جاهز لكنه معطّل** ولا يُفعَّل إلا بطلب وضبط `META_PIXEL_ID`/`META_ACCESS_TOKEN`.
 3. **لا يجوز** إضافة مكتبات خارجية أو Frameworks.
 4. **لا يجوز** كشف رابط GAS أو `GAS_SHARED_SECRET` في الجانب العميل — يمرّان فقط عبر دوال Netlify من متغيرات البيئة.
 5. صياغة المحتوى بحذر: التطبيق المدفوع/فرص العمل **غير مضمونة** (تُستخدم صيغ مشروطة).
 6. الحقوق التنسيقية placeholder (`[…]`) تبقى حتى تُستبدل بمحتوى حقيقي (المدرب، السعر، فيديو الـHero، رمز البكسل). **ملاحظة**: صورة المدرب `assets/instructor.jpg` موجودة فعلًا (وليست placeholder).
 7. **المصطلحات اللاتينية داخل العربية** توضع دائمًا في عنصر بـ`dir="ltr"` + `unicode-bidi: isolate` (أنماط `method__lat`, `curriculum__lat`, `get__lat`, `why__lat`).
-8. `submit-lead.js` لم يعد موجودًا — سلسلة الإرسال الحالية: `check-duplicate-phone` → `check-slot` → `confirm-booking`.
+8. `submit-lead.js` لم يعد موجودًا — سلسلة الإرسال الحالية: `check-duplicate-phone` → `confirm-booking`.
 
 ---
 
@@ -504,17 +467,18 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 
 | الخطوة | الحالة |
 | --- | --- |
-| قمع Steps 1–7 + شاشة الانتقال | ✔ منجز |
-| خطوة التقويم 9 (خريطة توفر كاملة + خانات + confirm) | ✔ منجز |
-| خطوة الاتصال 10 (تحقق + duplicate-phone + نضارة slot) | ✔ منجز |
-| شاشة النجاح 11 + إعادة فتح نظيفة (`resetFunnelForNewRound`) | ✔ منجز |
+| قمع Steps 1–8 (8 أسئلة تأهيل) + شاشة الانتقال | ✔ منجز |
+| خطوة الاتصال (تحقق + duplicate-phone) | ✔ منجز |
+| شاشة النجاح + إعادة فتح نظيفة (`resetFunnelForNewRound`) | ✔ منجز |
 | **تحكم كتم/تشغيل فيديو الـHero** | ✔ منجز |
 | **زر الجوال العائم (Floating Mobile CTA)** | ✔ منجز |
 | **إعادة تصميم قسم About (صورة المدرب الفعلية + كشف متتابع)** | ✔ منجز |
-| دوال Netlify: `_gas.js` + `get-availability` / `check-slot` / `check-duplicate-phone` / `update-lead` / `confirm-booking` | ✔ منجز (تُختبر عبر dev-server و`npm run dev`) |
-| `google-apps-script/Code.gs` | ✔ مكتوب في المستودع — ⏳ إلصاق يدوي في Apps Script + إعادة نشر |
+| **التحقق من الهاتف الجزائري (`0[567]\d{8}`) + عرض أخطاء الخادم** | ✔ منجز |
+| **إخفاء عدّاد الوقت على iOS (WebKit video controls)** | ✔ منجز |
+| **خطوة «الجاهزية للبدء» الجديدة (خطوة 7)** | ✔ منجز |
+| دوال Netlify: `_gas.js` + `check-duplicate-phone` / `update-lead` / `confirm-booking` | ✔ منجز (تُختبر عبر dev-server و`npm run dev`) |
+| `google-apps-script/Code.gs` (16 عمودًا + أدوات `runSheetDiagnostics`/`migrateSheet`) | ✔ مكتوب في المستودع — ⏳ إلصاق يدوي في Apps Script + إعادة نشر + تشغيل `migrateSheet` مرة واحدة |
 | خاصية `GAS_SHARED_SECRET` في Apps Script + متغيرا `GAS_WEBAPP_URL`/`GAS_SHARED_SECRET` في Netlify | ⏳ إضافة |
-| مولّد المواعيد (`setupDailyTrigger()` / `generateAvailability()`) | ⏳ تشغيل يدوي لمرة |
 | Meta Conversions API | ⏳ معطّل بانتظار بيانات Skillova |
 | معلومات المدرب (نبذة كاملة)، السعر النهائي، فيديو الـHero | ⏳ محتوى placeholder / قيد التجهيز |
 
@@ -530,3 +494,7 @@ var availabilityLoading = false;   // ↓ جلب مرة واحدة لكل جلس
 - **إمكانية الوصول**: `aria-expanded/controls`، أدوار `role="tablist/tab"`، `role="dialog" aria-modal`، `aria-hidden` للمحتوى المتكرر في الـmarquee، ووصف نصي لجميع الأزرار الأيقونية.
 - **تطوير محلي**: `npm run dev` لا يتطلب نشرًا؛ الدوال تُختبر عبر `/.netlify/functions/*` مع `.env` (المتغيران الإلزاميان).
 - **زر الجوال العائم**: `btn--float-mobile` في `index.html` (سطر ~2390) — FAB ثابت على الجوال فقط، يُخفي تلقائيًا عند فتح القمع ويُعاد عند إغلاقه (المنطق في `js/main.js` lines 2479–2490).
+- **إخفاء عدّاد الوقت على iOS**: كشف `detectIos()` يضيف `.is-ios` لفيديو الـHero ويُخفي عناصر الوقت (`-webkit-media-controls-current-time-display` / `-time-remaining-display` / `-time-label`) عبر `display:none !important`. مقاربة أفضل ممكنة مع iOS 16+ بسبب قيود shadow tree لعناصر الوسائط الحديثة؛ على Android يُطبَّق بدون بادئة `.is-ios`. ملاحظة: هذا أفضل ما يمكن — لا ضمان 100% مع تحديثات iOS المستقبلية.
+- **تحقق الهاتف الجزائري**: regex `^0[567]\d{8}$` (10 أرقام تبدأ بـ05/06/07) بدلاً من التحقق العام. التنظيف: `v.replace(/[\s\-\(\)\+]/g, '')`. حقل الهاتف يحصل على صنف `is-valid` (حدود خضراء) عند صحة التحقق.
+- **عرض أخطاء الخادم في القمع**: أخطاء `confirm-booking` تُعرض الآن مباشرة كـ`'الخطأ: ' + data.error` بدلاً من رسالة عامة.
+- **8 أسئلة تأهيل**: أُضيفت خطوة «الجاهزية للبدء» (خطوة 7) بـ5 خيارات قبل خطوة «الجاهزية للاستثمار» (أصبحت خطوة 8). العدّاد: `08 / 08`، شريط التقدم: `min(step,8)/8`، شاشة الإكمال: الخطوة 12.

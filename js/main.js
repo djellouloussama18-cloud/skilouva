@@ -2485,7 +2485,7 @@
   /* --- Open / Close ------------------------------------------- */
   function openFunnel() {
     if (!funnelEl) return;
-    if (funnelState.current === 12) {
+    if (funnelState.current === 11) {
       resetFunnelForNewRound();
     }
     /* Generate once per funnel session — reused across all steps and the
@@ -2531,7 +2531,7 @@
   /* --- goToStep ------------------------------------------------
      Accepts a 1-based step number. Steps 1–8 are qualification
      questions. Step 9 is the transition screen. Step 10 is the
-     calendar step. Steps ≥ 11 are placeholders for future steps.
+     contact step. Step 11 is the success step.
      The transition screen's progress bar stays at 100%/08 since it
      is a non-qualification step. ------------------------------- */
   function goToStep(stepNumber) {
@@ -2549,8 +2549,8 @@
     funnelState.current = stepNumber;
 
     /* Terminal success step: hide counter/progress, fill confirm data */
-    if (funnelEl) funnelEl.classList.toggle('funnel--complete', stepNumber === 12);
-    if (stepNumber === 12) populateSuccess();
+    if (funnelEl) funnelEl.classList.toggle('funnel--complete', stepNumber === 11);
+    if (stepNumber === 11) populateSuccess();
 
     /* Progress bar: 100% once past the qualification questions */
     var pct = (Math.min(stepNumber, 8) / 8) * 100;
@@ -2575,10 +2575,6 @@
     /* Scroll the funnel body to the top */
     var body = funnelEl.querySelector('.funnel__body');
     if (body) body.scrollTop = 0;
-
-    /* Entering the calendar step — make sure the single all-dates
-       availability fetch has been requested (cached for this session) */
-    if (stepNumber === 10) ensureAvailabilityAll();
   }
 
   /* --- Option selection (single-choice steps) ------------------ */
@@ -2606,11 +2602,11 @@
       var value = btn.getAttribute('data-value');
       funnelState.answers['step_' + stepNum] = value;
 
-      console.log('step_' + stepNum + ':', value);
+      /* DEBUG: trace which slug lands in which step bucket */
+      console.log('[funnel] step_' + stepNum + ' =', value, '| step_7 =', funnelState.answers['step_7'], '| step_8 =', funnelState.answers['step_8']);
 
-      /* Progressive save after every qualification answer (Step 4's
-         "multi-skill" placeholder is saved only once confirmed via Continue) */
-      if (stepNum >= 1 && stepNum <= 8 && !(stepNum === 4 && value === 'multi-skill')) {
+      /* Progressive save after every single-select qualification answer */
+      if (stepNum >= 1 && stepNum <= 8) {
         queueProgressiveSave(buildLeadPayload());
       }
 
@@ -2622,70 +2618,10 @@
         return;
       }
 
-      /* Step 4 multi-select branch */
-      if (stepNum === 4) {
-        if (value === 'multi-skill') {
-          var panel = step.querySelector('.funnel__multiselect');
-          if (panel) {
-            panel.setAttribute('aria-hidden', 'false');
-            var cbs = panel.querySelectorAll('input[type="checkbox"]');
-            Array.prototype.forEach.call(cbs, function (cb) { cb.checked = false; });
-            updateContinueBtn();
-          }
-          return;
-        } else {
-          var panelHide = step.querySelector('.funnel__multiselect');
-          if (panelHide) panelHide.setAttribute('aria-hidden', 'true');
-        }
-      }
-
       /* Auto-advance after a short delay */
       var advanceTo = stepNum + 1;
       setTimeout(function () {
         goToStep(advanceTo);
-      }, 250);
-    });
-  }
-
-  /* --- Step 4 multi-select checkboxes -------------------------- */
-  function updateContinueBtn() {
-    var panel = funnelEl ? funnelEl.querySelector('.funnel__multiselect') : null;
-    if (!panel) return;
-    var btn = panel.querySelector('.funnel__continue-btn');
-    if (!btn) return;
-    var checked = panel.querySelectorAll('input[type="checkbox"]:checked');
-    btn.disabled = checked.length === 0;
-  }
-
-  if (funnelBody) {
-    funnelBody.addEventListener('change', function (e) {
-      if (e.target.matches('.funnel__multiselect input[type="checkbox"]')) {
-        updateContinueBtn();
-      }
-    });
-
-    funnelBody.addEventListener('click', function (e) {
-      var btn = e.target.closest('.funnel__continue-btn');
-      if (!btn || btn.disabled) return;
-
-      var panel = btn.closest('.funnel__multiselect');
-      var step = btn.closest('.funnel__step');
-      if (!panel || !step) return;
-
-      var checked = panel.querySelectorAll('input[type="checkbox"]:checked');
-      var skills = [];
-      Array.prototype.forEach.call(checked, function (cb) {
-        skills.push(cb.value);
-      });
-
-      funnelState.answers['step_4_multi'] = skills;
-      console.log('step_4_multi:', skills);
-
-      /* Progressive save once (only on Continue, not per checkbox toggle) */
-      queueProgressiveSave(buildLeadPayload());
-
-      setTimeout(function () {
-        goToStep(5);
       }, 250);
     });
   }
@@ -2713,10 +2649,10 @@
 
       /* Restore previous answer visual (skip for non-qualification steps) */
       if (prevStep <= 8) {
-        var answer = funnelState.answers['step_' + prevStep];
-        if (answer) {
-          var prevStepEl = funnelEl.querySelectorAll('.funnel__step')[prevStep - 1];
-          if (prevStepEl) {
+        var prevStepEl = funnelEl.querySelectorAll('.funnel__step')[prevStep - 1];
+        if (prevStepEl) {
+          var answer = funnelState.answers['step_' + prevStep];
+          if (answer) {
             var opts = prevStepEl.querySelectorAll('.funnel__option');
             Array.prototype.forEach.call(opts, function (o) {
               if (o.getAttribute('data-value') === answer) {
@@ -2729,284 +2665,17 @@
     });
   }
 
-  /* --- Calendar button (transition screen → step 10) ---------- */
+  /* --- Contact button (transition screen → step 10) ----------- */
   if (funnelBody) {
     funnelBody.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-funnel-action="calendar"]');
+      var btn = e.target.closest('[data-funnel-action="contact"]');
       if (!btn) return;
       goToStep(10);
     });
   }
 
   /* ============================================================
-     CALENDAR STEP (Step 10) — date + time slot selection
-     ----------------------------------------------------------------
-     Reads availability from the Netlify Function on date change.
-     ============================================================ */
-
-  /* Slots: 15 × 60-min slots, 09:00 start … 23:00 start */
-  var funnelSlots = [];
-  for (var sH = 9; sH <= 23; sH++) {
-    var hh = (sH < 10 ? '0' : '') + sH;
-    funnelSlots.push(hh + ':00');
-  }
-
-  var BOOKING_WINDOW_DAYS = 14;
-
-  var dateScroller     = document.getElementById('funnel-date-scroller');
-  var timeslotsEl      = document.getElementById('funnel-timeslots');
-  var loadingEl        = document.getElementById('funnel-timeslots-loading');
-  var errorEl          = document.getElementById('funnel-timeslots-error');
-  var retryBtn         = document.getElementById('funnel-timeslots-retry');
-  var confirmBtn       = document.getElementById('funnel-calendar-confirm');
-  var slotNotice       = document.getElementById('funnel-timeslots-notice');
-
-  var calendarState = {
-    selectedDate: null,     // YYYY-MM-DD
-    selectedTime: null,     // "HH:00"
-    buildsInited: false
-  };
-
-  /* Single all-dates availability map, fetched once per funnel session:
-     { "YYYY-MM-DD": ["09:00", "10:00", ...] } — arrays of OPEN start times.
-     Date switching after the first fetch is instant (local lookup). */
-  var availabilityMap = null;
-  var availabilityLoading = false;
-
-  function pad2(n) { return (n < 10 ? '0' : '') + n; }
-
-  function fmtDate(d) {
-    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-  }
-
-  /* Use Intl.DateTimeFormat for locale-correct Arabic names */
-  var arDayFmt   = new Intl.DateTimeFormat('ar-DZ', { weekday: 'long' });
-  var arMonthFmt = new Intl.DateTimeFormat('ar-DZ', { month: 'long' });
-
-  var funnelDatePills = [];
-
-  function buildDateScroller() {
-    if (!dateScroller || calendarState.buildsInited) return;
-    calendarState.buildsInited = true;
-
-    dateScroller.textContent = '';
-
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (var i = 0; i < BOOKING_WINDOW_DAYS; i++) {
-      (function (offset) {
-        var d = new Date(today);
-        d.setDate(d.getDate() + offset);
-
-        var pill = document.createElement('button');
-        pill.type = 'button';
-        pill.className = 'funnel__date-pill';
-        pill.setAttribute('data-date', fmtDate(d));
-
-        var dayEl = document.createElement('span');
-        dayEl.className = 'funnel__date-pill-day';
-        dayEl.textContent = arDayFmt.format(d);
-
-        var numEl = document.createElement('span');
-        numEl.className = 'funnel__date-pill-num';
-        numEl.textContent = d.getDate() + ' ' + arMonthFmt.format(d);
-
-        pill.appendChild(dayEl);
-        pill.appendChild(numEl);
-
-        pill.addEventListener('click', function () {
-          selectDate(pill);
-        });
-
-        dateScroller.appendChild(pill);
-        funnelDatePills.push(pill);
-      })(i);
-    }
-  }
-
-  function selectDate(pill) {
-    funnelDatePills.forEach(function (p) {
-      p.classList.remove('is-selected');
-    });
-    pill.classList.add('is-selected');
-
-    calendarState.selectedDate = pill.getAttribute('data-date');
-    calendarState.selectedTime = null;
-
-    /* Hide the time list & confirm button */
-    timeslotsEl.style.display = 'none';
-    confirmBtn.disabled = true;
-
-    renderTimeSlots();
-  }
-
-  /* Fetch the FULL availability map once for the whole booking window.
-     Date switching afterwards is instant with no per-date network calls. */
-  function loadAvailabilityAll() {
-    availabilityLoading = true;
-    calendarState.selectedTime = null;
-    confirmBtn.disabled = true;
-    timeslotsEl.style.display = 'none';
-    errorEl.style.display = 'none';
-    loadingEl.style.display = 'grid';
-
-    fetch('/.netlify/functions/get-availability')
-      .then(function (res) {
-        if (!res.ok) throw new Error('bad status ' + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        if (data && data.error) throw new Error(data.error);
-
-        availabilityLoading = false;
-        loadingEl.style.display = 'none';
-
-        availabilityMap = data.availability || {};
-
-        /* Restore the "pick a day first" area */
-        timeslotsEl.style.display = 'grid';
-
-        /* If the user already picked a date while loading, re-render against
-           the fresh map */
-        if (calendarState.selectedDate) renderTimeSlots();
-      })
-      .catch(function (err) {
-        availabilityLoading = false;
-        loadingEl.style.display = 'none';
-        errorEl.style.display = 'grid';
-        console.error('Availability fetch failed:', err.message);
-      });
-  }
-
-  /* Called on every entry to the calendar step — fetches only once per
-     session, then serves dates instantly from the cached map. */
-  function ensureAvailabilityAll() {
-    if (availabilityMap || availabilityLoading) return;
-    loadAvailabilityAll();
-  }
-
-  function renderTimeSlots() {
-    timeslotsEl.style.display = 'grid';
-    timeslotsEl.textContent = '';
-
-    /* Times NOT listed for the selected date are treated as unavailable
-       (booked / not offered). A missing date => empty array => all greyed. */
-    var availForDate = availabilityMap ? (availabilityMap[calendarState.selectedDate] || []) : [];
-
-    funnelSlots.forEach(function (slot) {
-      var isAvailable = availForDate.indexOf(slot) !== -1;
-
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'funnel__timeslot' + (isAvailable ? '' : ' funnel__timeslot--booked');
-      btn.textContent = slot;
-      btn.disabled = !isAvailable;
-
-      if (isAvailable) {
-        btn.addEventListener('click', function () {
-          selectTime(slot);
-        });
-      }
-
-      timeslotsEl.appendChild(btn);
-    });
-
-    hideSlotNotice();
-  }
-
-  function selectTime(slot) {
-    calendarState.selectedTime = null;
-    confirmBtn.disabled = true;
-
-    var slotBtns = timeslotsEl.querySelectorAll('.funnel__timeslot');
-    Array.prototype.forEach.call(slotBtns, function (b) {
-      b.classList.remove('is-selected');
-    });
-
-    var target = Array.prototype.find.call(slotBtns, function (b) {
-      return b.textContent === slot;
-    });
-    if (target) target.classList.add('is-selected');
-
-    calendarState.selectedTime = slot;
-    updateCalendarConfirmBtn();
-
-    /* Progressive save — date + time now chosen */
-    queueProgressiveSave(buildLeadPayload());
-
-    /* Freshness double-check on the picked slot (cached map may be stale) */
-    verifySlot(calendarState.selectedDate, slot);
-  }
-
-  function updateCalendarConfirmBtn() {
-    confirmBtn.disabled = !(calendarState.selectedDate && calendarState.selectedTime);
-  }
-
-  function showSlotNotice() {
-    if (slotNotice) slotNotice.hidden = false;
-  }
-
-  function hideSlotNotice() {
-    if (slotNotice) slotNotice.hidden = true;
-  }
-
-  /* Extra safety net: double-check the picked slot on the backend before the
-     user leaves the calendar. If it was taken meanwhile, drop it from the
-     local map, reset the selection and show an inline message — no need to
-     re-fetch the whole availability map. */
-  function verifySlot(date, time) {
-    if (!date || !time) return;
-
-    fetch('/.netlify/functions/check-slot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: { date: date, time: time } })
-    })
-      .then(function (res) { return res.json().catch(function () { return null; }); })
-      .then(function (data) {
-        if (data && data.available === false) {
-          var arr = availabilityMap ? availabilityMap[date] : null;
-          if (arr) {
-            var i = arr.indexOf(time);
-            if (i !== -1) arr.splice(i, 1);
-          }
-          calendarState.selectedTime = null;
-          confirmBtn.disabled = true;
-          renderTimeSlots();
-          showSlotNotice();
-        } else {
-          hideSlotNotice();
-        }
-      })
-      .catch(function (err) {
-        hideSlotNotice();
-        console.error('Slot check failed:', err.message);
-      });
-  }
-
-  /* Wire confirm button */
-  if (confirmBtn) {
-    confirmBtn.addEventListener('click', function () {
-      if (confirmBtn.disabled) return;
-
-      funnelState.appointmentDate = calendarState.selectedDate;
-      funnelState.appointmentTime = calendarState.selectedTime;
-
-      goToStep(11);
-      updateContactSubmitBtn();
-    });
-  }
-
-  /* Wire retry button — re-fetches the whole availability map */
-  if (retryBtn) {
-    retryBtn.addEventListener('click', function () {
-      loadAvailabilityAll();
-    });
-  }
-
-  /* ============================================================
-     CONTACT STEP (Step 11) — form validation + lead submission
+     CONTACT STEP (Step 10) — form validation + lead submission
      ============================================================ */
   var contactForm       = document.getElementById('funnel-contact-form');
   var contactName       = document.getElementById('funnel-contact-name');
@@ -3016,7 +2685,6 @@
   var contactSubmit     = document.getElementById('funnel-contact-submit');
   var contactError      = document.getElementById('funnel-contact-error');
   var contactErrorText  = document.getElementById('funnel-contact-error-text');
-  var contactRebook     = document.getElementById('funnel-contact-back-to-slots');
   var contactSubmitting = false;
 
   var contactFields = {
@@ -3090,11 +2758,10 @@
     if (contactError) contactError.hidden = true;
   }
 
-  function showContactError(text, withRebook) {
+  function showContactError(text) {
     if (!contactError || !contactErrorText) return;
     contactErrorText.textContent = text;
     contactError.hidden = false;
-    if (contactRebook) contactRebook.hidden = !withRebook;
   }
 
   function restoreSubmitButton() {
@@ -3122,52 +2789,34 @@
      "أخرى" detection, multi-select trigger). --------------------------- */
   var ARABIC_LABELS = {
     step_1: {
-      'student': '🎓 طالب',
-      'graduate': '🎓 خريج جامعي',
+      'student-graduate': '🎓 طالب / خريج جامعي',
       'employee': '💼 موظف',
       'looking': '🔍 نبحث على خدمة',
-      'business-owner': '🚀 صاحب مشروع',
-      'freelancer': '💻 Freelancer',
-      'career-change': '🔄 حاب نبدل المجال المهني',
-      'other': 'أخرى'
+      'business-owner-freelancer': '🚀 صاحب مشروع / Freelancer'
     },
     step_2: {
       'first-job': '💼 نلقى أول وظيفة',
       'career-switch': '🔄 نبدل المجال المهني',
-      'improve-sales': '📈 نطور مستواي في Sales',
-      'master-closing': '🎯 نولي محترف في Closing',
-      'improve-cs': '🤝 نطور Customer Service',
-      'freelance': '💻 نبدأ نخدم Freelance',
-      'remote': '🌍 نبحث على Remote / International Opportunities',
-      'grow-business': '🚀 نطور الـBusiness تاعي'
+      'improve-sales-closing-cs': '📈 نطور مستواي في Sales / Closing / Customer Service',
+      'grow-business-freelance': '🚀 نطور الـBusiness تاعي / نبدأ نخدم Freelance'
     },
     step_3: {
       'complete-beginner': '🌱 مبتدئ تمامًا',
       'basic-knowledge': '🟢 عندي معرفة بسيطة',
       'tried-before': '🟡 جربت نخدم في المجال من قبل',
-      'currently-working': '🔵 نخدم حاليًا في Sales / Customer Service',
-      'experienced': '🟣 عندي خبرة جيدة وحاب نطور مستواي'
+      'experienced': '🟣 عندي خبرة جيدة ونحب نطور مستواي'
     },
     step_4: {
       'sales': '💰 Sales',
       'closing': '🎯 Closing',
       'customer-service': '📞 Customer Service',
-      'appointment-setting': '📅 Appointment Setting',
-      'communication': '🧠 Communication',
-      'lead-qualification': '🔎 Lead Qualification',
-      'multi-skill': '🔥 أكثر من Skill'
+      'appointment-setting': '📅 Appointment Setting'
     },
     step_5: {
-      'no-clear-skills': 'ما عنديش Skill واضحة نقدر نعتمد عليها',
-      'no-experience': 'ما عنديش خبرة عملية',
-      'dont-know-where': 'ما نعرفش منين نبدأ',
-      'communication-difficulty': 'نلقى صعوبة في التواصل مع العملاء',
-      'fear-of-rejection': 'نخاف من البيع ورفض العملاء',
-      'closing-difficulty': 'نلقى صعوبة في Closing',
-      'cant-find-jobs': 'ما نعرفش كيفاش نلقى فرص العمل',
-      'cant-present-skills': 'عندي Skills بصح ما نعرفش كيفاش نقدم نفسي للشركات',
-      'need-coaching': 'نحتاج Coaching ومتابعة',
-      'other': 'أخرى'
+      'lack-knowledge': '📚 ناقصني المعرفة والخبرة',
+      'need-opportunities': '💼 نحتاج نلقى فرص وخدمة',
+      'improve-communication': '🗣️ نحتاج نطور التواصل والإقناع',
+      'dont-know-how-to-start': '🎯 ما نعرفش كيفاش نبدأ ونطبق'
     },
     step_6: {
       'under-2h': 'أقل من ساعتين',
@@ -3179,9 +2828,8 @@
     step_7: {
       'ready-now': '🚀 نعم، مستعد نبدأ ونطبق من اليوم',
       'ready-with-guidance': '💪 نعم، بصح نحتاج شوية توجيه في البداية',
-      'later': '🕐 حاب نبدأ، بصح مازال ماشي الوقت المناسب',
       'need-understanding': '🤔 مازال نحتاج نفهم أكثر قبل ما نقرر',
-      'not-ready': '❌ حاليًا ما نيش مستعد نبدأ'
+      'later': '🕐 حاب نبدأ، بصح مازال ماشي الوقت المناسب'
     },
     step_8: {
       'ready': '✅ نعم، مستعد نبدأ',
@@ -3205,15 +2853,6 @@
   function buildLeadPayload() {
     var amap = funnelState.answers || {};
 
-    /* Step 4 skill interest: multi-select joins each translated label;
-       single-select translates the single slug. */
-    var skillRaw = Array.isArray(amap['step_4_multi']) && amap['step_4_multi'].length
-      ? amap['step_4_multi']
-      : (amap['step_4'] ? [amap['step_4']] : []);
-    var skillInterest = skillRaw
-      .map(function (slug) { return translateLabel(ARABIC_LABELS.step_4, slug); })
-      .join(', ');
-
     var source = getQueryParam('source') || getQueryParam('utm_source') || '';
     var utmParts = [];
     ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
@@ -3221,7 +2860,7 @@
       if (v) utmParts.push(k + '=' + v);
     });
 
-    return {
+    var payload = {
       fullName:            contactName ? contactName.value.trim() : '',
       phone:               contactPhone ? contactPhone.value.trim() : '',
       email:               contactEmail ? contactEmail.value.trim() : '',
@@ -3230,16 +2869,21 @@
       currentStatus:       translateLabel(ARABIC_LABELS.step_1, amap['step_1']),
       careerGoal:          translateLabel(ARABIC_LABELS.step_2, amap['step_2']),
       experienceLevel:     translateLabel(ARABIC_LABELS.step_3, amap['step_3']),
-      skillInterest:       skillInterest,
+      skillInterest:       translateLabel(ARABIC_LABELS.step_4, amap['step_4']),
       mainChallenge:       translateLabel(ARABIC_LABELS.step_5, amap['step_5']),
       weeklyTime:          translateLabel(ARABIC_LABELS.step_6, amap['step_6']),
       readinessToStart:    translateLabel(ARABIC_LABELS.step_7, amap['step_7']),
       investmentReadiness: translateLabel(ARABIC_LABELS.step_8, amap['step_8']),
-      appointmentDate:     funnelState.appointmentDate || '',
-      appointmentTime:     funnelState.appointmentTime || '',
       source:              source,
       utm:                 utmParts.join('; ')
     };
+
+    /* DEBUG: full trace before anything is sent to update-lead/confirm-booking */
+    console.log('[buildLeadPayload] step_7 slug =', amap['step_7'], '| step_8 slug =', amap['step_8']);
+    console.log('[buildLeadPayload] readinessToStart =', JSON.stringify(payload.readinessToStart));
+    console.log('[buildLeadPayload] investmentReadiness =', JSON.stringify(payload.investmentReadiness));
+
+    return payload;
   }
 
   /* Progressive save debounce for free-text contact fields */
@@ -3266,7 +2910,7 @@
     contactNotes.addEventListener('input', saveContactProgressively);
   }
 
-  /* Submit flow — duplicate-phone guard → slot freshness guard → confirm-booking */
+  /* Submit flow — duplicate-phone guard → confirm-booking */
   if (contactForm) {
     contactForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -3299,20 +2943,12 @@
             restoreSubmitButton();
             return;
           }
-          proceedToConfirmBooking();
+          confirmBookingRequest();
         })
         .catch(function () {
           /* Duplicate-check failure must not block booking */
-          proceedToConfirmBooking();
+          confirmBookingRequest();
         });
-    });
-  }
-
-  /* "اختار موعد آخر" → back to calendar, contact data preserved */
-  if (contactRebook) {
-    contactRebook.addEventListener('click', function () {
-      hideContactError();
-      goToStep(10);
     });
   }
 
@@ -3335,38 +2971,6 @@
     });
   }
 
-  /* After the duplicate guard passes: one final freshness check on the exact
-     slot, then confirm the booking server-side. Rather than blocking on a
-     stale cached map, this gives the same "slot taken → pick another" UX as
-     the old SLOT_ALREADY_BOOKED error. */
-  function proceedToConfirmBooking() {
-    var date = funnelState.appointmentDate || '';
-    var time = funnelState.appointmentTime || '';
-
-    fetch('/.netlify/functions/check-slot', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: { date: date, time: time } })
-    })
-      .then(function (res) { return res.json().catch(function () { return {}; }); })
-      .then(function (data) {
-        if (data && data.available === false) {
-          var arr = availabilityMap ? availabilityMap[date] : null;
-          if (arr) {
-            var i = arr.indexOf(time);
-            if (i !== -1) arr.splice(i, 1);
-          }
-          restoreSubmitButton();
-          showContactError('هذا الموعد أصبح محجوز، اختار موعد آخر', true);
-          return;
-        }
-        confirmBookingRequest();
-      })
-      .catch(function () {
-        confirmBookingRequest();
-      });
-  }
-
   function confirmBookingRequest() {
     var payload = buildLeadPayload();
 
@@ -3382,52 +2986,33 @@
       })
       .then(function (data) {
         if (data && data.success === true) {
-          if (data.appointmentDate) funnelState.appointmentDate = data.appointmentDate;
-          if (data.appointmentTime) funnelState.appointmentTime = data.appointmentTime;
           funnelState.fullName = payload.fullName;
           funnelState.phone = payload.phone;
           funnelState.email = payload.email;
           funnelState.notes = payload.notes;
           funnelState.submitted = true;
-          goToStep(12);
+          goToStep(11);
           return;
         }
-        if (data && data.error === 'SLOT_ALREADY_BOOKED') {
-          showContactError('عذرًا، هذا الموعد أصبح محجوز، اختار موعد آخر', true);
-        } else if (data && data.error) {
+        if (data && data.error) {
           /* Surface the backend's exact message (e.g. "رقم الهاتف غير صالح")
              so the user knows precisely what to fix. */
-          showContactError('الخطأ: ' + data.error, false);
+          showContactError('الخطأ: ' + data.error);
         } else {
-          showContactError('صار خطأ، حاول مرة أخرى', false);
+          showContactError('صار خطأ، حاول مرة أخرى');
         }
         restoreSubmitButton();
       })
       .catch(function () {
-        showContactError('صار خطأ، حاول مرة أخرى', false);
+        showContactError('صار خطأ، حاول مرة أخرى');
         restoreSubmitButton();
       });
   }
 
   /* ============================================================
-     SUCCESS STEP (Step 12) — confirmation screen
+     SUCCESS STEP (Step 11) — confirmation screen
      ============================================================ */
   function populateSuccess() {
-    var dateEl = document.getElementById('funnel-success-date');
-    if (!dateEl) return;
-
-    var dateStr = funnelState.appointmentDate || '';
-    var timeStr = funnelState.appointmentTime || '';
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      var parts = dateStr.split('-');
-      var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-      dateEl.textContent = arDayFmt.format(d) + ' ' + d.getDate() + ' ' +
-        arMonthFmt.format(d) + ' ' + parts[0] + (timeStr ? ' — ' + timeStr : '');
-    } else {
-      dateEl.textContent = dateStr + (timeStr ? ' — ' + timeStr : '');
-    }
-
     var prefEl = document.getElementById('funnel-success-pref');
     if (prefEl) {
       var pref = funnelState.contactPreference;
@@ -3445,8 +3030,6 @@
     funnelState.current = 0;
     funnelState.answers = {};
     funnelState.sessionId = null;
-    funnelState.appointmentDate = null;
-    funnelState.appointmentTime = null;
     funnelState.contactPreference = null;
     funnelState.submitted = false;
 
@@ -3474,31 +3057,10 @@
       });
     }
 
-    if (calendarState) {
-      calendarState.selectedDate = null;
-      calendarState.selectedTime = null;
-    }
-    /* Drop the cached availability map so the next funnel round re-fetches */
-    availabilityMap = null;
-    availabilityLoading = false;
-    hideSlotNotice();
     hideContactDuplicate();
-    funnelDatePills.forEach(function (p) { p.classList.remove('is-selected'); });
-    if (confirmBtn) confirmBtn.disabled = true;
-    if (timeslotsEl) {
-      timeslotsEl.style.display = 'grid';
-      timeslotsEl.textContent = '';
-      var placeholder = document.createElement('p');
-      placeholder.className = 'funnel__timeslots-placeholder';
-      placeholder.textContent = 'اختار يوم أولاً باش تشوف المواعيد المتاحة';
-      timeslotsEl.appendChild(placeholder);
-    }
 
     goToStep(1);
   }
-
-  /* Build the date scroller once */
-  buildDateScroller();
 
   /* Initialize to step 1 */
   goToStep(1);

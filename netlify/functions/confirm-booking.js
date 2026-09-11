@@ -4,18 +4,18 @@
  * Proxies final booking confirmation to the Google Apps Script Web App via
  * action=confirm_booking. Forwards session_id and the full lead payload from
  * the frontend (funnelState field names, camelCase). GAS handles validation,
- * duplicate-phone/honeypot protection, LockService and slot marking.
+ * duplicate-phone/honeypot protection and the «مؤكد» status marking.
  *
  * THIS FUNCTION REPLACES submit-lead.js (removed) — it fills the same role
  * against the new action-based backend.
  *
  * Request:
  *   POST /.netlify/functions/confirm-booking
- *   { session_id, data: { fullName, phone, ..., appointmentDate, appointmentTime } }
+ *   { session_id, data: { fullName, phone, ..., skillInterest, ... } }
  *
  * Response (GAS passthrough):
  *   { success: true }
- *   or { success: false, error: "SLOT_ALREADY_BOOKED" | "رقم الهاتف غير صالح" | ... }
+ *   or { success: false, error: "رقم الهاتف غير صالح" | ... }
  */
 
 const gas = require('./_gas');

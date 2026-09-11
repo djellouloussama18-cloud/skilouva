@@ -5292,49 +5292,155 @@ input, select, textarea {
   margin-bottom: var(--space-6);
 }
 
-/* --- Short conversion-focused list (accent dots, no icons) ---- */
-.offer__list {
+/* --- Value stack (blue circular checks, labels, item prices) -- */
+.offer__stack {
   list-style: none;
   margin: 0;
   padding: 0;
+  width: 100%;
 }
 
-.offer__list li {
-  position: relative;
-  padding-inline-start: var(--space-6);
-  font-size: var(--fs-base);
-  color: var(--clr-heading);
-  line-height: var(--leading-snug);
+.offer__stack-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   text-align: start;
 }
 
-.offer__list li:not(:last-child) {
-  margin-bottom: var(--space-3);
+.offer__stack-item + .offer__stack-item {
+  margin-top: var(--space-3);
 }
 
-/* Small brand-blue accent dot (reuse .get__list li::before pattern) */
-.offer__list li::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  top: 0.6em;
-  width: 0.4rem;
-  height: 0.4rem;
+/* Brand-blue circular checkmark (mirrors the coach-status-check pill) */
+.offer__stack-check {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
   border-radius: var(--radius-full);
   background-color: var(--clr-brand);
-  opacity: 0.75;
+  border: 1px solid var(--clr-brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* --- Pricing ------------------------------------------------ */
-.offer__pricing {
-  margin-top: var(--space-7);
+.offer__stack-check-icon {
+  width: 11px;
+  height: 11px;
+  display: block;
 }
 
-.offer__price {
-  font-size: var(--fs-5xl);
-  font-weight: var(--fw-extrabold);
+.offer__stack-label {
+  flex: 1 1 auto;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-medium);
+  color: var(--clr-heading);
+  line-height: var(--leading-snug);
+}
+
+/* Item price: strikethrough, muted, in a shared right-aligned column */
+.offer__stack-price {
+  flex: 0 0 auto;
+  width: 6.5rem;
+  text-align: right;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--clr-text);
+  text-decoration: line-through;
+  line-height: 1.4;
+}
+
+/* Priceless rows: brand blue, no strikethrough */
+.offer__stack-item--priceless .offer__stack-price {
   color: var(--clr-brand);
+  text-decoration: none;
+  font-weight: var(--fw-bold);
+}
+
+/* --- Divider + total value ----------------------------------- */
+.offer__divider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--clr-border);
+  margin-block: var(--space-6);
+}
+
+.offer__total {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: start;
+}
+
+.offer__total-label {
+  flex: 1 1 auto;
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--clr-heading);
+}
+
+/* Larger and more muted than the per-item prices, in the same
+   right-aligned column so the stack reads as one aligned amounts list. */
+.offer__total-price {
+  flex: 0 0 auto;
+  width: 6.5rem;
+  text-align: right;
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  color: var(--clr-text);
+  text-decoration: line-through;
+  line-height: 1.4;
+  opacity: 0.8;
+}
+
+/* --- Highlighted price box (actual registration fee) ---------- */
+.offer__box {
+  margin-top: var(--space-6);
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background-color: var(--clr-bg-subtle-2);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+}
+
+.offer__box-label {
+  font-size: var(--fs-base);
+  font-weight: var(--fw-bold);
+  color: var(--clr-heading);
+}
+
+.offer__box-price {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-extrabold);
+  color: var(--clr-heading);
   line-height: 1;
+}
+
+/* --- Supporting line ------------------------------------------ */
+.offer__supporting {
+  margin-top: var(--space-4);
+  max-width: 30rem;
+  margin-inline: auto;
+  font-size: var(--fs-sm);
+  color: var(--clr-text);
+  line-height: var(--leading-snug);
+  text-align: center;
+}
+
+/* --- Footnote (small, conditional wording) -------------------- */
+.offer__footnote {
+  margin-top: var(--space-4);
+  max-width: 30rem;
+  margin-inline: auto;
+  font-size: var(--fs-xs);
+  color: var(--clr-text);
+  line-height: var(--leading-snug);
+  text-align: center;
 }
 
 /* --- Primary CTA (large brand-blue button) -------------------- */
@@ -7844,8 +7950,8 @@ input, select, textarea {
     font-size: var(--fs-2xl);
   }
 
-  .offer__price {
-    font-size: var(--fs-4xl);
+  .offer__box-price {
+    font-size: var(--fs-xl);
   }
 
   .offer__panel {
@@ -7854,7 +7960,11 @@ input, select, textarea {
 }
 
 /* Mobile: panel comes closer to full width with side margins,
-   reduce its padding. */
+   reduce its padding. The value-stack rows mirror the desktop
+   horizontal layout (checkmark, label, price all on ONE line).
+   Fonts drop one step and gaps tighten to reclaim width; only a
+   genuinely long label may wrap to a second line — the checkmark
+   and price stay vertically centered on the full row height. */
 @media (max-width: 56.25rem) { /* 900px */
   .offer__heading {
     font-size: var(--fs-2xl);
@@ -7863,6 +7973,19 @@ input, select, textarea {
 
   .offer__panel {
     padding: var(--space-7) var(--space-6);
+  }
+
+  .offer__stack-item {
+    gap: var(--space-2);
+  }
+
+  .offer__stack-label {
+    min-width: 0;
+    font-size: var(--fs-sm);
+  }
+
+  .offer__stack-price {
+    font-size: var(--fs-xs);
   }
 }
 
@@ -7882,12 +8005,31 @@ input, select, textarea {
     border-radius: var(--radius-lg);
   }
 
-  .offer__list li {
+  .offer__stack-item {
+    gap: var(--space-1);
+  }
+
+  .offer__stack-check {
+    width: 18px;
+    height: 18px;
+  }
+
+  .offer__stack-check-icon {
+    width: 10px;
+    height: 10px;
+  }
+
+  .offer__stack-label {
     font-size: var(--fs-sm);
   }
 
-  .offer__price {
-    font-size: var(--fs-3xl);
+  .offer__stack-price,
+  .offer__total-price {
+    font-size: var(--fs-xs);
+  }
+
+  .offer__box {
+    padding: var(--space-3) var(--space-4);
   }
 
   .offer__cta {
@@ -7896,6 +8038,10 @@ input, select, textarea {
   }
 
   .offer__note {
+    font-size: var(--fs-xs);
+  }
+
+  .offer__footnote {
     font-size: var(--fs-xs);
   }
 }
@@ -8314,89 +8460,6 @@ input, select, textarea {
   pointer-events: none;
 }
 
-/* ---------- Multi-select panel (Step 4) ----------------------- */
-.funnel__multiselect {
-  display: none;
-  margin-top: var(--space-6);
-  padding: var(--space-5);
-  border: 1px solid var(--clr-border);
-  border-radius: var(--radius-lg);
-  background: var(--clr-bg-subtle);
-}
-
-.funnel__multiselect[aria-hidden="false"] {
-  display: block;
-}
-
-.funnel__multiselect-desc {
-  font-family: var(--font-primary);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--clr-text);
-  margin-bottom: var(--space-4);
-}
-
-.funnel__checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.funnel__checkbox {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--clr-border);
-  border-radius: var(--radius-md);
-  background: var(--clr-bg);
-  font-family: var(--font-primary);
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  color: var(--clr-heading);
-  cursor: pointer;
-  transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast);
-}
-
-.funnel__checkbox:hover {
-  border-color: var(--clr-brand);
-  background: var(--clr-bg-subtle-2);
-}
-
-.funnel__checkbox input {
-  display: none;
-}
-
-.funnel__checkbox-visual {
-  flex-shrink: 0;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid var(--clr-border);
-  border-radius: var(--radius-sm);
-  transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast);
-}
-
-.funnel__checkbox input:checked + .funnel__checkbox-visual {
-  border-color: var(--clr-brand);
-  background: var(--clr-brand);
-  box-shadow: inset 0 0 0 2px var(--clr-bg);
-}
-
-.funnel__continue-btn {
-  margin-top: var(--space-5);
-  width: 100%;
-}
-
-.funnel__continue-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
 /* ---------- Transition screen (after Step 7) ------------------ */
 .funnel__transition-text {
   font-family: var(--font-primary);
@@ -8416,223 +8479,7 @@ input, select, textarea {
   width: auto;
 }
 
-/* ---------- Calendar Step (Step 8) ----------------------------- */
-.funnel__step--calendar {
-  gap: 0;
-}
 
-.funnel__calendar-desc {
-  font-family: var(--font-primary);
-  font-size: var(--fs-md);
-  color: var(--clr-text);
-  line-height: var(--leading-normal);
-  text-align: center;
-  margin-bottom: var(--space-7);
-}
-
-/* ---- Date scroller (horizontal pill row) ---- */
-.funnel__date-scroller {
-  display: flex;
-  flex-shrink: 0;
-  overflow-x: auto;
-  padding-bottom: var(--space-3);
-  margin-bottom: var(--space-6);
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.funnel__date-scroller::-webkit-scrollbar {
-  display: none;
-}
-
-.funnel__date-pill {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  margin-inline-end: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--clr-border);
-  border-radius: var(--radius-lg);
-  background: var(--clr-bg);
-  cursor: pointer;
-  white-space: nowrap;
-  scroll-snap-align: start;
-  transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast),
-    box-shadow var(--dur-fast);
-  min-width: 4.5rem;
-  min-height: 4.5rem;
-}
-
-.funnel__date-pill:last-child {
-  margin-inline-end: 0;
-}
-
-.funnel__date-pill:hover {
-  border-color: var(--clr-brand);
-  background: var(--clr-bg-subtle-2);
-}
-
-.funnel__date-pill.is-selected {
-  border-color: var(--clr-brand);
-  background: var(--clr-bg-subtle-2);
-  box-shadow: 0 0 0 1px var(--clr-brand);
-}
-
-.funnel__date-pill-day {
-  font-family: var(--font-primary);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  color: var(--clr-text);
-  line-height: 1;
-  white-space: nowrap;
-  direction: rtl;
-  unicode-bidi: plaintext;
-}
-
-.funnel__date-pill-num {
-  font-family: var(--font-primary);
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
-  color: var(--clr-heading);
-  line-height: 1;
-  white-space: nowrap;
-  direction: rtl;
-  unicode-bidi: plaintext;
-}
-
-.funnel__date-pill.is-selected .funnel__date-pill-day,
-.funnel__date-pill.is-selected .funnel__date-pill-num {
-  color: var(--clr-brand);
-}
-
-/* ---- Time slots grid ---- */
-.funnel__timeslots {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-3);
-  margin-bottom: var(--space-5);
-}
-
-.funnel__timeslots-placeholder,
-.funnel__timeslots-loading-text,
-.funnel__timeslots-error-text {
-  grid-column: 1 / -1;
-  font-family: var(--font-primary);
-  font-size: var(--fs-sm);
-  color: var(--clr-text);
-  text-align: center;
-  padding: var(--space-8) 0;
-}
-
-/* Individual time slot — reuses funnel__option visual pattern */
-.funnel__timeslot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--clr-border);
-  border-radius: var(--radius-lg);
-  background: var(--clr-bg);
-  color: var(--clr-heading);
-  font-family: var(--font-primary);
-  font-size: var(--fs-base);
-  font-weight: var(--fw-medium);
-  line-height: 1;
-  cursor: pointer;
-  text-align: center;
-  transition:
-    border-color var(--dur-fast),
-    background var(--dur-fast),
-    box-shadow var(--dur-fast);
-}
-
-.funnel__timeslot:hover:not(.funnel__timeslot--booked) {
-  border-color: var(--clr-brand);
-  background: var(--clr-bg-subtle-2);
-}
-
-.funnel__timeslot:focus-visible {
-  outline: 2px solid var(--clr-brand);
-  outline-offset: 2px;
-}
-
-/* Booked (disabled) state */
-.funnel__timeslot--booked {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;
-  text-decoration: line-through;
-}
-
-/* Selected state — mirrors .funnel__option.is-selected */
-.funnel__timeslot.is-selected {
-  border-color: var(--clr-brand);
-  background: var(--clr-bg-subtle-2);
-  box-shadow: 0 0 0 1px var(--clr-brand);
-}
-
-/* ---- Loading spinner ---- */
-.funnel__loader {
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 3px solid var(--clr-border);
-  border-top-color: var(--clr-brand);
-  border-radius: 50%;
-  margin: 0 auto var(--space-3);
-  animation: funnel-spin 0.7s linear infinite;
-}
-
-@keyframes funnel-spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ---- Error retry button ---- */
-.funnel__timeslots-retry {
-  display: inline-block;
-  margin-top: var(--space-3);
-  padding: var(--space-2) var(--space-5);
-  border: 1px solid var(--clr-brand);
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--clr-brand);
-  font-family: var(--font-primary);
-  font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  cursor: pointer;
-  transition:
-    background var(--dur-fast),
-    color var(--dur-fast);
-}
-
-.funnel__timeslots-retry:hover {
-  background: var(--clr-brand);
-  color: #fff;
-}
-
-/* ---- Confirm button area ---- */
-.funnel__calendar-confirm {
-  display: flex;
-  justify-content: center;
-  padding-top: var(--space-4);
-}
-
-.funnel__calendar-confirm-btn {
-  width: auto;
-}
-
-.funnel__calendar-confirm-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
-}
 
 /* ---------- Responsive ----------------------------------------- */
 @media (max-width: 30rem) { /* 480px */
@@ -8650,48 +8497,10 @@ input, select, textarea {
     padding: var(--space-6) var(--container-pad) var(--space-5);
   }
 
-  .funnel__multiselect {
-    padding: var(--space-4);
-  }
-
-  .funnel__checkbox {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--fs-sm);
-  }
-
   .funnel__transition-text {
     font-size: var(--fs-sm);
   }
 
-  .funnel__calendar-desc {
-    font-size: var(--fs-sm);
-    margin-bottom: var(--space-5);
-  }
-
-  .funnel__date-scroller {
-    margin-bottom: var(--space-5);
-  }
-
-  .funnel__date-pill {
-    margin-inline-end: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    min-width: 3.75rem;
-    min-height: 4rem;
-  }
-
-  .funnel__date-pill-num {
-    font-size: var(--fs-base);
-  }
-
-  .funnel__timeslots {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-2);
-  }
-
-  .funnel__timeslot {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--fs-sm);
-  }
 }
 
 /* ============================================================
