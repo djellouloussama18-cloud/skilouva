@@ -491,6 +491,14 @@ function sendScheduleToMetaCAPI(data) {
       payload: JSON.stringify(eventPayload),
       muteHttpExceptions: true
     });
+
+    /* ===== DEBUG ONLY: visibility into the Meta API call ===== */
+    /* Log the request URL with the access token masked (it's a query param). */
+    Logger.log('sendScheduleToMetaCAPI: request URL = ' + url.replace(/access_token=[^&]*/, 'access_token=***'));
+    Logger.log('sendScheduleToMetaCAPI: response code = ' + response.getResponseCode());
+    Logger.log('sendScheduleToMetaCAPI: response body = ' + response.getContentText());
+    /* ===== END DEBUG ONLY ===== */
+
     const responseCode = response.getResponseCode();
     const responseText = response.getContentText();
     if (responseCode !== 200) {
