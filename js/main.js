@@ -2495,7 +2495,7 @@
       return;
     }
     progressiveSaveInFlight = true;
-    fetch('/.netlify/functions/update-lead', {
+    fetch('/api/update-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ session_id: funnelState.sessionId, data: payload })
@@ -3000,7 +3000,7 @@
 
       var phoneValue = contactPhone ? String(contactPhone.value || '').trim() : '';
 
-      fetch('/.netlify/functions/check-duplicate-phone', {
+      fetch('/api/check-duplicate-phone', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: { phone: phoneValue } })
@@ -3043,7 +3043,7 @@
   function confirmBookingRequest() {
     var payload = buildLeadPayload();
 
-    fetch('/.netlify/functions/confirm-booking', {
+    fetch('/api/confirm-booking', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ session_id: funnelState.sessionId, data: payload })

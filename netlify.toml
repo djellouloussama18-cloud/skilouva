@@ -1,3 +1,16 @@
+# =============================================================================
+# LEGACY FILE — NO LONGER USED FOR DEPLOYMENT
+# -----------------------------------------------------------------------------
+# This file is kept only as historical reference.
+#
+# The project no longer deploys on Netlify: it now deploys on Vercel using the
+# `/api` directory convention (see /api/*.js). Vercel auto-detects the /api
+# directory and serves those functions locally too via `vercel dev`.
+#
+# Do NOT rely on this file (or anything under netlify/) for current
+# deployments. It is left in place purely for reference and is not wired into
+# any active build/deploy pipeline.
+# =============================================================================
 [build]
   publish = "."
   functions = "netlify/functions"
