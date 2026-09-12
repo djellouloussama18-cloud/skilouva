@@ -295,6 +295,15 @@ function confirmBooking(body) {
       sheet.getRange(row, statusCol + 1, 1, 1).setValues([[STATUS_CONFIRMED]]);
     }
   }
+
+  /* Meta Conversions API — Schedule event, مضمَّن في try/catch داخلي حتى
+     لا يفشل الحجز أبدًا بسبب فشل إرسال الحدث. يعمل فقط عند التأكيد الناجح. */
+  try {
+    sendScheduleToMetaCAPI(body.data);
+  } catch (metaErr) {
+    Logger.log('confirmBooking: Meta Schedule call failed silently: ' + metaErr.toString());
+  }
+
   console.log('confirm_booking completed in ' + (Date.now() - startTime) + ' ms');
   return { success: true };
 }
@@ -401,6 +410,8 @@ function migrateSheet() {
  */
 const META_PIXEL_ID = 'REPLACE_WITH_SKILLOVA_PIXEL_ID';
 const META_API_VERSION = 'v21.0';
+/* رابط صفحة الهبوط (ثابت مؤقتًا — اتركه placeholder أو غيّره لرابط Skillova الفعلي) */
+const META_EVENT_SOURCE_URL = 'https://skillova.com';
 
 function sha256Hash(value) {
   if (!value) return '';
@@ -435,6 +446,60 @@ function sendLeadToMetaCAPI(data) {
     if (responseCode !== 200) return { success: false, error: responseText };
     return { success: true, response: JSON.parse(responseText) };
   } catch (err) {
+    return { success: false, error: err.toString() };
+  }
+}
+
+/*
+ * sendScheduleToMetaCAPI — يرسل حدث Schedule إلى Meta Conversions API بعد
+ * تأكيد الحجز. يقرأ META_ACCESS_TOKEN و META_PIXEL_ID من Script Properties
+ * (لا يتم ترميزهما في الكود). أي فشل هنا يُسجَّل فقط عبر Logger.log ولا يؤثر
+ * على نجاح الحجز. لا يتضمن أي بيانات شخصية غير الهاتف (مبشّر SHA-256).
+ */
+function sendScheduleToMetaCAPI(data) {
+  try {
+    const token = PropertiesService.getScriptProperties().getProperty('META_ACCESS_TOKEN');
+    const pixelId = PropertiesService.getScriptProperties().getProperty('META_PIXEL_ID');
+    if (!token || !pixelId) {
+      Logger.log('sendScheduleToMetaCAPI: missing META_ACCESS_TOKEN or META_PIXEL_ID script property');
+      return { success: false, error: 'Missing Meta credentials' };
+    }
+
+    const userData = {};
+    if (data && data.phone) {
+      userData.ph = [sha256Hash(normalizePhoneForMeta(data.phone))];
+    }
+
+    const eventPayload = {
+      data: [{
+        event_name: 'Schedule',
+        event_time: Math.floor(Date.now() / 1000),
+        action_source: 'website',
+        event_source_url: META_EVENT_SOURCE_URL,
+        user_data: userData,
+        custom_data: {
+          content_name: 'Closer Bootcamp',
+          appointment_type: 'Qualification Call'
+        }
+      }]
+    };
+
+    const url = 'https://graph.facebook.com/' + META_API_VERSION + '/' + pixelId + '/events?access_token=' + token;
+    const response = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify(eventPayload),
+      muteHttpExceptions: true
+    });
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    if (responseCode !== 200) {
+      Logger.log('sendScheduleToMetaCAPI: Meta API returned ' + responseCode + ' — ' + responseText);
+      return { success: false, error: responseText };
+    }
+    return { success: true, response: JSON.parse(responseText) };
+  } catch (err) {
+    Logger.log('sendScheduleToMetaCAPI: ' + err.toString());
     return { success: false, error: err.toString() };
   }
 }

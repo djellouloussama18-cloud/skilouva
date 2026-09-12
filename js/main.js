@@ -2280,6 +2280,45 @@
         el.classList.add('is-visible');
       });
     }
+
+    /* --- Meta Pixel: fire ViewContent once when first seen ------- */
+    var viewContentFired = false;
+
+    if ('IntersectionObserver' in window) {
+      var offerViewObserver = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting && !viewContentFired) {
+              viewContentFired = true;
+              offerViewObserver.disconnect();
+              if (typeof fbq === 'function') {
+                fbq('track', 'ViewContent', {
+                  content_name: 'Closer Bootcamp',
+                  content_category: 'Training Program',
+                  value: 14900,
+                  currency: 'DZD'
+                });
+              }
+            }
+          });
+        },
+        { threshold: 0.3 }
+      );
+      offerViewObserver.observe(offerSection);
+    } else {
+      // No IntersectionObserver: fire only if already in view.
+      if (offerSection.getBoundingClientRect().top < window.innerHeight) {
+        viewContentFired = true;
+        if (typeof fbq === 'function') {
+          fbq('track', 'ViewContent', {
+            content_name: 'Closer Bootcamp',
+            content_category: 'Training Program',
+            value: 14900,
+            currency: 'DZD'
+          });
+        }
+      }
+    }
   }
 
   /* ============================================================
@@ -2426,7 +2465,9 @@
     current: 0,
     total:   8,
     answers: {},
-    sessionId: null
+    sessionId: null,
+    completeRegistrationFired: false,
+    scheduleFired: false
   };
 
   /* --- Progressive-save plumbing --------------------------------
@@ -2485,6 +2526,9 @@
   /* --- Open / Close ------------------------------------------- */
   function openFunnel() {
     if (!funnelEl) return;
+    /* Funnel is "open" when aria-hidden is 'false'; capture this BEFORE we
+       set it below so we can guard the Lead event against duplicate fires. */
+    var funnelWasOpen = funnelEl.getAttribute('aria-hidden') === 'false';
     if (funnelState.current === 11) {
       resetFunnelForNewRound();
     }
@@ -2496,6 +2540,16 @@
     /* Keep the floating mobile CTA out of the funnel overlay */
     var floatCta = document.getElementById('float-mobile-cta');
     if (floatCta) floatCta.classList.add('is-hidden');
+
+    /* Meta Pixel: fire Lead on every genuine funnel open (each open is a
+       new lead attempt) — but never twice for the same open, even if
+       openFunnel() is called again while the overlay is already up. */
+    if (!funnelWasOpen && typeof fbq === 'function') {
+      fbq('track', 'Lead', {
+        content_name: 'Closer Bootcamp',
+        content_category: 'Training Program'
+      });
+    }
   }
 
   function closeFunnel() {
@@ -2547,6 +2601,21 @@
     }
 
     funnelState.current = stepNumber;
+
+    /* Meta Pixel: fire CompleteRegistration exactly once, the moment the
+       funnel transitions into step 9 (transition screen after the 8th
+       qualification question). Guarded by a per-session flag so navigating
+       back and forward again cannot fire it a second time. */
+    if (stepNumber === 9 && !funnelState.completeRegistrationFired) {
+      funnelState.completeRegistrationFired = true;
+      if (typeof fbq === 'function') {
+        fbq('track', 'CompleteRegistration', {
+          content_name: 'Closer Bootcamp',
+          content_category: 'Training Program',
+          status: 'completed'
+        });
+      }
+    }
 
     /* Terminal success step: hide counter/progress, fill confirm data */
     if (funnelEl) funnelEl.classList.toggle('funnel--complete', stepNumber === 11);
@@ -2991,6 +3060,18 @@
           funnelState.email = payload.email;
           funnelState.notes = payload.notes;
           funnelState.submitted = true;
+
+          /* Meta Pixel: fire Schedule only on a confirmed booking — the
+             success screen (step 11) is shown right below. Never on the
+             confirm click and never on an error. Once per funnel session. */
+          if (!funnelState.scheduleFired && typeof fbq === 'function') {
+            funnelState.scheduleFired = true;
+            fbq('track', 'Schedule', {
+              content_name: 'Closer Bootcamp',
+              appointment_type: 'Qualification Call'
+            });
+          }
+
           goToStep(11);
           return;
         }
@@ -3032,6 +3113,10 @@
     funnelState.sessionId = null;
     funnelState.contactPreference = null;
     funnelState.submitted = false;
+    /* New session: allow CompleteRegistration to fire again on the next round */
+    funnelState.completeRegistrationFired = false;
+    /* New session: allow Schedule to fire again for the next booking */
+    funnelState.scheduleFired = false;
 
     ['name', 'phone', 'email'].forEach(function (key) {
       var f = contactFields[key];
