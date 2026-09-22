@@ -296,12 +296,12 @@ function confirmBooking(body) {
     }
   }
 
-  /* Meta Conversions API — Schedule event, مضمَّن في try/catch داخلي حتى
+  /* Meta Conversions API — Purchase event، مضمَّن في try/catch داخلي حتى
      لا يفشل الحجز أبدًا بسبب فشل إرسال الحدث. يعمل فقط عند التأكيد الناجح. */
   try {
-    sendScheduleToMetaCAPI(body.data);
+    sendPurchaseToMetaCAPI(body.data);
   } catch (metaErr) {
-    Logger.log('confirmBooking: Meta Schedule call failed silently: ' + metaErr.toString());
+    Logger.log('confirmBooking: Meta Purchase call failed silently: ' + metaErr.toString());
   }
 
   console.log('confirm_booking completed in ' + (Date.now() - startTime) + ' ms');
@@ -400,13 +400,14 @@ function migrateSheet() {
 }
 
 /* ==========================================================
-   Meta Conversions API — جاهز لكن غير مفعّل بعد
+   Meta Conversions API
    ========================================================== */
 
 /*
- * مؤقّت معطّل حتى تُهيّئ Skillova بياناتها الخاصة:
- *   - META_PIXEL_ID (أدناه) + Script Property META_ACCESS_TOKEN
- * ثم قم بإلغاء تعليق السطر sendLeadToMetaCAPI(...) في confirmBooking.
+ * Purchase يُرسل فعليًا الآن من confirmBooking عبر sendPurchaseToMetaCAPI
+ * (يحتاج META_ACCESS_TOKEN + META_PIXEL_ID في Script Properties).
+ * Lead (sendLeadToMetaCAPI) جاهز لكن معطّل — لتفعيله اضبط META_PIXEL_ID
+ * وقم بإلغاء تعليق الاستدعاء في confirmBooking.
  */
 const META_PIXEL_ID = 'REPLACE_WITH_SKILLOVA_PIXEL_ID';
 const META_API_VERSION = 'v21.0';
@@ -451,17 +452,18 @@ function sendLeadToMetaCAPI(data) {
 }
 
 /*
- * sendScheduleToMetaCAPI — يرسل حدث Schedule إلى Meta Conversions API بعد
- * تأكيد الحجز. يقرأ META_ACCESS_TOKEN و META_PIXEL_ID من Script Properties
- * (لا يتم ترميزهما في الكود). أي فشل هنا يُسجَّل فقط عبر Logger.log ولا يؤثر
- * على نجاح الحجز. لا يتضمن أي بيانات شخصية غير الهاتف (مبشّر SHA-256).
+ * sendPurchaseToMetaCAPI — يرسل حدث Purchase إلى Meta Conversions API بعد
+ * تأكيد الحجز (مطابق لحدث Purchase في البكسل: value 14900 DZD). يقرأ
+ * META_ACCESS_TOKEN و META_PIXEL_ID من Script Properties. أي فشل هنا يُسجَّل
+ * فقط عبر Logger.log ولا يؤثر على نجاح الحجز. لا يتضمن أي بيانات شخصية غير
+ * الهاتف (مبشّر SHA-256).
  */
-function sendScheduleToMetaCAPI(data) {
+function sendPurchaseToMetaCAPI(data) {
   try {
     const token = PropertiesService.getScriptProperties().getProperty('META_ACCESS_TOKEN');
     const pixelId = PropertiesService.getScriptProperties().getProperty('META_PIXEL_ID');
     if (!token || !pixelId) {
-      Logger.log('sendScheduleToMetaCAPI: missing META_ACCESS_TOKEN or META_PIXEL_ID script property');
+      Logger.log('sendPurchaseToMetaCAPI: missing META_ACCESS_TOKEN or META_PIXEL_ID script property');
       return { success: false, error: 'Missing Meta credentials' };
     }
 
@@ -472,14 +474,16 @@ function sendScheduleToMetaCAPI(data) {
 
     const eventPayload = {
       data: [{
-        event_name: 'Schedule',
+        event_name: 'Purchase',
         event_time: Math.floor(Date.now() / 1000),
         action_source: 'website',
         event_source_url: META_EVENT_SOURCE_URL,
         user_data: userData,
         custom_data: {
           content_name: 'Closer Bootcamp',
-          appointment_type: 'Qualification Call'
+          content_type: 'product',
+          value: 14900,
+          currency: 'DZD'
         }
       }]
     };
@@ -492,22 +496,16 @@ function sendScheduleToMetaCAPI(data) {
       muteHttpExceptions: true
     });
 
-    /* ===== DEBUG ONLY: visibility into the Meta API call ===== */
-    /* Log the request URL with the access token masked (it's a query param). */
-    Logger.log('sendScheduleToMetaCAPI: request URL = ' + url.replace(/access_token=[^&]*/, 'access_token=***'));
-    Logger.log('sendScheduleToMetaCAPI: response code = ' + response.getResponseCode());
-    Logger.log('sendScheduleToMetaCAPI: response body = ' + response.getContentText());
-    /* ===== END DEBUG ONLY ===== */
-
     const responseCode = response.getResponseCode();
     const responseText = response.getContentText();
     if (responseCode !== 200) {
-      Logger.log('sendScheduleToMetaCAPI: Meta API returned ' + responseCode + ' — ' + responseText);
+      Logger.log('sendPurchaseToMetaCAPI: Meta API returned ' + responseCode + ' — ' + responseText);
       return { success: false, error: responseText };
     }
     return { success: true, response: JSON.parse(responseText) };
   } catch (err) {
-    Logger.log('sendScheduleToMetaCAPI: ' + err.toString());
+    Logger.log('sendPurchaseToMetaCAPI: ' + err.toString());
     return { success: false, error: err.toString() };
   }
 }
+

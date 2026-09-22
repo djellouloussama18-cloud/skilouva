@@ -2467,7 +2467,7 @@
     answers: {},
     sessionId: null,
     completeRegistrationFired: false,
-    scheduleFired: false
+    purchaseFired: false
   };
 
   /* --- Progressive-save plumbing --------------------------------
@@ -3061,14 +3061,16 @@
           funnelState.notes = payload.notes;
           funnelState.submitted = true;
 
-          /* Meta Pixel: fire Schedule only on a confirmed booking — the
+          /* Meta Pixel: fire Purchase only on a confirmed booking — the
              success screen (step 11) is shown right below. Never on the
              confirm click and never on an error. Once per funnel session. */
-          if (!funnelState.scheduleFired && typeof fbq === 'function') {
-            funnelState.scheduleFired = true;
-            fbq('track', 'Schedule', {
+          if (!funnelState.purchaseFired && typeof fbq === 'function') {
+            funnelState.purchaseFired = true;
+            fbq('track', 'Purchase', {
+              value: 14900,
+              currency: 'DZD',
               content_name: 'Closer Bootcamp',
-              appointment_type: 'Qualification Call'
+              content_type: 'product'
             });
           }
 
@@ -3115,8 +3117,8 @@
     funnelState.submitted = false;
     /* New session: allow CompleteRegistration to fire again on the next round */
     funnelState.completeRegistrationFired = false;
-    /* New session: allow Schedule to fire again for the next booking */
-    funnelState.scheduleFired = false;
+    /* New session: allow Purchase to fire again for the next booking */
+    funnelState.purchaseFired = false;
 
     ['name', 'phone', 'email'].forEach(function (key) {
       var f = contactFields[key];
