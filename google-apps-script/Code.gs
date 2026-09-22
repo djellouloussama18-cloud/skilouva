@@ -1,111 +1,103 @@
 /**
  * ============================================================================
- * SKILLOVA — Google Apps Script Web App (ADAPTED BACKEND)
+ * SKILLOVA — Google Apps Script Web App
  * ============================================================================
- * What this script does:
- *   Deployable Google Apps Script Web App that powers the SKILLOVA lead
- *   funnel. It provides shared-secret auth, honeypot spam protection,
- *   formula-injection sanitization, progressive (session_id-based) lead saving,
- *   duplicate-phone checking, and a ready-but-currently-inactive Meta
- *   Conversions API integration.
+ * الأكشنات (doPost -> body.action):
+ *   update_lead           -> حفظ تدريجي عبر session_id
+ *   check_duplicate_phone -> فحص تكرار الهاتف (مقابل الحالة «مؤكد»)
+ *   confirm_booking       -> تأكيد التسجيل (حالة «مؤكد»)
  *
- * Single routing entry point (doPost) switches on body.action:
- *   update_lead           -> updateLead
- *   check_duplicate_phone -> checkDuplicatePhone
- *   confirm_booking       -> confirmBooking
- *   anything else         -> "إجراء غير معروف"
+ * الجدول: 14 عمودًا فقط (A → N). لا يوجد عمود لمعرف الجلسة؛
+ * يُخزَّن session_id كـ Developer Metadata على الصف نفسه (مخفي تمامًا
+ * ويتحرك مع الصف عند الحذف/الترتيب اليدوي).
  *
- * All requests MUST send the shared secret in the JSON body as
- * body.shared_secret, matching the Script Property GAS_SHARED_SECRET.
- *
- * COLUMN WIRING (IMPORTANT):
- *   This backend always writes to the sheet BY HEADER NAME, never by fixed
- *   column index. updateLead reads row 1 of the live sheet, maps each header
- *   back to a payload key via getPayloadKeyForHeader(), and writes the value
- *   to that header's position. This keeps data aligned even if the user
- *   reorders columns in the spreadsheet.
- *
- *   If your live sheet was built by an OLDER version of this script (header
- *   'جاهزية الاستثمار' at column 12, no 'الجاهزية للبدء الفوري' column),
- *   run migrateSheet() once from the Apps Script editor to restructure the
- *   sheet to the current LEADS_HEADERS while preserving all existing rows.
- *   Run runSheetDiagnostics() first to see what is actually in the sheet.
- *
- * DEPLOYMENT NOTE (IMPORTANT):
- *   Paste this file ENTIRELY into the Google Apps Script editor as Code.gs,
- *   REPLACING whatever is already deployed there (handled manually). This repo
- *   cannot deploy to Apps Script itself (no clasp config). After pasting you
- *   must ALSO (manually):
- *     - Set Script Property GAS_SHARED_SECRET to the secret you choose.
- *     - Redeploy as a Web App (Anyone) under the SAME URL.
+ * النشر: الصق الملف كاملًا مكان الكود القديم، اضبط Script Property
+ * GAS_SHARED_SECRET، ثم أعد نشر Web App بنفس الرابط.
  * ============================================================================
  */
 
-/* ==========================================================
-   إعدادات عامة — أوراق العمل
-   ========================================================== */
 const SHEET_LEADS_NAME = 'العملاء المحتملون';
 
-/* أعمدة الورقة — Skillova (14 عمودًا رئيسيًا + عمودين داخليين للتتبع).
-   الترتيب النهائي المعتمد من طرف العميل — لا تغيّره إلا بعد تنسيق live sheet
-   عبر migrateSheet(). */
 const LEADS_HEADERS = [
-  'التاريخ', 'الاسم الكامل', 'رقم الهاتف', 'البريد الإلكتروني',
-  'طريقة التواصل المفضلة', 'الوضعية الحالية', 'الهدف المهني',
-  'مستوى الخبرة', 'المهارة المطلوبة', 'أكبر تحدي',
-  'الوقت الأسبوعي المتاح', 'الجاهزية للبدء الفوري', 'جاهزية الاستثمار',
-  'الملاحظة', 'معرف الجلسة', 'حالة التسجيل'
+  'Date',                          // A
+  'Nom complet',                   // B
+  'Téléphone',                     // C
+  'E-mail',                        // D
+  'Moyen de contact préféré',      // E
+  'Situation actuelle',            // F
+  'Objectif professionnel',        // G
+  "Niveau d'expérience",           // H
+  'Compétence souhaitée',          // I
+  'Plus grand défi',               // J
+  'Temps disponible par semaine',  // K
+  'Prêt à investir',               // L
+  'Remarque',                      // M
+  'Statut',                        // N (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
+  'Closer'                         // O (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
 ];
 
-/* أعمدة داخلية يُديرها السكربت تلقائيًا */
-const STATUS_HEADER = 'حالة التسجيل';       // جزئي / مؤكد (داخلي)
-const SESSION_HEADER = 'معرف الجلسة';       // session_id (داخلي)
+/* كل عنوان يُقبل بالفرنسية أو بالعربية (القديمة) — الترتيب لا يهم */
+const DATE_HEADERS   = ['Date', 'التاريخ'];
+const PHONE_HEADERS  = ['Téléphone', 'رقم الهاتف'];
+const STATUS_HEADERS = ['Statut', 'حالة التسجيل'];
 const STATUS_PARTIAL = 'جزئي';
 const STATUS_CONFIRMED = 'مؤكد';
 
-/*
- * FIELD_MAP — يرتب كل حقل يرسله الفرونت-إند (funnelState / buildLeadPayload)
- * باسم العمود العربي. المفاتيح تطابق بالضبط أسماء خصائص funnelState في
- * js/main.js (camelCase) — لا تتم أي ترجمة في Netlify Functions، بل تُمرَّر
- * مباشرة كما هي. الكتابة تتم دائمًا بالاسم عبر getPayloadKeyForHeader().
- */
+/* مفتاح الـ Developer Metadata الذي يحمل session_id (غير ظاهر في الجدول) */
+const SESSION_META_KEY = 'skillova_session_id';
+
+/* أسماء خصائص funnelState (camelCase) -> اسم العمود (فرنسي) */
 const FIELD_MAP = {
-  fullName:            'الاسم الكامل',
-  phone:               'رقم الهاتف',
-  email:               'البريد الإلكتروني',
-  contactPreference:   'طريقة التواصل المفضلة',
-  currentStatus:       'الوضعية الحالية',
-  careerGoal:          'الهدف المهني',
-  experienceLevel:     'مستوى الخبرة',
-  skillInterest:       'المهارة المطلوبة',
-  mainChallenge:       'أكبر تحدي',
-  weeklyTime:          'الوقت الأسبوعي المتاح',
-  readinessToStart:    'الجاهزية للبدء الفوري',
-  investmentReadiness: 'جاهزية الاستثمار',
-  notes:               'الملاحظة'
+  fullName:            'Nom complet',
+  phone:               'Téléphone',
+  email:               'E-mail',
+  contactPreference:   'Moyen de contact préféré',
+  currentStatus:       'Situation actuelle',
+  careerGoal:          'Objectif professionnel',
+  experienceLevel:     "Niveau d'expérience",
+  skillInterest:       'Compétence souhaitée',
+  mainChallenge:       'Plus grand défi',
+  weeklyTime:          'Temps disponible par semaine',
+  investmentReadiness: 'Prêt à investir',
+  notes:               'Remarque'
 };
 
-/*
- * getPayloadKeyForHeader — يعيد مفتاح payload لكل اسم عمود، بما في ذلك
- * الأسماء التاريخية القديمة حتى لا تنكسر الورقة القديمة. هذا هو المكان
- * الوحيد الذي يتم فيه الربط بين اسم العمود الفعلي في الورقة والبيانات.
- */
+/* الأسماء العربية القديمة (تبقى مقبولة كي لا يتعطل شيء أثناء إعادة التسمية) */
+const LEGACY_AR = {
+  fullName:            ['الاسم الكامل'],
+  phone:               ['رقم الهاتف'],
+  email:               ['البريد الإلكتروني'],
+  contactPreference:   ['طريقة التواصل المفضلة'],
+  currentStatus:       ['الوضعية الحالية'],
+  careerGoal:          ['الهدف المهني'],
+  experienceLevel:     ['مستوى الخبرة'],
+  skillInterest:       ['المهارة المطلوبة'],
+  mainChallenge:       ['أكبر تحدي'],
+  weeklyTime:          ['الوقت الأسبوعي المتاح'],
+  investmentReadiness: ['جاهزية الاستثمار', 'الجاهزية للاستثمار', 'الاستعداد للاستثمار'],
+  notes:               ['ملاحظة', 'الملاحظة']
+};
+
+/* يعيد مفتاح payload لاسم العمود (فرنسي أو عربي قديم) */
 function getPayloadKeyForHeader(header) {
   if (!header) return null;
-  const h = String(header).toString().trim();
-  if (h === '' ) return null;
-  /* الاستثمار — الأسماء الجديدة والقديمة معًا */
-  if (h === 'جاهزية الاستثمار' || h === 'الجاهزية للاستثمار' || h === 'الاستعداد للاستثمار') return 'investmentReadiness';
-  /* البدء الفوري — الأسماء الجديدة والقديمة معًا */
-  if (h === 'الجاهزية للبدء الفوري' || h === 'جاهزية البدء الفوري' || h === 'الاستعداد للبدء الفوري') return 'readinessToStart';
-  /* الملاحظة — بمسمّيين قديم/جديد */
-  if (h === 'الملاحظة' || h === 'ملاحظة') return 'notes';
-  /* ±غرها من الحقول حسب FIELD_MAP */
-  return Object.keys(FIELD_MAP).find(k => FIELD_MAP[k] === h) || null;
+  const h = String(header).trim();
+  if (h === '') return null;
+  return Object.keys(FIELD_MAP).find(function (k) {
+    return FIELD_MAP[k] === h || LEGACY_AR[k].indexOf(h) !== -1;
+  }) || null;
+}
+
+/* أول فهرس لأي اسم من القائمة داخل صف العناوين */
+function indexOfAny(headers, names) {
+  for (let i = 0; i < headers.length; i++) {
+    if (names.indexOf(String(headers[i]).trim()) !== -1) return i;
+  }
+  return -1;
 }
 
 /* ==========================================================
-   نقاط الدخول (Entry Points)
+   نقاط الدخول
    ========================================================== */
 
 function doPost(e) {
@@ -113,28 +105,31 @@ function doPost(e) {
     const body = JSON.parse(e.postData.contents);
     const expectedSecret = PropertiesService.getScriptProperties().getProperty('GAS_SHARED_SECRET');
     if (!expectedSecret || body.shared_secret !== expectedSecret) {
-      return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Unauthorized' })).setMimeType(ContentService.MimeType.JSON);
+      return jsonOut({ success: false, error: 'Unauthorized' });
     }
-    const action = body.action;
     let result;
-    switch (action) {
+    switch (body.action) {
       case 'update_lead': result = updateLead(body); break;
       case 'check_duplicate_phone': result = checkDuplicatePhone(body); break;
       case 'confirm_booking': result = confirmBooking(body); break;
       default: result = { success: false, error: 'إجراء غير معروف' };
     }
-    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    return jsonOut(result);
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ success: false, error: err.toString() });
   }
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ success: true, message: 'Google Apps Script يعمل بشكل صحيح' })).setMimeType(ContentService.MimeType.JSON);
+  return jsonOut({ success: true, message: 'SKILLOVA_V4_FR' });
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 /* ==========================================================
-   أدوات الوصول للأوراق
+   أدوات الورقة + ربط session_id بالصف (Developer Metadata)
    ========================================================== */
 
 function getLeadsSheet() {
@@ -142,105 +137,92 @@ function getLeadsSheet() {
   let sheet = ss.getSheetByName(SHEET_LEADS_NAME);
   if (!sheet) sheet = ss.insertSheet(SHEET_LEADS_NAME);
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(LEADS_HEADERS);
+    sheet.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
     sheet.setFrozenRows(1);
-  } else {
-    /* ضمان أن كل أعمدة LEADS_HEADERS موجودة حتى لو كانت الورقة قديمة */
-    const existing = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).trim());
-    let added = false;
-    LEADS_HEADERS.forEach(header => {
-      if (!existing.includes(header)) {
-        sheet.getRange(1, sheet.getLastColumn() + 1).setValue(header);
-        added = true;
-      }
-    });
-    if (added) Logger.log('getLeadsSheet: تمت إضافة أعمدة ناقصة إلى ' + SHEET_LEADS_NAME);
   }
   return sheet;
 }
 
 function getActualHeaders(sheet) {
   if (sheet.getLastRow() === 0) return LEADS_HEADERS.slice();
-  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => String(h).trim());
+  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
 }
 
+/* يعيد رقم الصف المرتبط بـ session_id أو -1 */
 function findRowBySessionId(sheet, sessionId) {
-  const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return -1;
-  const actualHeaders = data[0].map(h => String(h).trim());
-  const sessionIdCol = actualHeaders.indexOf(SESSION_HEADER);
-  if (sessionIdCol === -1) return -1;
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][sessionIdCol] === sessionId) return i + 1;
+  if (!sessionId) return -1;
+  const found = sheet.createDeveloperMetadataFinder()
+    .withKey(SESSION_META_KEY)
+    .withValue(String(sessionId))
+    .find();
+  for (let i = 0; i < found.length; i++) {
+    const rowRange = found[i].getLocation().getRow();
+    if (rowRange) return rowRange.getRow();
   }
   return -1;
 }
 
+/* يربط الصف بـ session_id (مخفي) */
+function tagRowWithSession(sheet, row, sessionId) {
+  if (!sessionId) return;
+  sheet.getRange(row + ':' + row).addDeveloperMetadata(SESSION_META_KEY, String(sessionId));
+}
+
 /* ==========================================================
-   update_lead — حفظ تدريجي عبر session_id (يتعامل مع الأعمدة بالاسم)
+   update_lead — حفظ تدريجي
    ========================================================== */
 
 function updateLead(body) {
   if (isHoneypotTriggered(body.data)) return { success: true };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    return updateLeadInternal(body);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* بدون قفل — تُستدعى من داخل دوال تمتلك القفل أصلًا */
+function updateLeadInternal(body) {
   const sheet = getLeadsSheet();
   const sessionId = body.session_id;
   const data = body.data || {};
-  const now = new Date();
-  const combined = {
-    fullName:            sanitizeValue(data.fullName || ''),
-    phone:               sanitizeValue(data.phone || ''),
-    email:               sanitizeValue(data.email || ''),
-    contactPreference:   sanitizeValue(data.contactPreference || ''),
-    currentStatus:       sanitizeValue(data.currentStatus || ''),
-    careerGoal:          sanitizeValue(data.careerGoal || ''),
-    experienceLevel:     sanitizeValue(data.experienceLevel || ''),
-    skillInterest:       sanitizeValue(data.skillInterest || ''),
-    mainChallenge:       sanitizeValue(data.mainChallenge || ''),
-    weeklyTime:          sanitizeValue(data.weeklyTime || ''),
-    readinessToStart:    sanitizeValue(data.readinessToStart || ''),
-    investmentReadiness: sanitizeValue(data.investmentReadiness || ''),
-    notes:               sanitizeValue(buildNote(data)),
-  };
+
+  const combined = {};
+  Object.keys(FIELD_MAP).forEach(function (key) {
+    combined[key] = sanitizeValue(data[key] || '');
+  });
 
   const actualHeaders = getActualHeaders(sheet);
+  const row = findRowBySessionId(sheet, sessionId);
 
-  let row = findRowBySessionId(sheet, sessionId);
   if (row === -1) {
     const newRow = new Array(actualHeaders.length).fill('');
-    actualHeaders.forEach((header, idx) => {
+    actualHeaders.forEach(function (header, idx) {
       const key = getPayloadKeyForHeader(header);
-      if (key && combined[key] !== undefined && combined[key] !== '') newRow[idx] = combined[key];
+      if (key && combined[key]) newRow[idx] = combined[key];
     });
-    const dateCol = actualHeaders.indexOf('التاريخ');
-    const statusCol = actualHeaders.indexOf(STATUS_HEADER);
-    const sessionCol = actualHeaders.indexOf(SESSION_HEADER);
-    if (dateCol !== -1) newRow[dateCol] = now;
+    const dateCol = indexOfAny(actualHeaders, DATE_HEADERS);
+    const statusCol = indexOfAny(actualHeaders, STATUS_HEADERS);
+    if (dateCol !== -1) newRow[dateCol] = new Date();
     if (statusCol !== -1) newRow[statusCol] = STATUS_PARTIAL;
-    if (sessionCol !== -1) newRow[sessionCol] = sessionId;
-    sheet.getRange(sheet.getLastRow() + 1, 1, 1, actualHeaders.length).setValues([newRow]);
-    Logger.log('updateLead: سطر جديد — readinessToStart="' + combined.readinessToStart + '" investmentReadiness="' + combined.investmentReadiness + '" (row ' + (sheet.getLastRow()) + ')');
+    const target = sheet.getLastRow() + 1;
+    sheet.getRange(target, 1, 1, actualHeaders.length).setValues([newRow]);
+    tagRowWithSession(sheet, target, sessionId);
   } else {
     const rowValues = sheet.getRange(row, 1, 1, actualHeaders.length).getValues()[0];
-    actualHeaders.forEach((header, idx) => {
+    actualHeaders.forEach(function (header, idx) {
       const key = getPayloadKeyForHeader(header);
       if (key && combined[key]) rowValues[idx] = combined[key];
     });
     sheet.getRange(row, 1, 1, actualHeaders.length).setValues([rowValues]);
-    Logger.log('updateLead: تحديث سطر ' + row + ' — readinessToStart="' + combined.readinessToStart + '" investmentReadiness="' + combined.investmentReadiness + '"');
   }
   return { success: true };
 }
 
-function buildNote(data) {
-  let parts = [];
-  if (data.notes && String(data.notes).trim() !== '') parts.push(String(data.notes).trim());
-  if (data.source && String(data.source).trim() !== '') parts.push('المصدر: ' + String(data.source).trim());
-  if (data.utm && String(data.utm).trim() !== '') parts.push('UTM: ' + String(data.utm).trim());
-  return parts.join(' | ');
-}
-
 /* ==========================================================
-   حماية عامة — honeypot + تطهير من حقن الصيغ
+   حماية عامة
    ========================================================== */
 
 function isHoneypotTriggered(data) {
@@ -259,18 +241,24 @@ function isValidAlgerianPhone(phone) {
   return /^0[567]\d{8}$/.test(cleaned);
 }
 
+/* ==========================================================
+   check_duplicate_phone
+   ========================================================== */
+
 function checkDuplicatePhone(body) {
   const sheet = getLeadsSheet();
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return { success: true, isDuplicate: false };
-  const actualHeaders = data[0].map(h => String(h).trim());
-  const phoneCol = actualHeaders.indexOf('رقم الهاتف');
-  const statusCol = actualHeaders.indexOf(STATUS_HEADER);
+  const headers = data[0].map(function (h) { return String(h).trim(); });
+  const phoneCol = indexOfAny(headers, PHONE_HEADERS);
+  const statusCol = indexOfAny(headers, STATUS_HEADERS);
   if (phoneCol === -1 || statusCol === -1) return { success: true, isDuplicate: false };
+  const phone = body.data && body.data.phone ? body.data.phone.toString().trim() : '';
+  if (!phone) return { success: true, isDuplicate: false };
   for (let i = 1; i < data.length; i++) {
-    const phone = (data[i][phoneCol] || '').toString().trim();
-    const status = data[i][statusCol];
-    if (phone === body.data.phone && status === STATUS_CONFIRMED) {
+    const p = (data[i][phoneCol] || '').toString().trim();
+    const st = String(data[i][statusCol] || '').trim();
+    if (p === phone && st !== '' && st !== STATUS_PARTIAL) {
       return { success: true, isDuplicate: true };
     }
   }
@@ -278,147 +266,110 @@ function checkDuplicatePhone(body) {
 }
 
 /* ==========================================================
-   confirm_booking — تأكيد التسجيل (updateLead + حالة «مؤكد»)
+   confirm_booking — تثبيت البيانات بحالة «مؤكد»
    ========================================================== */
 
 function confirmBooking(body) {
-  const startTime = Date.now();
   if (isHoneypotTriggered(body.data)) return { success: true };
   if (!isValidAlgerianPhone(body.data && body.data.phone)) return { success: false, error: 'رقم الهاتف غير صالح' };
-  updateLead(body);
-  const sheet = getLeadsSheet();
-  const row = findRowBySessionId(sheet, body.session_id);
-  if (row !== -1) {
-    const actualHeaders = getActualHeaders(sheet);
-    const statusCol = actualHeaders.indexOf(STATUS_HEADER);
-    if (statusCol !== -1) {
-      sheet.getRange(row, statusCol + 1, 1, 1).setValues([[STATUS_CONFIRMED]]);
-    }
-  }
 
-  /* Meta Conversions API — Purchase event، مضمَّن في try/catch داخلي حتى
-     لا يفشل الحجز أبدًا بسبب فشل إرسال الحدث. يعمل فقط عند التأكيد الناجح. */
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
   try {
-    sendPurchaseToMetaCAPI(body.data);
-  } catch (metaErr) {
-    Logger.log('confirmBooking: Meta Purchase call failed silently: ' + metaErr.toString());
+    updateLeadInternal(body);
+    const sheet = getLeadsSheet();
+    const row = findRowBySessionId(sheet, body.session_id);
+    if (row !== -1) {
+      const statusCol = indexOfAny(getActualHeaders(sheet), STATUS_HEADERS);
+      if (statusCol !== -1) {
+        const cell = sheet.getRange(row, statusCol + 1);
+        const current = String(cell.getValue() || '').trim();
+        if (current === '' || current === STATUS_PARTIAL) cell.setValue(STATUS_CONFIRMED);
+      }
+    }
+  } finally {
+    lock.releaseLock();
   }
 
-  console.log('confirm_booking completed in ' + (Date.now() - startTime) + ' ms');
+  /* Meta CAPI — لا يُفشل التأكيد أبدًا؛ يتجاهل بصمت إن لم تُضبط بيانات Meta */
+  try {
+    sendScheduleToMetaCAPI(body.data);
+  } catch (metaErr) {
+    Logger.log('confirmBooking: Meta call failed silently: ' + metaErr.toString());
+  }
   return { success: true };
 }
 
 /* ==========================================================
-   تشخيص الورقة + ترحيل (تشغيل يدوي مرة واحدة من المحرر)
+   تشخيص + ترحيل (تشغيل يدوي من المحرر)
    ========================================================== */
 
-/*
- * runSheetDiagnostics — يسجل في Logger كل ما يوجد فعليًا في الجدول:
- *   - الأعمدة الحالية بالترتيب وموقعها
- *   - هل تطابق LEADS_HEADERS؟
- *   - عدد الصفوف
- * شغّلها من المحرر: Run > runSheetDiagnostics ثم عرض السجل.
- */
 function runSheetDiagnostics() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_LEADS_NAME);
-  Logger.log('=== تشخيص الورقة ===');
-  if (!sheet) {
-    Logger.log('لا توجد ورقة باسم "' + SHEET_LEADS_NAME + '" — سيتم إنشاؤها بأول استدعاء.');
-    return;
-  }
-  Logger.log('اسم الورقة: ' + sheet.getName());
-  Logger.log('آخر صف: ' + sheet.getLastRow() + ' | آخر عمود: ' + sheet.getLastColumn());
-  if (sheet.getLastRow() === 0) {
-    Logger.log('الورقة فارغة.');
-    return;
-  }
-  const actualHeaders = getActualHeaders(sheet);
-  Logger.log('الأعمدة الفعلية في الورقة (' + actualHeaders.length + '):');
-  actualHeaders.forEach(function (h, i) { Logger.log('  [' + (i + 1) + '] ' + h); });
-  Logger.log('--- تطابق مع LEADS_HEADERS ---');
-  LEADS_HEADERS.forEach((h, i) => {
-    const pos = actualHeaders.indexOf(h);
-    Logger.log('  ' + h + ' => في الورقة: ' + (pos === -1 ? 'مفقود' : 'العمود ' + (pos + 1)) + (pos === i ? ' ✓' : (pos === -1 ? '' : ' (يُتوقع ' + (i + 1) + ')')));
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LEADS_NAME);
+  if (!sheet) { Logger.log('لا توجد ورقة "' + SHEET_LEADS_NAME + '"'); return; }
+  if (sheet.getLastRow() === 0) { Logger.log('الورقة فارغة.'); return; }
+  const actual = getActualHeaders(sheet);
+  Logger.log('آخر صف: ' + sheet.getLastRow() + ' | الأعمدة: ' + actual.length);
+  LEADS_HEADERS.forEach(function (h, i) {
+    const pos = actual.indexOf(h);
+    Logger.log(h + ' => ' + (pos === -1 ? 'مفقود' : 'العمود ' + (pos + 1)) + (pos === i ? ' ✓' : (pos === -1 ? '' : ' (يُتوقع ' + (i + 1) + ')')));
   });
-  Logger.log('الأعمدة الزائدة (غير مطلوبة): ' + actualHeaders.filter(h => !LEADS_HEADERS.includes(h)).join(' ، '));
-  Logger.log('=== نهاية التشخيص ===');
+  Logger.log('أعمدة زائدة: ' + actual.filter(function (h) { return LEADS_HEADERS.indexOf(h) === -1; }).join(' ، '));
 }
 
 /*
- * migrateSheet — يهيكل الورقة الحية وفق LEADS_HEADERS:
- *   1) يُنشئ ورقة جديدة مؤقتة بأعمدة LEADS_HEADERS الصحيحة
- *   2) ينسخ كل الصفوف ناقلاً كل قيمة حسب اسم العمود (بالاسم، لا بالموقع)
- *   3) يحذف الورقة القديمة، ويعيد تسمية الجديدة
- * الآمن تشغيله مرة واحدة فقط بعد أخذ نسخة احتياطية. يمكنك أيضًا التراجع
- * يدويًا من نسخة الجدول. الأعمدة المزالة (المصدر/UTM/حالة العميل/تاريخ الموعد/وقت الموعد)
- * لن تُنقل.
+ * migrateSheet — يعيد بناء الورقة بالأعمدة الـ14 مع نقل البيانات بالاسم.
+ * الأعمدة المحذوفة لا تُنقل. معرفات الجلسة القديمة تُنقل إلى Developer
+ * Metadata حتى تبقى الجلسات الجزئية الجارية سليمة.
+ * خذ نسخة احتياطية من الجدول قبل التشغيل، وشغّلها مرة واحدة فقط.
  */
 function migrateSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let oldSheet = ss.getSheetByName(SHEET_LEADS_NAME);
-  if (!oldSheet) {
-    Logger.log('لا توجد ورقة "' + SHEET_LEADS_NAME + '" — إنشاء ورقة جديدة بأعمدة LEADS_HEADERS.');
-    ss.insertSheet(SHEET_LEADS_NAME);
-    getLeadsSheet();
-    Logger.log('تم إنشاء الورقة الجديدة.');
-    return;
-  }
-  const tmpName = SHEET_LEADS_NAME + '_OLD_BACKUP';
-  const tmp = ss.insertSheet(tmpName);
-  const data = oldSheet.getDataRange().getValues();
+  const oldSheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  if (!oldSheet) { getLeadsSheet(); Logger.log('تم إنشاء ورقة جديدة.'); return; }
 
-  /* تهيئة الأعمدة في الورقة الجديدة */
+  const data = oldSheet.getDataRange().getValues();
+  const oldHeaders = data.length ? data[0].map(function (h) { return String(h).trim(); }) : [];
+  const oldSessionCol = oldHeaders.indexOf('معرف الجلسة');
+
+  const tmp = ss.insertSheet(SHEET_LEADS_NAME + '_NEW');
   tmp.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
   tmp.setFrozenRows(1);
 
-  const oldHeaders = (data.length > 0) ? data[0].map(h => String(h).trim()) : [];
-
-  let copied = 0;
   for (let r = 1; r < data.length; r++) {
     const newRow = new Array(LEADS_HEADERS.length).fill('');
-    LEADS_HEADERS.forEach((header, newIdx) => {
-      /* تطابق بالاسم، وإن لم يوجد نطابق عبر مفتاح payload (للأسماء القديمة) */
+    LEADS_HEADERS.forEach(function (header, newIdx) {
       let oldIdx = oldHeaders.indexOf(header);
       if (oldIdx === -1) {
         const key = getPayloadKeyForHeader(header);
-        if (key) oldIdx = oldHeaders.findIndex(h => getPayloadKeyForHeader(h) === key);
+        if (key) oldIdx = oldHeaders.findIndex(function (h) { return getPayloadKeyForHeader(h) === key; });
       }
       if (oldIdx !== -1) newRow[newIdx] = data[r][oldIdx];
     });
     tmp.getRange(r + 1, 1, 1, newRow.length).setValues([newRow]);
-    copied++;
+    if (oldSessionCol !== -1 && data[r][oldSessionCol]) {
+      tagRowWithSession(tmp, r + 1, data[r][oldSessionCol]);
+    }
   }
 
-  /* حذف القديمة وإعادة التسمية */
   ss.deleteSheet(oldSheet);
   tmp.setName(SHEET_LEADS_NAME);
-
-  Logger.log('migrateSheet: تم ترحيل ' + copied + ' صفًا إلى الأعمدة الجديدة.');
-  Logger.log('الورقة الآن بترتيب: ' + LEADS_HEADERS.join(' | '));
-  Logger.log('الورقة الاحتياطية القديمة حُذفت. إن أردت الاحتفاظ بها استخدم خيار "Duplicate" في Google Sheets قبل الترحيل.');
+  Logger.log('migrateSheet: تم ترحيل ' + Math.max(0, data.length - 1) + ' صفًا.');
 }
 
 /* ==========================================================
-   Meta Conversions API
+   Meta Conversions API — يعمل فقط عند ضبط META_ACCESS_TOKEN و META_PIXEL_ID
+   في Script Properties
    ========================================================== */
 
-/*
- * Purchase يُرسل فعليًا الآن من confirmBooking عبر sendPurchaseToMetaCAPI
- * (يحتاج META_ACCESS_TOKEN + META_PIXEL_ID في Script Properties).
- * Lead (sendLeadToMetaCAPI) جاهز لكن معطّل — لتفعيله اضبط META_PIXEL_ID
- * وقم بإلغاء تعليق الاستدعاء في confirmBooking.
- */
-const META_PIXEL_ID = 'REPLACE_WITH_SKILLOVA_PIXEL_ID';
 const META_API_VERSION = 'v21.0';
-/* رابط صفحة الهبوط (ثابت مؤقتًا — اتركه placeholder أو غيّره لرابط Skillova الفعلي) */
 const META_EVENT_SOURCE_URL = 'https://skillova.com';
 
 function sha256Hash(value) {
   if (!value) return '';
   const normalized = value.toString().trim().toLowerCase();
-  const rawHash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, normalized, Utilities.Charset.UTF_8);
-  return rawHash.map(function(byte) { const hex = (byte < 0 ? byte + 256 : byte).toString(16); return hex.length === 1 ? '0' + hex : hex; }).join('');
+  const raw = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, normalized, Utilities.Charset.UTF_8);
+  return raw.map(function (b) { const hex = (b < 0 ? b + 256 : b).toString(16); return hex.length === 1 ? '0' + hex : hex; }).join('');
 }
 
 function normalizePhoneForMeta(phone) {
@@ -428,84 +379,39 @@ function normalizePhoneForMeta(phone) {
   return cleaned;
 }
 
-function sendLeadToMetaCAPI(data) {
+function sendScheduleToMetaCAPI(data) {
   try {
-    const token = PropertiesService.getScriptProperties().getProperty('META_ACCESS_TOKEN');
-    if (!token) return { success: false, error: 'Missing access token' };
-    const hashedPhone = data.phone ? sha256Hash(normalizePhoneForMeta(data.phone)) : '';
-    const hashedEmail = data.email ? sha256Hash(data.email) : '';
-    const userData = {};
-    if (hashedPhone) userData.ph = [hashedPhone];
-    if (hashedEmail) userData.em = [hashedEmail];
-    if (data.fbp) userData.fbp = data.fbp;
-    if (data.fbc) userData.fbc = data.fbc;
-    const eventPayload = { data: [{ event_name: 'Lead', event_time: Math.floor(Date.now() / 1000), event_id: data.event_id || '', action_source: 'website', event_source_url: data.event_source_url || '', user_data: userData, custom_data: { content_name: 'Skillova Application', content_category: 'Course' } }] };
-    const url = 'https://graph.facebook.com/' + META_API_VERSION + '/' + META_PIXEL_ID + '/events?access_token=' + token;
-    const response = UrlFetchApp.fetch(url, { method: 'post', contentType: 'application/json', payload: JSON.stringify(eventPayload), muteHttpExceptions: true });
-    const responseCode = response.getResponseCode();
-    const responseText = response.getContentText();
-    if (responseCode !== 200) return { success: false, error: responseText };
-    return { success: true, response: JSON.parse(responseText) };
-  } catch (err) {
-    return { success: false, error: err.toString() };
-  }
-}
-
-/*
- * sendPurchaseToMetaCAPI — يرسل حدث Purchase إلى Meta Conversions API بعد
- * تأكيد الحجز (مطابق لحدث Purchase في البكسل: value 14900 DZD). يقرأ
- * META_ACCESS_TOKEN و META_PIXEL_ID من Script Properties. أي فشل هنا يُسجَّل
- * فقط عبر Logger.log ولا يؤثر على نجاح الحجز. لا يتضمن أي بيانات شخصية غير
- * الهاتف (مبشّر SHA-256).
- */
-function sendPurchaseToMetaCAPI(data) {
-  try {
-    const token = PropertiesService.getScriptProperties().getProperty('META_ACCESS_TOKEN');
-    const pixelId = PropertiesService.getScriptProperties().getProperty('META_PIXEL_ID');
-    if (!token || !pixelId) {
-      Logger.log('sendPurchaseToMetaCAPI: missing META_ACCESS_TOKEN or META_PIXEL_ID script property');
-      return { success: false, error: 'Missing Meta credentials' };
-    }
+    const props = PropertiesService.getScriptProperties();
+    const token = props.getProperty('META_ACCESS_TOKEN');
+    const pixelId = props.getProperty('META_PIXEL_ID');
+    if (!token || !pixelId) return { success: false, error: 'Missing Meta credentials' };
 
     const userData = {};
-    if (data && data.phone) {
-      userData.ph = [sha256Hash(normalizePhoneForMeta(data.phone))];
-    }
+    if (data && data.phone) userData.ph = [sha256Hash(normalizePhoneForMeta(data.phone))];
 
-    const eventPayload = {
+    const payload = {
       data: [{
-        event_name: 'Purchase',
+        event_name: 'Schedule',
         event_time: Math.floor(Date.now() / 1000),
         action_source: 'website',
         event_source_url: META_EVENT_SOURCE_URL,
         user_data: userData,
-        custom_data: {
-          content_name: 'Closer Bootcamp',
-          content_type: 'product',
-          value: 14900,
-          currency: 'DZD'
-        }
+        custom_data: { content_name: 'Closer Bootcamp', appointment_type: 'Qualification Call' }
       }]
     };
-
     const url = 'https://graph.facebook.com/' + META_API_VERSION + '/' + pixelId + '/events?access_token=' + token;
     const response = UrlFetchApp.fetch(url, {
-      method: 'post',
-      contentType: 'application/json',
-      payload: JSON.stringify(eventPayload),
-      muteHttpExceptions: true
+      method: 'post', contentType: 'application/json',
+      payload: JSON.stringify(payload), muteHttpExceptions: true
     });
-
-    const responseCode = response.getResponseCode();
-    const responseText = response.getContentText();
-    if (responseCode !== 200) {
-      Logger.log('sendPurchaseToMetaCAPI: Meta API returned ' + responseCode + ' — ' + responseText);
-      return { success: false, error: responseText };
+    const code = response.getResponseCode();
+    if (code !== 200) {
+      Logger.log('sendScheduleToMetaCAPI: ' + code + ' — ' + response.getContentText());
+      return { success: false, error: response.getContentText() };
     }
-    return { success: true, response: JSON.parse(responseText) };
+    return { success: true };
   } catch (err) {
-    Logger.log('sendPurchaseToMetaCAPI: ' + err.toString());
+    Logger.log('sendScheduleToMetaCAPI: ' + err.toString());
     return { success: false, error: err.toString() };
   }
 }
-
