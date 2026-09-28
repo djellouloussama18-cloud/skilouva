@@ -7,7 +7,7 @@
  *   check_duplicate_phone -> فحص تكرار الهاتف (مقابل الحالة «مؤكد»)
  *   confirm_booking       -> تأكيد التسجيل (حالة «مؤكد»)
  *
- * الجدول: 16 عمودًا (A → P). لا يوجد عمود لمعرف الجلسة؛
+ * الجدول: 15 عمودًا (A → O). لا يوجد عمود لمعرف الجلسة؛
  * يُخزَّن session_id كـ Developer Metadata على الصف نفسه (مخفي تمامًا
  * ويتحرك مع الصف عند الحذف/الترتيب اليدوي).
  * عمود «العمر» هو العمود E (الخامس). كل كود يتعامل مع ورقة العملاء
@@ -16,6 +16,11 @@
  * تتطلّب تعديل الكود. لورقة قائمة بلا ترحيل، عمود العمر يظهر في النهاية
  * ويقرأ/يكتب صحيحًا بالاسم؛ الترتيب النهائي يتم عبر
  * `migrateAddAgeColumn()` (تشغيل يدوي مرة واحدة).
+ *
+ * عمود «Plus grand défi» (الحقل `mainChallenge`) **حُذف** مع سؤاله من
+ * القمع: لا يدخل في FIELD_MAP ولا في LEADS_HEADERS، فلا يُكتب ولا يُقرأ
+ * ولا يُطلب بعد الآن. لإزالته من الورقة الحية شغّل
+ * `migrateRemoveChallengeColumn()` مرة واحدة (تنسخه لورقة احتياطية أولًا).
  *
  * النشر: الصق الملف كاملًا مكان الكود القديم، اضبط Script Property
  * GAS_SHARED_SECRET، ثم أعد نشر Web App بنفس الرابط.
@@ -27,6 +32,24 @@ const SHEET_LEADS_NAME = 'العملاء المحتملون';
 /* عمود العمر: اسمه وهدفه. الترتيب أدناه مطابق تمامًا لورقة العملاء. */
 const LEAD_AGE_HEADER = 'العمر';
 const LEADS_AGE_TARGET_COL = 5;   // العمود E
+
+/* عمود «أكبر تحدي» المحذوف: كل الأسماء التي قد تظهر في صف العناوين
+   (الاسم الحالي بالفرنسية، الاسم العربي القديم، وكل صيغه بحالة مختلفة).
+  المقارنة تتم بعد trim + lowercase. لا يدخل FIELD_MAP ولا LEADS_HEADERS
+   إطلاقًا: يبقى هنا فقط ليستعمله migrateRemoveChallengeColumn() على الورقة
+   الحية، ولتوثيق سبب حذفه. */
+const REMOVED_CHALLENGE_FIELD = 'mainChallenge';
+const CHALLENGE_HEADER_ALIASES = ['Plus grand défi', 'Plus grand defi', 'أكبر تحدي'];
+const CHALLENGE_BACKUP_PREFIX = '_backup_plus_grand_defi';
+
+/* أسماء أعمدة لا يجوز حذفها أبدًا (حماية إضافية) */
+const PROTECTED_HEADERS = [
+  'Date', 'Nom complet', 'Téléphone', 'E-mail', LEAD_AGE_HEADER,
+  'Moyen de contact préféré', 'Situation actuelle', 'Objectif professionnel',
+  "Niveau d'expérience", 'Compétence souhaitée', 'Temps disponible par semaine',
+  'Prêt à investir', 'Remarque', 'Statut', 'Closer',
+  'معرف الجلسة', 'حالة التسجيل'
+];
 
 const LEADS_HEADERS = [
   'Date',                          // A
@@ -40,12 +63,11 @@ const LEADS_HEADERS = [
   'Objectif professionnel',        // H
   "Niveau d'expérience",           // I
   'Compétence souhaitée',          // J
-  'Plus grand défi',               // K
-  'Temps disponible par semaine',  // L
-  'Prêt à investir',               // M
-  'Remarque',                      // N
-  'Statut',                        // O (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
-  'Closer'                         // P (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
+  'Temps disponible par semaine',  // K
+  'Prêt à investir',               // L
+  'Remarque',                      // M
+  'Statut',                        // N (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
+  'Closer'                         // O (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
 ];
 
 /* كل عنوان يُقبل بالفرنسية أو بالعربية (القديمة) — الترتيب لا يهم */
@@ -74,7 +96,6 @@ const FIELD_MAP = {
   careerGoal:          'Objectif professionnel',
   experienceLevel:     "Niveau d'expérience",
   skillInterest:       'Compétence souhaitée',
-  mainChallenge:       'Plus grand défi',
   weeklyTime:          'Temps disponible par semaine',
   investmentReadiness: 'Prêt à investir',
   notes:               'Remarque'
@@ -82,7 +103,8 @@ const FIELD_MAP = {
 
 /* أسماء عربية مقبولة أيضًا (للأعمدة القديمة) — الترتيب لا يهم.
    لا تُحذف هذه القائمة: getPayloadKeyForHeader() يمرّ على كل مفاتيح
-   FIELD_MAP ويقرأ LEGACY_AR[k]، فأي مفتاح بلا مدخل هنا يسقط الاستدعاء. */
+   FIELD_MAP ويقرأ LEGACY_AR[k]، فأي مفتاح بلا مدخل هنا يسقط الاستدعاء.
+   ملاحظة: لا يوجد مدخل لـ `mainChallenge` — العمود حُذف. */
 const LEGACY_AR = {
   fullName:            ['الاسم الكامل'],
   phone:               ['رقم الهاتف'],
@@ -93,7 +115,6 @@ const LEGACY_AR = {
   careerGoal:          ['الهدف المهني'],
   experienceLevel:     ['مستوى الخبرة'],
   skillInterest:       ['المهارة المطلوبة'],
-  mainChallenge:       ['أكبر تحدي'],
   weeklyTime:          ['الوقت الأسبوعي المتاح'],
   investmentReadiness: ['جاهزية الاستثمار', 'الجاهزية للاستثمار', 'الاستعداد للاستثمار'],
   notes:               ['ملاحظة', 'الملاحظة']
@@ -212,7 +233,12 @@ function jsonOut(obj) {
    فقط، لأنها عملية يدوية تُشغَّل مرة واحدة. قبل تشغيلها يمكن أن يظهر عمود
    «العمر» في نهاية الورقة — وهذا آمن تمامًا لأن كل الكتابة بالاسم.
 
-   يُستدعى دائمًا من getLeadsSheet() قبل القراءة/الكتابة. */
+   يُستدعى دائمًا من getLeadsSheet() قبل القراءة/الكتابة.
+
+   ملاحظة: لأن «Plus grand défi» خرج من LEADS_HEADERS (وFIELD_MAP)، فإن هذه
+   الدالة **لن تعيد إنشاءه** على ورقة قائمة — بل العكس: لو كان العمود ما زال
+   موجودًا في الورقة الحية فلن يُلمسه إطلاقًا. إزالته من هناك من مسؤولية
+   migrateRemoveChallengeColumn() فقط. */
 function ensureHeaders(sheet) {
   const lastCol = Math.max(sheet.getLastColumn(), 1);
   const actual = readLeadHeaders(sheet);
@@ -509,9 +535,128 @@ function migrateAddAgeColumn() {
   }
 }
 
+/* ==========================================================
+   migrateRemoveChallengeColumn — حذف عمود «Plus grand défi»
+   تشغيل يدوي من المحرر مرة واحدة. آمنة للتكرار وغير مدمّرة.
+   ========================================================== */
+
+/* تطبيع اسم الترويسة للمقارنة: trim + collapse spaces + lowercase */
+function normalizeHeader(h) {
+  return String(h == null ? '' : h).trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+/* كل الأعمدة المحمية، مع أسمائها الحالية وأي بدائل عربية معروفة */
+function getProtectedHeaderNames() {
+  const base = PROTECTED_HEADERS.slice();
+  Object.keys(FIELD_MAP).forEach(function (k) {
+    base.push(FIELD_MAP[k]);
+    base.push.apply(base, LEGACY_AR[k] || []);
+  });
+  base.push.apply(base, DATE_HEADERS);
+  base.push.apply(base, PHONE_HEADERS);
+  base.push.apply(base, STATUS_HEADERS);
+  base.push(LEAD_AGE_HEADER);
+  return base;
+}
+
+/* اسم ورقة احتياطية غير مستعملة: يضيف طابعًا زمنيًا عند وجود الاسم */
+function pickBackupSheetName(ss) {
+  if (!ss.getSheetByName(CHALLENGE_BACKUP_PREFIX)) return CHALLENGE_BACKUP_PREFIX;
+  const stamp = Utilities.formatDate(new Date(), 'Etc/GMT', 'yyyyMMdd-HHmmss');
+  let name = CHALLENGE_BACKUP_PREFIX + '_' + stamp;
+  let n = 2;
+  while (ss.getSheetByName(name)) { name = CHALLENGE_BACKUP_PREFIX + '_' + stamp + '_' + n; n++; }
+  return name;
+}
+
 /*
- * migrateSheet — يعيد بناء الورقة بالأعمدة الـ16 مع نقل البيانات بالاسم
- * (بما فيها «العمر» في E). الأعمدة المحذوفة لا تُنقل. معرفات الجلسة
+ * تحذف عمود «Plus grand défi» (الحقل `mainChallenge`) من ورقة العملاء المحتملين:
+ *   - تُطابَق الترويسة بكل الأسماء المعروفة (trim + case-insensitive):
+ *     `Plus grand défi` / `Plus grand defi` / `أكبر تحدي`.
+ *   - إذا لم يُعثر عليه: لا تغيير (آمنة للتكرار).
+ *   - إذا وُجد أكثر من عمود مطابق أو كان محميًا (الهاتف/الحالة/العمر/
+ *     معرّف الجلسة): خطأ واضح وتوقّف، بلا أي حذف.
+ *   - قبل الحذف تُنسخ كل قيمه (ترويسة + كل الصفوف، + معرّف الجلسة كمرجع)
+ *     إلى ورقة احتياطية جديدة، حتى لا تضيع أي بيانات.
+ *   - لا يُمسّ أي عمود أو صف آخر.
+ */
+function migrateRemoveChallengeColumn() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  if (!sheet) { Logger.log('migrateRemoveChallengeColumn: لا توجد ورقة "' + SHEET_LEADS_NAME + '".'); return; }
+
+  const before = readLeadHeaders(sheet);
+  Logger.log('migrateRemoveChallengeColumn: قبل -> ' + leadHeadersToLog(before));
+
+  const wanted = CHALLENGE_HEADER_ALIASES.map(normalizeHeader);
+  const matches = [];
+  before.forEach(function (h, i) { if (wanted.indexOf(normalizeHeader(h)) !== -1) matches.push(i + 1); });
+
+  if (!matches.length) {
+    Logger.log('migrateRemoveChallengeColumn: العمود غير موجود — لا تغيير (already removed / not found). الحقل ' +
+      '`' + REMOVED_CHALLENGE_FIELD + '` غير موجود أصلًا في FIELD_MAP.');
+    return;
+  }
+  if (matches.length > 1) {
+    Logger.log('migrateRemoveChallengeColumn: ⚠ توقّف — ' + matches.length + ' أعمدة مطابقة (' +
+      matches.map(function (c) { return colLetter(c); }).join('، ') + '). لم يتم الحذف. راجع يدويًا.');
+    return;
+  }
+
+  const col = matches[0];
+  const header = before[col - 1];
+  const normalized = normalizeHeader(header);
+  const protectedNames = getProtectedHeaderNames().map(normalizeHeader);
+  if (protectedNames.indexOf(normalized) !== -1) {
+    Logger.log('migrateRemoveChallengeColumn: ⚠ توقّف — العمود ' + colLetter(col) + ' («' + header +
+      '») اسم محمي. لم يتم الحذف.');
+    return;
+  }
+
+  /* ---1) كم صفًا فيه بيانات؟ --- */
+  const lastRow = sheet.getLastRow();
+  const colData = sheet.getRange(1, col, Math.max(lastRow, 1), 1).getValues().map(function (r) { return r[0]; });
+  let filled = 0;
+  for (let i = 1; i < colData.length; i++) {
+    if (String(colData[i] == null ? '' : colData[i]).trim() !== '') filled++;
+  }
+  Logger.log('migrateRemoveChallengeColumn: المرشّح للحذف = العمود ' + colLetter(col) + ' («' + header + '») | صفوف فيها بيانات: ' + filled);
+
+  /* ---2) نسخة احتياطية: الترويسة + كل الصفوف + عمود معرّف الجلسة كمرجع --- */
+  const lastCol = before.length;
+  const allData = sheet.getRange(1, 1, Math.max(lastRow, 1), lastCol).getValues();
+  const sessionCol = indexOfAny(before, ['معرف الجلسة']);
+  const backup = ss.insertSheet(pickBackupSheetName(ss));
+  const outHead = ['_original_column', '_original_header', '_session_id', '_value'];
+  const out = [outHead];
+  for (let r = 1; r < allData.length; r++) {
+    const sid = (sessionCol !== -1 ? allData[r][sessionCol] : '');
+    out.push([colLetter(col), header, sid == null ? '' : sid, colData[r]]);
+  }
+  backup.getRange(1, 1, out.length, outHead.length).setValues(out);
+  backup.setFrozenRows(1);
+  Logger.log('migrateRemoveChallengeColumn: نسخة احتياطية في "' + backup.getName() + '" (' +
+    out.length + ' صف × ' + outHead.length + ' عمود).');
+
+  /* ---3) الحذف --- */
+  sheet.deleteColumn(col);
+
+  const after = readLeadHeaders(sheet);
+  Logger.log('migrateRemoveChallengeColumn: بعد  -> ' + leadHeadersToLog(after));
+  Logger.log('migrateRemoveChallengeColumn: الأعمدة ' + before.length + ' → ' + after.length +
+    ' | صفوف بيانات محفوظة: ' + Math.max(0, sheet.getLastRow() - 1) +
+    (after.length === before.length - 1 ? ' | ✓ حُذف عمود واحد بالضبط' : ' | ⚠ عدد الأعمدة لم ينقص بواحد!'));
+  if (resolveColumnIndex(sheet, [LEAD_AGE_HEADER]) !== LEADS_AGE_TARGET_COL) {
+    Logger.log('migrateRemoveChallengeColumn: ⚠ عمود «' + LEAD_AGE_HEADER + '» لم يعد في العمود ' +
+      colLetter(LEADS_AGE_TARGET_COL) + ' — شغّل migrateAddAgeColumn() إن لزم.');
+  }
+}
+
+/*
+ * migrateSheet — يعيد بناء الورقة بالأعمدة الـ15 مع نقل البيانات بالاسم
+ * (بما فيها «العمر» في E). الأعمدة المحذوفة لا تُنقل (ومنها
+ * «Plus grand défi»)، فقيم العمود المحذوف تُفقد هنا — استخدم
+ * migrateRemoveChallengeColumn() بدلًا منه. معرفات الجلسة
  * القديمة تُنقل إلى Developer Metadata حتى تبقى الجلسات الجزئية الجارية
  * سليمة. ⚠ يحذف الورقة القديمة — خذ نسخة احتياطية. لا يلزم لهذا التغيير:
  * استخدم migrateAddAgeColumn() بدلًا منه.
