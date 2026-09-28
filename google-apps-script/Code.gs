@@ -7,9 +7,15 @@
  *   check_duplicate_phone -> فحص تكرار الهاتف (مقابل الحالة «مؤكد»)
  *   confirm_booking       -> تأكيد التسجيل (حالة «مؤكد»)
  *
- * الجدول: 14 عمودًا فقط (A → N). لا يوجد عمود لمعرف الجلسة؛
+ * الجدول: 16 عمودًا (A → P). لا يوجد عمود لمعرف الجلسة؛
  * يُخزَّن session_id كـ Developer Metadata على الصف نفسه (مخفي تمامًا
  * ويتحرك مع الصف عند الحذف/الترتيب اليدوي).
+ * عمود «العمر» هو العمود E (الخامس). كل كود يتعامل مع ورقة العملاء
+ * المحتملين يتعامل مع الأعمدة بالاسم (عبر صف العناوين) لا برقم ثابت،
+ * لذلك نقل عمود «العمر» إلى E أو إعادة ترتيب أي عمود آخر لاحقًا لا
+ * تتطلّب تعديل الكود. لورقة قائمة بلا ترحيل، عمود العمر يظهر في النهاية
+ * ويقرأ/يكتب صحيحًا بالاسم؛ الترتيب النهائي يتم عبر
+ * `migrateAddAgeColumn()` (تشغيل يدوي مرة واحدة).
  *
  * النشر: الصق الملف كاملًا مكان الكود القديم، اضبط Script Property
  * GAS_SHARED_SECRET، ثم أعد نشر Web App بنفس الرابط.
@@ -18,22 +24,28 @@
 
 const SHEET_LEADS_NAME = 'العملاء المحتملون';
 
+/* عمود العمر: اسمه وهدفه. الترتيب أدناه مطابق تمامًا لورقة العملاء. */
+const LEAD_AGE_HEADER = 'العمر';
+const LEADS_AGE_TARGET_COL = 5;   // العمود E
+
 const LEADS_HEADERS = [
   'Date',                          // A
   'Nom complet',                   // B
-  'Téléphone',                     // C
+  'Téléphone',                       // C
   'E-mail',                        // D
-  'Moyen de contact préféré',      // E
-  'Situation actuelle',            // F
-  'Objectif professionnel',        // G
-  "Niveau d'expérience",           // H
-  'Compétence souhaitée',          // I
-  'Plus grand défi',               // J
-  'Temps disponible par semaine',  // K
-  'Prêt à investir',               // L
-  'Remarque',                      // M
-  'Statut',                        // N (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
-  'Closer'                         // O (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
+  LEAD_AGE_HEADER,                 // E (العمر — في منتصف أعمدة البيانات عمدًا؛
+                                   //     أعمدة الحالة والتتبع تبقى في النهاية)
+  'Moyen de contact préféré',      // F
+  'Situation actuelle',            // G
+  'Objectif professionnel',        // H
+  "Niveau d'expérience",           // I
+  'Compétence souhaitée',          // J
+  'Plus grand défi',               // K
+  'Temps disponible par semaine',  // L
+  'Prêt à investir',               // M
+  'Remarque',                      // N
+  'Statut',                        // O (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
+  'Closer'                         // P (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
 ];
 
 /* كل عنوان يُقبل بالفرنسية أو بالعربية (القديمة) — الترتيب لا يهم */
@@ -46,11 +58,17 @@ const STATUS_CONFIRMED = 'مؤكد';
 /* مفتاح الـ Developer Metadata الذي يحمل session_id (غير ظاهر في الجدول) */
 const SESSION_META_KEY = 'skillova_session_id';
 
-/* أسماء خصائص funnelState (camelCase) -> اسم العمود (فرنسي) */
+/* أسماء خصائص funnelState (camelCase) -> اسم العمود في الورقة.
+   ترتيب المدخلات هنا مطابق لترتيب الأعمدة في الورقة (A → P) لسهولة القراءة
+   فقط؛ لا يعتمد عليه أي كود (البحث يتم بالاسم عبر صف العناوين).
+   كل الأعمدة بالفرنسية عدا «العمر» (عمود جديد، اسمُه عربي كما هو مطلوب).
+   أعمدة Date / Statut / Closer ليست هنا: Date يُكتب بالتاريخ الحالي،
+   Statut يكتبه الكود («جزئي» ثم «مؤكد»)، و Closer يُملأ يدويًا. */
 const FIELD_MAP = {
   fullName:            'Nom complet',
   phone:               'Téléphone',
   email:               'E-mail',
+  ageRange:            LEAD_AGE_HEADER,
   contactPreference:   'Moyen de contact préféré',
   currentStatus:       'Situation actuelle',
   careerGoal:          'Objectif professionnel',
@@ -62,11 +80,14 @@ const FIELD_MAP = {
   notes:               'Remarque'
 };
 
-/* الأسماء العربية القديمة (تبقى مقبولة كي لا يتعطل شيء أثناء إعادة التسمية) */
+/* أسماء عربية مقبولة أيضًا (للأعمدة القديمة) — الترتيب لا يهم.
+   لا تُحذف هذه القائمة: getPayloadKeyForHeader() يمرّ على كل مفاتيح
+   FIELD_MAP ويقرأ LEGACY_AR[k]، فأي مفتاح بلا مدخل هنا يسقط الاستدعاء. */
 const LEGACY_AR = {
   fullName:            ['الاسم الكامل'],
   phone:               ['رقم الهاتف'],
   email:               ['البريد الإلكتروني'],
+  ageRange:            [LEAD_AGE_HEADER],
   contactPreference:   ['طريقة التواصل المفضلة'],
   currentStatus:       ['الوضعية الحالية'],
   careerGoal:          ['الهدف المهني'],
@@ -78,13 +99,16 @@ const LEGACY_AR = {
   notes:               ['ملاحظة', 'الملاحظة']
 };
 
-/* يعيد مفتاح payload لاسم العمود (فرنسي أو عربي قديم) */
+/* يعيد مفتاح payload لاسم العمود (الاسم الحالي أو أي اسم عربي قديم).
+   `LEGACY_AR[k]` يُقرأ بأمان (|| []) حتى لا يسقط أي استدعاء بسبب مفتاح
+   جديد أُضيف إلى FIELD_MAP ونُسي في LEGACY_AR. */
 function getPayloadKeyForHeader(header) {
   if (!header) return null;
   const h = String(header).trim();
   if (h === '') return null;
   return Object.keys(FIELD_MAP).find(function (k) {
-    return FIELD_MAP[k] === h || LEGACY_AR[k].indexOf(h) !== -1;
+    const aliases = LEGACY_AR[k] || [];
+    return FIELD_MAP[k] === h || aliases.indexOf(h) !== -1;
   }) || null;
 }
 
@@ -94,6 +118,53 @@ function indexOfAny(headers, names) {
     if (names.indexOf(String(headers[i]).trim()) !== -1) return i;
   }
   return -1;
+}
+
+/* --- حل أرقام الأعمدة بالاسم (لا أرقام ثابتة في أي مكان) -------------
+   كل قراءة/كتابة في ورقة العملاء المحتملين تمرّ من هنا: نقرأ صف العناوين
+   ونشتقّ رقم العمود منه وقت التشغيل. النتيجة: نقل عمود «العمر» إلى E،
+   أو إضافة/حذف عمود، أو إعادة ترتيب أي عمود — لا يتطلّب أي تعديل كود،
+   ولا يمكن أن يترك فهرسًا ثابتًا قديمًا. */
+
+/* صف العناوين كما هو فعلًا في الورقة (مقاسًا على عرض الورقة) */
+function readLeadHeaders(sheet) {
+  const lastCol = Math.max(sheet.getLastColumn(), 1);
+  return sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(function (h) { return String(h).trim(); });
+}
+
+/* رقم العمود (1-based، جاهز لـ getRange) لأول اسم من القائمة، أو -1.
+   يقبل الاسم الحالي وأي اسم عربي قديم. */
+function resolveColumnIndex(sheet, names) {
+  const idx = indexOfAny(getActualHeaders(sheet), names);
+  return idx === -1 ? -1 : idx + 1;
+}
+
+/* رقم عمود payload بالاسم الحالي أو بأي بديل (1-based، أو -1) */
+function resolvePayloadColumn(sheet, header) {
+  const key = getPayloadKeyForHeader(header);
+  if (!key) return -1;
+  return resolveColumnIndex(sheet, [FIELD_MAP[key]].concat(LEGACY_AR[key] || []));
+}
+
+/* فهرس (0-based) العمود داخل مصفوفة صف، لملء الصفوف دفعة واحدة */
+function columnIndexInRow(headers, names) {
+  return indexOfAny(headers, names);
+}
+
+/* 1 -> A, 2 -> B, ... 26 -> Z, 27 -> AA (للسجلات فقط) */
+function colLetter(col) {
+  let s = '';
+  let n = col;
+  while (n > 0) {
+    const r = (n - 1) % 26;
+    s = String.fromCharCode(65 + r) + s;
+    n = Math.floor((n - 1) / 26);
+  }
+  return s;
+}
+
+function leadHeadersToLog(headers) {
+  return headers.map(function (h, i) { return colLetter(i + 1) + ':' + (h || '(فارغ)'); }).join(' | ');
 }
 
 /* ==========================================================
@@ -132,20 +203,46 @@ function jsonOut(obj) {
    أدوات الورقة + ربط session_id بالصف (Developer Metadata)
    ========================================================== */
 
+/* يضيف أعمدة LEADS_HEADERS الناقصة إلى ورقة قائمة، في آخرها فقط.
+   آمن على البيانات القديمة: لا يحذف ولا يعيد ترتيب ولا يكتب فوق أي خلية
+   قائمة، ويضيف العمود الجديد كعمود فارغ في النهاية.
+
+   لا تعيد كتابة صف العناوين إطلاقًا ولا تحرّك أي عمود قائم: الترتيب
+   النهائي (وضع «العمر» في العمود E) من مسؤولية `migrateAddAgeColumn()`
+   فقط، لأنها عملية يدوية تُشغَّل مرة واحدة. قبل تشغيلها يمكن أن يظهر عمود
+   «العمر» في نهاية الورقة — وهذا آمن تمامًا لأن كل الكتابة بالاسم.
+
+   يُستدعى دائمًا من getLeadsSheet() قبل القراءة/الكتابة. */
+function ensureHeaders(sheet) {
+  const lastCol = Math.max(sheet.getLastColumn(), 1);
+  const actual = readLeadHeaders(sheet);
+  const missing = LEADS_HEADERS.filter(function (h) { return actual.indexOf(h) === -1; });
+  if (!missing.length) return;
+  sheet.getRange(1, lastCol + 1, 1, missing.length).setValues([missing]);
+  Logger.log('ensureHeaders: أُضيفت في النهاية (لم تُزحزح أعمدة قائمة): ' + missing.join(' ، '));
+  if (missing.indexOf(LEAD_AGE_HEADER) !== -1) {
+    Logger.log('ensureHeaders: عمود «' + LEAD_AGE_HEADER + '» في عمود ' + (lastCol + missing.indexOf(LEAD_AGE_HEADER) + 1) +
+      ' وليس العمود ' + LEADS_AGE_TARGET_COL + ' — شغّل migrateAddAgeColumn() مرة واحدة لنقله إلى E.');
+  }
+}
+
 function getLeadsSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_LEADS_NAME);
   if (!sheet) sheet = ss.insertSheet(SHEET_LEADS_NAME);
   if (sheet.getLastRow() === 0) {
+    /* ورقة جديدة تمامًا: تُكتب الترويسات بالترتيب الجديد (العمر في E) */
     sheet.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
     sheet.setFrozenRows(1);
+  } else {
+    ensureHeaders(sheet);
   }
   return sheet;
 }
 
 function getActualHeaders(sheet) {
   if (sheet.getLastRow() === 0) return LEADS_HEADERS.slice();
-  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+  return readLeadHeaders(sheet);
 }
 
 /* يعيد رقم الصف المرتبط بـ session_id أو -1 */
@@ -194,6 +291,13 @@ function updateLeadInternal(body) {
     combined[key] = sanitizeValue(data[key] || '');
   });
 
+  /* كل الحقول اختيارية: أي مفتاح غائب في data أو فارغ لا يُكتب ولا يُخطئ.
+     «العمر» تحديدًا اختياري ولا يُتحقَّق منه إطلاقًا (لا في update_lead ولا
+     في confirm_booking) — قيمة غائبة أو فارغة تُترك كما هي.
+
+     الكتابة بالاسم لا بالترتيب: نبني صفًا بطول صف العناوين الفعلي ونملؤه
+     حسب اسم كل عمود، لذلك لا يمكن أن تُكتب قيمة في العمود الخطأ مهما كان
+     ترتيب الأعمدة في الورقة. */
   const actualHeaders = getActualHeaders(sheet);
   const row = findRowBySessionId(sheet, sessionId);
 
@@ -203,10 +307,10 @@ function updateLeadInternal(body) {
       const key = getPayloadKeyForHeader(header);
       if (key && combined[key]) newRow[idx] = combined[key];
     });
-    const dateCol = indexOfAny(actualHeaders, DATE_HEADERS);
-    const statusCol = indexOfAny(actualHeaders, STATUS_HEADERS);
-    if (dateCol !== -1) newRow[dateCol] = new Date();
-    if (statusCol !== -1) newRow[statusCol] = STATUS_PARTIAL;
+    const dateIdx = columnIndexInRow(actualHeaders, DATE_HEADERS);
+    const statusIdx = columnIndexInRow(actualHeaders, STATUS_HEADERS);
+    if (dateIdx !== -1) newRow[dateIdx] = new Date();
+    if (statusIdx !== -1) newRow[statusIdx] = STATUS_PARTIAL;
     const target = sheet.getLastRow() + 1;
     sheet.getRange(target, 1, 1, actualHeaders.length).setValues([newRow]);
     tagRowWithSession(sheet, target, sessionId);
@@ -249,9 +353,11 @@ function checkDuplicatePhone(body) {
   const sheet = getLeadsSheet();
   const data = sheet.getDataRange().getValues();
   if (data.length <= 1) return { success: true, isDuplicate: false };
+  /* الهاتف والحالة يُحلّان بالاسم من صف العناوين — يعملان مهما تغيّر ترتيب
+     الأعمدة (بما في ذلك بعد نقل «العمر» إلى E). */
   const headers = data[0].map(function (h) { return String(h).trim(); });
-  const phoneCol = indexOfAny(headers, PHONE_HEADERS);
-  const statusCol = indexOfAny(headers, STATUS_HEADERS);
+  const phoneCol = columnIndexInRow(headers, PHONE_HEADERS);
+  const statusCol = columnIndexInRow(headers, STATUS_HEADERS);
   if (phoneCol === -1 || statusCol === -1) return { success: true, isDuplicate: false };
   const phone = body.data && body.data.phone ? body.data.phone.toString().trim() : '';
   if (!phone) return { success: true, isDuplicate: false };
@@ -280,9 +386,10 @@ function confirmBooking(body) {
     const sheet = getLeadsSheet();
     const row = findRowBySessionId(sheet, body.session_id);
     if (row !== -1) {
-      const statusCol = indexOfAny(getActualHeaders(sheet), STATUS_HEADERS);
+      /* عمود الحالة يُحلّ بالاسم من صف العناوين (لا رقم ثابت) */
+      const statusCol = resolveColumnIndex(sheet, STATUS_HEADERS);
       if (statusCol !== -1) {
-        const cell = sheet.getRange(row, statusCol + 1);
+        const cell = sheet.getRange(row, statusCol);
         const current = String(cell.getValue() || '').trim();
         if (current === '' || current === STATUS_PARTIAL) cell.setValue(STATUS_CONFIRMED);
       }
@@ -310,18 +417,104 @@ function runSheetDiagnostics() {
   if (sheet.getLastRow() === 0) { Logger.log('الورقة فارغة.'); return; }
   const actual = getActualHeaders(sheet);
   Logger.log('آخر صف: ' + sheet.getLastRow() + ' | الأعمدة: ' + actual.length);
+  Logger.log('ترتيب العناوين: ' + leadHeadersToLog(actual));
   LEADS_HEADERS.forEach(function (h, i) {
     const pos = actual.indexOf(h);
-    Logger.log(h + ' => ' + (pos === -1 ? 'مفقود' : 'العمود ' + (pos + 1)) + (pos === i ? ' ✓' : (pos === -1 ? '' : ' (يُتوقع ' + (i + 1) + ')')));
+    Logger.log(colLetter(i + 1) + ' ' + h + ' => ' + (pos === -1 ? 'مفقود' : 'العمود ' + (pos + 1)) + (pos === i ? ' ✓' : (pos === -1 ? '' : ' (يُتوقع ' + colLetter(i + 1) + ')')));
   });
-  Logger.log('أعمدة زائدة: ' + actual.filter(function (h) { return LEADS_HEADERS.indexOf(h) === -1; }).join(' ، '));
+  Logger.log('أعمدة زائدة: ' + (actual.filter(function (h) { return LEADS_HEADERS.indexOf(h) === -1; }).join(' ، ') || '(لا شيء)'));
+
+  const ageCol = actual.indexOf(LEAD_AGE_HEADER) + 1;
+  if (ageCol === 0) {
+    Logger.log('⚠ عمود «' + LEAD_AGE_HEADER + '» غير موجود — شغّل migrateAddAgeColumn().');
+  } else if (ageCol !== LEADS_AGE_TARGET_COL) {
+    Logger.log('⚠ عمود «' + LEAD_AGE_HEADER + '» في العمود ' + colLetter(ageCol) + ' (' + ageCol +
+      ') والهدف ' + colLetter(LEADS_AGE_TARGET_COL) + ' (' + LEADS_AGE_TARGET_COL + ') — شغّل migrateAddAgeColumn().');
+  } else {
+    Logger.log('✓ عمود «' + LEAD_AGE_HEADER + '» في مكانه: العمود ' + colLetter(LEADS_AGE_TARGET_COL) + '.');
+  }
+}
+
+/* ==========================================================
+   migrateAddAgeColumn — وضع عمود «العمر» في العمود E
+   تشغيل يدوي من المحرر مرة واحدة. آمنة للتكرار.
+   ========================================================== */
+
+/*
+ * ثلاث حالات ابتدائية:
+ *   1) «العمر» غير موجود  -> insertColumnBefore(5) + كتابة الترويسة فقط.
+ *   2) «العمر» موجود في عمود آخر (مثل P، إن كان append قد سبق) ->
+ *      sheet.moveColumns(...) ينقل العمود كاملًا (ترويسة + كل قيم العمر)
+ *      إلى ما قبل E. باقي الأعمدة تحتفظ بترتيبها النسبي.
+ *   3) «العمر» موجود في E أصلًا -> لا تغيير إطلاقًا (already migrated).
+ *
+ * لا تحذف ولا تعيد ترتيب ولا تكتب فوق أي عمود أو صف آخر، ولا تمسّ
+ * صف البيانات إطلاقًا (الإدراج/النقل يحافظان على القيم). أخذ نسخة
+ * احتياطية من الجدول قبل التشغيل موصى به.
+ */
+function migrateAddAgeColumn() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  if (!sheet) {
+    Logger.log('migrateAddAgeColumn: لا توجد ورقة "' + SHEET_LEADS_NAME + '".');
+    return;
+  }
+
+  const targetCol = LEADS_AGE_TARGET_COL;
+  const before = readLeadHeaders(sheet);
+  Logger.log('migrateAddAgeColumn: قبل -> ' + leadHeadersToLog(before));
+
+  const ageCol = before.indexOf(LEAD_AGE_HEADER) + 1;   // 0 = غير موجود
+
+  if (ageCol === targetCol) {
+    Logger.log('migrateAddAgeColumn: العمود ' + colLetter(targetCol) + ' هو «' + LEAD_AGE_HEADER +
+      '» بالفعل — لا تغيير (already migrated).');
+    return;
+  }
+
+  if (ageCol > 0) {
+    /* الحالة 2: نقل العمود كاملًا إلى ما قبل العمود E.
+       moveColumns ينقل كل الصفوف، فقيم العمر الحالية تُحفظ. */
+    sheet.moveColumns(sheet.getRange(1, ageCol, 1, 1), targetCol);
+    Logger.log('migrateAddAgeColumn: نُقل العمود «' + LEAD_AGE_HEADER + '» من ' + colLetter(ageCol) +
+      ' إلى ' + colLetter(targetCol) + ' (قيم العمر محفوظة، وباقي الأعمدة بترتيبها).');
+  } else {
+    /* الحالة 1: إدراج عمود جديد قبل E، وكتابة الترويسة فقط.
+       خلايا العمر في الصفوف القائمة تبقى فارغة — لا يُكتب فوق أي خلية. */
+    sheet.insertColumnBefore(targetCol);
+    const fmtSource = targetCol - 1 >= 1 ? targetCol - 1 : targetCol + 1;   // من العمود المجاور
+    const headerCell = sheet.getRange(1, targetCol);
+    try {
+      /* نسخ تنسيق الترويسة من الجار حتى يطابق بقية صف العناوين */
+      sheet.getRange(1, fmtSource).copyTo(headerCell, CopyPasteType.PASTE_FORMAT, false);
+    } catch (fmtErr) {
+      Logger.log('migrateAddAgeColumn: تعذّر نسخ تنسيق الترويسة: ' + fmtErr.toString());
+    }
+    headerCell.setValue(LEAD_AGE_HEADER);
+    Logger.log('migrateAddAgeColumn: أُدرج عمود «' + LEAD_AGE_HEADER + '» قبل ' + colLetter(targetCol) +
+      ' (تنسيقه منسوخ من ' + colLetter(fmtSource) + '، قيم الصفوف القائمة فارغة).');
+  }
+
+  const after = readLeadHeaders(sheet);
+  Logger.log('migrateAddAgeColumn: بعد  -> ' + leadHeadersToLog(after));
+  const finalCol = after.indexOf(LEAD_AGE_HEADER) + 1;
+  Logger.log('migrateAddAgeColumn: موضع «' + LEAD_AGE_HEADER + '» = العمود ' +
+    (finalCol ? colLetter(finalCol) + ' (' + finalCol + ')' : 'مفقود!') +
+    ' | عدد الأعمدة: ' + after.length +
+    ' | عدد الصفوف (دون الترويسة): ' + Math.max(0, sheet.getLastRow() - 1));
+  if (finalCol !== targetCol) {
+    Logger.log('migrateAddAgeColumn: ⚠ لم يبلغ العمود ' + colLetter(targetCol) + ' — راجع يدويًا.');
+  } else {
+    Logger.log('migrateAddAgeColumn: ✓ تم. العمود ' + colLetter(targetCol) + ' = «' + LEAD_AGE_HEADER + '».');
+  }
 }
 
 /*
- * migrateSheet — يعيد بناء الورقة بالأعمدة الـ14 مع نقل البيانات بالاسم.
- * الأعمدة المحذوفة لا تُنقل. معرفات الجلسة القديمة تُنقل إلى Developer
- * Metadata حتى تبقى الجلسات الجزئية الجارية سليمة.
- * خذ نسخة احتياطية من الجدول قبل التشغيل، وشغّلها مرة واحدة فقط.
+ * migrateSheet — يعيد بناء الورقة بالأعمدة الـ16 مع نقل البيانات بالاسم
+ * (بما فيها «العمر» في E). الأعمدة المحذوفة لا تُنقل. معرفات الجلسة
+ * القديمة تُنقل إلى Developer Metadata حتى تبقى الجلسات الجزئية الجارية
+ * سليمة. ⚠ يحذف الورقة القديمة — خذ نسخة احتياطية. لا يلزم لهذا التغيير:
+ * استخدم migrateAddAgeColumn() بدلًا منه.
  */
 function migrateSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();

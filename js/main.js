@@ -2453,7 +2453,8 @@
   /* ============================================================
      QUALIFICATION FUNNEL — FULL-SCREEN OVERLAY
      ----------------------------------------------------------------
-     8 qualification questions + 1 transition screen.
+     8 qualification questions (step 1 = age) + transition screen
+     (9) + contact (10) + success (11).
      goToStep(stepNumber) handles all navigation generically.
      ============================================================ */
   var funnelEl       = document.getElementById('funnel');
@@ -2584,8 +2585,8 @@
 
   /* --- goToStep ------------------------------------------------
      Accepts a 1-based step number. Steps 1–8 are qualification
-     questions. Step 9 is the transition screen. Step 10 is the
-     contact step. Step 11 is the success step.
+     questions (step 1 = age). Step 9 is the transition screen.
+     Step 10 is the contact step. Step 11 is the success step.
      The transition screen's progress bar stays at 100%/08 since it
      is a non-qualification step. ------------------------------- */
   function goToStep(stepNumber) {
@@ -2679,7 +2680,7 @@
         queueProgressiveSave(buildLeadPayload());
       }
 
-      /* Step 10 contact preference — select but do not auto-advance */
+      /* Contact preference — select but do not auto-advance */
       if (stepNum === 10) {
         funnelState.contactPreference = value;
         updateContactSubmitBtn();
@@ -2734,7 +2735,7 @@
     });
   }
 
-  /* --- Contact button (transition screen → step 10) ----------- */
+  /* --- Contact button (transition screen → contact step) --------- */
   if (funnelBody) {
     funnelBody.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-funnel-action="contact"]');
@@ -2858,34 +2859,32 @@
      "أخرى" detection, multi-select trigger). --------------------------- */
   var ARABIC_LABELS = {
     step_1: {
-      'student-graduate': '🎓 طالب / خريج جامعي',
-      'employee': '💼 موظف',
-      'looking': '🔍 نبحث على خدمة',
-      'business-owner-freelancer': '🚀 صاحب مشروع / Freelancer'
+      'under-18': '🎒 أقل من 18 سنة',
+      '18-24': '🎓 18 – 24 سنة',
+      '25-34': '💼 25 – 34 سنة',
+      '35-plus': '🌟 35 سنة أو أكثر'
     },
     step_2: {
+      'student-graduate': '🎓 طالب / خريج جامعي',
+      'employee': '💼 موظف',
+      'business-owner-freelancer': '🚀 صاحب مشروع / Freelancer'
+    },
+    step_3: {
       'first-job': '💼 نلقى أول وظيفة',
       'career-switch': '🔄 نبدل المجال المهني',
       'improve-sales-closing-cs': '📈 نطور مستواي في Sales / Closing / Customer Service',
       'grow-business-freelance': '🚀 نطور الـBusiness تاعي / نبدأ نخدم Freelance'
     },
-    step_3: {
+    step_4: {
       'complete-beginner': '🌱 مبتدئ تمامًا',
       'basic-knowledge': '🟢 عندي معرفة بسيطة',
       'tried-before': '🟡 جربت نخدم في المجال من قبل',
       'experienced': '🟣 عندي خبرة جيدة ونحب نطور مستواي'
     },
-    step_4: {
+    step_5: {
       'sales': '💰 Sales',
       'closing': '🎯 Closing',
-      'customer-service': '📞 Customer Service',
-      'appointment-setting': '📅 Appointment Setting'
-    },
-    step_5: {
-      'lack-knowledge': '📚 ناقصني المعرفة والخبرة',
-      'need-opportunities': '💼 نحتاج نلقى فرص وخدمة',
-      'improve-communication': '🗣️ نحتاج نطور التواصل والإقناع',
-      'dont-know-how-to-start': '🎯 ما نعرفش كيفاش نبدأ ونطبق'
+      'customer-service': '📞 Customer Service'
     },
     step_6: {
       'under-2h': 'أقل من ساعتين',
@@ -2895,10 +2894,9 @@
       'flexible': 'حسب وقتي المتاح'
     },
     step_7: {
-      'ready-now': '🚀 نعم، مستعد نبدأ ونطبق من اليوم',
+      'ready-now': '🚀 نعم، مستعد نبدأ من اليوم',
       'ready-with-guidance': '💪 نعم، بصح نحتاج شوية توجيه في البداية',
-      'need-understanding': '🤔 مازال نحتاج نفهم أكثر قبل ما نقرر',
-      'later': '🕐 حاب نبدأ، بصح مازال ماشي الوقت المناسب'
+      'later': '⏳ لا، مازال نحتاج وقت باش نكون جاهز'
     },
     step_8: {
       'ready': '✅ نعم، مستعد نبدأ',
@@ -2935,11 +2933,11 @@
       email:               contactEmail ? contactEmail.value.trim() : '',
       contactPreference:   translateLabel(ARABIC_LABELS.contact, funnelState.contactPreference),
       notes:               contactNotes ? contactNotes.value.trim() : '',
-      currentStatus:       translateLabel(ARABIC_LABELS.step_1, amap['step_1']),
-      careerGoal:          translateLabel(ARABIC_LABELS.step_2, amap['step_2']),
-      experienceLevel:     translateLabel(ARABIC_LABELS.step_3, amap['step_3']),
-      skillInterest:       translateLabel(ARABIC_LABELS.step_4, amap['step_4']),
-      mainChallenge:       translateLabel(ARABIC_LABELS.step_5, amap['step_5']),
+      ageRange:            translateLabel(ARABIC_LABELS.step_1, amap['step_1']),
+      currentStatus:       translateLabel(ARABIC_LABELS.step_2, amap['step_2']),
+      careerGoal:          translateLabel(ARABIC_LABELS.step_3, amap['step_3']),
+      experienceLevel:     translateLabel(ARABIC_LABELS.step_4, amap['step_4']),
+      skillInterest:       translateLabel(ARABIC_LABELS.step_5, amap['step_5']),
       weeklyTime:          translateLabel(ARABIC_LABELS.step_6, amap['step_6']),
       readinessToStart:    translateLabel(ARABIC_LABELS.step_7, amap['step_7']),
       investmentReadiness: translateLabel(ARABIC_LABELS.step_8, amap['step_8']),
@@ -2949,6 +2947,7 @@
 
     /* DEBUG: full trace before anything is sent to update-lead/confirm-booking */
     console.log('[buildLeadPayload] step_7 slug =', amap['step_7'], '| step_8 slug =', amap['step_8']);
+    console.log('[buildLeadPayload] ageRange =', JSON.stringify(payload.ageRange));
     console.log('[buildLeadPayload] readinessToStart =', JSON.stringify(payload.readinessToStart));
     console.log('[buildLeadPayload] investmentReadiness =', JSON.stringify(payload.investmentReadiness));
 

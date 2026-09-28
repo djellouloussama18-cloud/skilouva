@@ -133,24 +133,40 @@
         <div class="hero__grid">
           <!-- Text content (RTL: sits visually on the right) -->
           <div class="hero__content">
-            <!-- Eyebrow label -->
-            <p class="hero__eyebrow">SKILLOVA ACADEMY</p>
+            <!-- Eyebrow label: two stacked Latin lines (name + format).
+                 Kept as ONE <p> so it stays a single grid row. -->
+            <p class="hero__eyebrow">
+              <span class="hero__eyebrow-a" dir="ltr">SKILLOVA ACADEMY</span>
+              <span class="hero__eyebrow-b" dir="ltr">BOOTCAMP CLOSER</span>
+            </p>
 
-            <!-- Headline with brand-colored emphasis -->
+            <!-- Headline: two lines with a deliberate size gap.
+                 Line 1 = the promise (brand-blue tail, heaviest),
+                 line 2 = the path (about half the size).
+                 Still ONE <h1> — the two display:block spans are the
+                 only children, so the accessible name stays intact. -->
             <h1 class="hero__title" id="hero-heading">
-              ما تتعلمش <span class="hero__accent">Skill</span> باش تزيد شهادة…
-              تعلّم <span class="hero__accent">Skill</span> تقدر تخدم بيها.
+              <span class="hero__title-lead">من 0 إلى <span class="hero__title-accent">أكثر من 12 مليون</span></span>
+              <span class="hero__title-sub">طريقك نحو أول دخل من مهارة <span class="hero__phrase">الـ<span class="hero__lat hero__accent" dir="ltr">Closing</span></span> خلال 28 يوم</span>
             </h1>
 
-            <!-- Description -->
-            <p class="hero__desc">
-              مع Skillova، تتعلم <span class="hero__accent">Sales</span>
-              و<span class="hero__accent">Closing</span> و
-              <span class="hero__accent">Customer Service</span> بطريقة
-              عملية، تطبق اللي تعلمته، وتطور مستواك مع
-              <span class="hero__accent">Coaching</span> ومتابعة. وإذا
-              أثبتّ جاهزيتك ومستواك، يمكن أن تتاح لك فرصة الانضمام إلى
-              فريق Skillova والعمل معنا.
+            <!-- Primary description: first (darker, semibold) reading
+                 level, right under the H1 -->
+            <p class="hero__desc hero__desc--lead">
+              تعلّم واحدة من المهارات المطلوبة في الشركات اليوم:
+              <span class="hero__phrase">الـ<span class="hero__lat hero__accent" dir="ltr">Closing</span></span>،
+              وابدأ طريقك نحو أول صفقة وأول دخل.
+            </p>
+
+            <!-- Secondary description: smaller, muted, loose leading —
+                 deliberately one level below the primary one -->
+            <p class="hero__desc hero__desc--sub">
+              تعلّم <span class="hero__phrase">الـ<span class="hero__lat hero__accent" dir="ltr">Closing</span></span>
+              بطريقة عملية، طبّق واش تتعلم، وطوّر مستواك مع
+              <span class="hero__lat hero__accent" dir="ltr">Live Sessions</span> و<span class="hero__lat hero__accent" dir="ltr">One-to-One Coaching</span>.
+              ومع تطور مستواك، تقدر تفتح لنفسك طريق نحو التطبيق العملي
+              والفرص المتاحة مع
+              <span class="hero__lat hero__accent" dir="ltr">Skillova</span>.
             </p>
 
             <!-- CTA button -->
@@ -2524,9 +2540,8 @@
          QUALIFICATION FUNNEL — FULL-SCREEN OVERLAY
          ------------------------------------------------------------
          Opens when any [data-open-funnel] CTA is clicked.
-         Contains 7 qualification questions; only Step 01 is built
-         in this iteration.  More steps will be added in subsequent
-         prompts.
+         Contains 7 qualification questions (steps 1–7), then the
+         transition screen, the contact step and the success step.
          ============================================================ -->
   <div class="funnel" id="funnel" aria-hidden="true" role="dialog" aria-label="استبيان التأهيل">
 
@@ -2537,7 +2552,7 @@
     </div>
 
     <!-- Progress bar -->
-    <div class="funnel__progress" role="progressbar" aria-valuenow="14" aria-valuemin="0" aria-valuemax="100">
+    <div class="funnel__progress" role="progressbar" aria-valuenow="12" aria-valuemin="0" aria-valuemax="100">
       <div class="funnel__progress-fill" id="funnel-progress-fill"></div>
     </div>
 
@@ -2547,8 +2562,43 @@
     <!-- Content area -->
     <div class="funnel__body">
 
-      <!-- ===== STEP 01 — الوضعية الحالية ===== -->
+      <!-- ===== STEP 01 — Age ===== -->
       <div class="funnel__step is-active" data-step="1">
+        <h2 class="funnel__heading">قدّاش عمرك؟</h2>
+
+        <div class="funnel__options">
+          <button type="button" class="funnel__option" data-value="under-18">
+            <span class="funnel__option-emoji">🎒</span>
+            <span class="funnel__option-label">أقل من <span class="funnel__lat">18</span> سنة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="18-24">
+            <span class="funnel__option-emoji">🎓</span>
+            <span class="funnel__option-label"><span class="funnel__lat">18 – 24</span> سنة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="25-34">
+            <span class="funnel__option-emoji">💼</span>
+            <span class="funnel__option-label"><span class="funnel__lat">25 – 34</span> سنة</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+
+          <button type="button" class="funnel__option" data-value="35-plus">
+            <span class="funnel__option-emoji">🌟</span>
+            <span class="funnel__option-label"><span class="funnel__lat">35</span> سنة أو أكثر</span>
+            <span class="funnel__option-check" aria-hidden="true"></span>
+          </button>
+        </div>
+
+        <!-- Back link (hidden on step 1, reusable on later steps) -->
+        <a href="#" class="funnel__back is-first-step" data-funnel-back>&larr; السابق</a>
+      </div>
+      <!-- / STEP 01 -->
+
+      <!-- ===== STEP 02 — الوضعية الحالية ===== -->
+      <div class="funnel__step" data-step="2">
         <h2 class="funnel__heading">وش هي وضعيتك الحالية؟</h2>
 
         <div class="funnel__options">
@@ -2564,12 +2614,6 @@
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="looking">
-            <span class="funnel__option-emoji">🔍</span>
-            <span class="funnel__option-label">نبحث على خدمة</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
           <button type="button" class="funnel__option" data-value="business-owner-freelancer">
             <span class="funnel__option-emoji">🚀</span>
             <span class="funnel__option-label">صاحب مشروع / Freelancer</span>
@@ -2577,13 +2621,12 @@
           </button>
         </div>
 
-        <!-- Back link (hidden on step 1, reusable on later steps) -->
-        <a href="#" class="funnel__back is-first-step" data-funnel-back>&larr; السابق</a>
+        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
       </div>
-      <!-- / STEP 01 -->
+      <!-- / STEP 02 -->
 
-      <!-- ===== STEP 02 — Career Goal ===== -->
-      <div class="funnel__step" data-step="2">
+      <!-- ===== STEP 03 — Career Goal ===== -->
+      <div class="funnel__step" data-step="3">
         <h2 class="funnel__heading">وش هو الهدف الرئيسي اللي حاب تحققو؟</h2>
 
         <div class="funnel__options">
@@ -2614,10 +2657,10 @@
 
         <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
       </div>
-      <!-- / STEP 02 -->
+      <!-- / STEP 03 -->
 
-      <!-- ===== STEP 03 — Current Level ===== -->
-      <div class="funnel__step" data-step="3">
+      <!-- ===== STEP 04 — Current Level ===== -->
+      <div class="funnel__step" data-step="4">
         <h2 class="funnel__heading">كيفاش تقيّم مستواك الحالي في Sales وCustomer Service؟</h2>
 
         <div class="funnel__options">
@@ -2648,10 +2691,10 @@
 
         <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
       </div>
-      <!-- / STEP 03 -->
+      <!-- / STEP 04 -->
 
-      <!-- ===== STEP 04 — Skill Interest ===== -->
-      <div class="funnel__step" data-step="4">
+      <!-- ===== STEP 05 — Skill Interest ===== -->
+      <div class="funnel__step" data-step="5">
         <h2 class="funnel__heading">أي Skill حاب تطورها أكثر؟</h2>
 
         <div class="funnel__options">
@@ -2670,46 +2713,6 @@
           <button type="button" class="funnel__option" data-value="customer-service">
             <span class="funnel__option-emoji">📞</span>
             <span class="funnel__option-label">Customer Service</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="appointment-setting">
-            <span class="funnel__option-emoji">📅</span>
-            <span class="funnel__option-label">Appointment Setting</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-        </div>
-
-        <a href="#" class="funnel__back" data-funnel-back>&larr; السابق</a>
-      </div>
-      <!-- / STEP 04 -->
-
-      <!-- ===== STEP 05 — Main Challenge ===== -->
-      <div class="funnel__step" data-step="5">
-        <h2 class="funnel__heading">وش هو أكبر تحدي واقف قدامك اليوم باش توصل لهدفك؟</h2>
-
-        <div class="funnel__options">
-          <button type="button" class="funnel__option" data-value="lack-knowledge">
-            <span class="funnel__option-emoji">📚</span>
-            <span class="funnel__option-label">ناقصني المعرفة والخبرة</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="need-opportunities">
-            <span class="funnel__option-emoji">💼</span>
-            <span class="funnel__option-label">نحتاج نلقى فرص وخدمة</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="improve-communication">
-            <span class="funnel__option-emoji">🗣️</span>
-            <span class="funnel__option-label">نحتاج نطور التواصل والإقناع</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
-          <button type="button" class="funnel__option" data-value="dont-know-how-to-start">
-            <span class="funnel__option-emoji">🎯</span>
-            <span class="funnel__option-label">ما نعرفش كيفاش نبدأ ونطبق</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2760,7 +2763,7 @@
         <div class="funnel__options">
           <button type="button" class="funnel__option" data-value="ready-now">
             <span class="funnel__option-emoji">🚀</span>
-            <span class="funnel__option-label">نعم، مستعد نبدأ ونطبق من اليوم</span>
+            <span class="funnel__option-label">نعم، مستعد نبدأ من اليوم</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
@@ -2770,15 +2773,9 @@
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
 
-          <button type="button" class="funnel__option" data-value="need-understanding">
-            <span class="funnel__option-emoji">🤔</span>
-            <span class="funnel__option-label">مازال نحتاج نفهم أكثر قبل ما نقرر</span>
-            <span class="funnel__option-check" aria-hidden="true"></span>
-          </button>
-
           <button type="button" class="funnel__option" data-value="later">
-            <span class="funnel__option-emoji">🕐</span>
-            <span class="funnel__option-label">حاب نبدأ، بصح مازال ماشي الوقت المناسب</span>
+            <span class="funnel__option-emoji">⏳</span>
+            <span class="funnel__option-label">لا، مازال نحتاج وقت باش نكون جاهز</span>
             <span class="funnel__option-check" aria-hidden="true"></span>
           </button>
         </div>
@@ -2789,7 +2786,7 @@
 
       <!-- ===== STEP 08 — Investment Readiness ===== -->
       <div class="funnel__step" data-step="8">
-        <h2 class="funnel__heading">إذا شفت بلي Skillova مناسبة لهدفك، هل أنت مستعد تستثمر في تكوينك وتطوير مهاراتك؟
+        <h2 class="funnel__heading">إذا شفت بلي <span class="funnel__lat">Skillova</span> مناسبة لهدفك، هل أنت مستعد تستثمر <span class="funnel__lat">14,900</span>&nbsp;دج في تكوينك وتطوير مهاراتك؟
         </h2>
 
         <div class="funnel__options">

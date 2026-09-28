@@ -1,7 +1,20 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const url = require('url');
+
+// Keep event loop alive and capture exit reasons
+process.stdin.resume();
+setInterval(() => {}, 60000);
+
+process.on('exit', (code) => {
+  console.log(`[Process Exit]: Exiting with code ${code}`);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[Uncaught Exception]:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Unhandled Rejection]:', reason);
+});
 
 // 1. Load .env file manually into process.env
 const envPath = path.join(__dirname, '.env');
@@ -42,70 +55,80 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer(async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname;
+  try {
+    const host = req.headers.host || `localhost:${PORT}`;
+    const parsedUrl = new URL(req.url, `http://${host}`);
+    const pathname = decodeURIComponent(parsedUrl.pathname);
 
-  // Handle Netlify Functions proxy
-  if (pathname.startsWith('/.netlify/functions/')) {
-    const funcName = pathname.replace('/.netlify/functions/', '').split('/')[0];
-    const funcPath = path.join(__dirname, 'netlify', 'functions', `${funcName}.js`);
+    // Handle Netlify Functions proxy
+    if (pathname.startsWith('/.netlify/functions/')) {
+      const funcName = pathname.replace('/.netlify/functions/', '').split('/')[0];
+      const funcPath = path.join(__dirname, 'netlify', 'functions', `${funcName}.js`);
 
-    if (!fs.existsSync(funcPath)) {
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ error: `Function ${funcName} not found` }));
-    }
-
-    let body = '';
-    req.on('data', chunk => { body += chunk.toString(); });
-    req.on('end', async () => {
-      try {
-        // Clear require cache for live reloading of function code
-        delete require.cache[require.resolve(funcPath)];
-        const func = require(funcPath);
-
-        const event = {
-          httpMethod: req.method,
-          headers: req.headers,
-          queryStringParameters: parsedUrl.query || {},
-          body: body
-        };
-
-        const result = await func.handler(event);
-        const headers = result.headers || {};
-        if (!headers['Content-Type']) headers['Content-Type'] = 'application/json';
-
-        res.writeHead(result.statusCode || 200, headers);
-        res.end(result.body || '');
-      } catch (err) {
-        console.error(`[Error executing function ${funcName}]:`, err);
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message }));
+      if (!fs.existsSync(funcPath)) {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: `Function ${funcName} not found` }));
       }
-    });
-    return;
-  }
 
-  // Handle Static File Serving
-  let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
-  
-  // Security check: prevent directory traversal
-  if (!filePath.startsWith(__dirname)) {
-    res.writeHead(403);
-    return res.end('Forbidden');
-  }
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', async () => {
+        try {
+          delete require.cache[require.resolve(funcPath)];
+          const func = require(funcPath);
 
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      return res.end('404 Not Found');
+          const queryParams = {};
+          parsedUrl.searchParams.forEach((val, key) => { queryParams[key] = val; });
+
+          const event = {
+            httpMethod: req.method,
+            headers: req.headers,
+            queryStringParameters: queryParams,
+            body: body
+          };
+
+          const result = await func.handler(event);
+          const headers = result.headers || {};
+          if (!headers['Content-Type']) headers['Content-Type'] = 'application/json';
+
+          res.writeHead(result.statusCode || 200, headers);
+          res.end(result.body || '');
+        } catch (err) {
+          console.error(`[Error executing function ${funcName}]:`, err);
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: err.message }));
+        }
+      });
+      return;
     }
 
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    // Handle Static File Serving
+    let relativePath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+    let filePath = path.join(__dirname, relativePath);
 
-    res.writeHead(200, { 'Content-Type': contentType });
-    fs.createReadStream(filePath).pipe(res);
-  });
+    // Security check: prevent directory traversal
+    if (!filePath.startsWith(__dirname)) {
+      res.writeHead(403);
+      return res.end('Forbidden');
+    }
+
+    fs.stat(filePath, (err, stats) => {
+      if (err || !stats.isFile()) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        return res.end('404 Not Found');
+      }
+
+      const ext = path.extname(filePath).toLowerCase();
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+      res.writeHead(200, { 'Content-Type': contentType });
+      fs.createReadStream(filePath).pipe(res);
+    });
+  } catch (err) {
+    console.error('[Request Error]:', err);
+    res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('Internal Server Error');
+  }
 });
 
 function startServer(portToTry) {
@@ -129,3 +152,4 @@ function startServer(portToTry) {
 }
 
 startServer(PORT);
+

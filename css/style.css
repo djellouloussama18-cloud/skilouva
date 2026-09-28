@@ -776,7 +776,7 @@ input, select, textarea {
   /* The navbar is sticky and already occupies its own space in normal
      flow above the hero, so no navbar-height compensation is needed
      here — only the intended editorial breathing room. */
-  padding-top: var(--space-10);
+  padding-top: var(--space-9);
   padding-bottom: var(--space-9);
   background-color: var(--clr-bg);
   /* generous horizontal breathing room for the editorial layout */
@@ -795,9 +795,13 @@ input, select, textarea {
   max-width: 40rem;
 }
 
-/* Eyebrow label */
+/* Eyebrow label — two stacked Latin lines (academy name + format).
+   The block itself only owns the tracking/tone and the gap to the H1;
+   each line sizes itself. */
 .hero__eyebrow {
-  font-size: var(--fs-sm);
+  /* Fluid and ~1.6x the previous 0.875rem: a real kicker that still
+     shrinks sensibly on phones. */
+  font-size: clamp(1.125rem, 0.85rem + 1.1vw, 1.375rem);
   font-weight: var(--fw-medium);
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -805,13 +809,74 @@ input, select, textarea {
   margin-bottom: var(--space-5);
 }
 
-/* Headline */
+/* Line A — the academy name (same tracking/tone as before, bigger) */
+.hero__eyebrow-a {
+  display: block;
+  unicode-bidi: isolate;
+}
+
+/* Line B — the format, tucked right under line A: small, very widely
+   tracked, lighter and in the muted text tone, so the pair reads as a
+   single eyebrow group rather than two competing labels. */
+.hero__eyebrow-b {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-regular);
+  letter-spacing: 0.34em;
+  color: var(--clr-text);
+  unicode-bidi: isolate;
+}
+
+/* Headline — the type sizes live on the two child lines (each clamps
+   independently), so this rule only owns the shared color/weight and
+   the gap down to the descriptions. The weight is the headline's
+   baseline: line 1's brand-colored tail steps up to extrabold on top. */
 .hero__title {
-  font-size: var(--fs-4xl);
-  font-weight: var(--fw-extrabold);
+  font-weight: var(--fw-bold);
   color: var(--clr-heading);
   line-height: var(--leading-tight);
   margin-bottom: var(--space-5);
+}
+
+/* Line 1 — the promise; the largest text in the hero. */
+.hero__title-lead {
+  display: block;
+  font-size: clamp(1.5rem, 0.9rem + 3.8vw, 3.5rem);
+  /* Slightly looser than --leading-tight: Arabic ascenders/descenders
+     need the room when this line breaks to two rows on phones. */
+  line-height: 1.3;
+}
+
+/* The brand-colored tail of line 1: heaviest weight, and kept as an
+   inline-block so "أكثر من 12 مليون" can never split mid-phrase when
+   the line wraps. */
+.hero__title-accent {
+  display: inline-block;
+  color: var(--clr-brand);
+  font-weight: var(--fw-extrabold);
+}
+
+/* Line 2 — the path; ~50% of line 1, so the H1 reads as two levels. */
+.hero__title-sub {
+  display: block;
+  margin-top: var(--space-3);
+  font-size: clamp(1rem, 0.55rem + 2vw, 1.75rem);
+  font-weight: var(--fw-bold);
+  color: var(--clr-heading);
+  line-height: var(--leading-snug);
+}
+
+/* Arabic article glued to its Latin term ("الـClosing") — kept on one
+   line so the join never breaks across two rows. */
+.hero__phrase {
+  white-space: nowrap;
+}
+
+/* Inline Latin terms inside RTL sentences (cf. .method__lat / .why__lat) */
+.hero__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* Brand-colored emphasis within text (Sales/Closing/etc.) */
@@ -820,12 +885,35 @@ input, select, textarea {
   font-weight: inherit;
 }
 
-/* Description paragraph */
+/* Description paragraph (base = the lighter, secondary level) */
 .hero__desc {
   font-size: var(--fs-md);
   color: var(--clr-text);
   line-height: var(--leading-loose);
   margin-bottom: var(--space-6);
+}
+
+/* Primary description — first reading level, right under the H1:
+   medium type, semibold, in the dark heading tone. */
+.hero__desc--lead {
+  max-width: 42rem;
+  margin-inline: auto;
+  font-size: clamp(var(--fs-md), 0.9rem + 0.9vw, var(--fs-xl));
+  font-weight: var(--fw-semibold);
+  color: var(--clr-heading);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-3);
+}
+
+/* Secondary description — one clear step down: smaller, regular weight,
+   muted tone, comfortable (loose) leading. */
+.hero__desc--sub {
+  max-width: 42rem;
+  margin-inline: auto;
+  font-size: clamp(var(--fs-base), 0.9rem + 0.35vw, var(--fs-md));
+  font-weight: var(--fw-regular);
+  color: var(--clr-text);
+  line-height: var(--leading-loose);
 }
 
 /* CTA */
@@ -6014,21 +6102,25 @@ input, select, textarea {
 /* ============================================================
    HERO — RESPONSIVE
    ============================================================ */
-/* Tablet: tighten gap & shrink headline */
+/* Tablet: tighten gap & step the fluid headline ceilings down */
 @media (max-width: 62rem) { /* 992px */
   .hero__grid {
     gap: var(--space-6);
   }
 
-  .hero__title {
-    font-size: var(--fs-3xl);
+  .hero__title-lead {
+    font-size: clamp(1.5rem, 0.9rem + 3.8vw, 3.25rem);
+  }
+
+  .hero__title-sub {
+    font-size: clamp(1rem, 0.55rem + 2vw, 1.75rem);
   }
 }
 
 /* Tablet/mobile: stack vertically, text first then visual */
 @media (max-width: 56.25rem) { /* 900px */
   .hero {
-    padding-top: var(--space-8);
+    padding-top: var(--space-7);
     padding-bottom: var(--space-8);
   }
 
@@ -6063,18 +6155,22 @@ input, select, textarea {
     animation-delay: calc(var(--nav-entrance-delay) + 5 * 110ms + 120ms);
   }
 
-  /* Mobile reading order: heading -> desc -> video visual -> CTA -> tags */
+  /* Mobile reading order: heading -> desc -> video visual -> CTA -> tags
+     (the two description levels are consecutive rows, so the visual
+     still sits between the copy and the CTA) */
   .hero__eyebrow { order: 1; }
   .hero__title   { order: 2; }
-  .hero__desc    { order: 3; }
-  .hero__visual  { order: 4; }
-  .hero__actions { order: 5; }
-  .hero__tagline { order: 6; }
+  .hero__desc--lead { order: 3; }
+  .hero__desc--sub  { order: 4; }
+  .hero__visual  { order: 5; }
+  .hero__actions { order: 6; }
+  .hero__tagline { order: 7; }
 
   /* Rhythm between the reordered rows (grid-item margins never
-     collapse, so they define the spacing explicitly): tight around
-     the heading block, extra air around the video. */
-  .hero__desc   { margin-bottom: var(--space-7); }
+     collapse, so they define the spacing explicitly): tight between
+     the two description levels, extra air around the video. */
+  .hero__desc--lead { margin-bottom: var(--space-3); }
+  .hero__desc--sub  { margin-bottom: var(--space-7); }
   .hero__visual { margin-bottom: var(--space-7); }
 
   /* Re-center visual */
@@ -6112,10 +6208,11 @@ input, select, textarea {
   /* Reading order: eyebrow+headline+desc -> video -> CTA -> tagline */
   .hero__eyebrow { order: 1; }
   .hero__title   { order: 2; }
-  .hero__desc    { order: 3; }
-  .hero__visual  { order: 4; }
-  .hero__actions { order: 5; }
-  .hero__tagline { order: 6; }
+  .hero__desc--lead { order: 3; }
+  .hero__desc--sub  { order: 4; }
+  .hero__visual  { order: 5; }
+  .hero__actions { order: 6; }
+  .hero__tagline { order: 7; }
 
   /* Preserve the "text fades up as a unit" entrance on the now-separate
      rows (identical to the mobile approach). */
@@ -6138,6 +6235,13 @@ input, select, textarea {
     margin-inline: auto;
   }
 
+  /* The two description levels form one narrow reading column
+     (narrower than the 48rem headline measure). */
+  .hero__desc--lead,
+  .hero__desc--sub {
+    max-width: 42rem;
+  }
+
   /* Tighten the headline->description and description->video vertical
      spacing (~45% closer) so the text and video feel visually connected.
      The uniform grid gap is compensated with negative bottom margins
@@ -6146,7 +6250,11 @@ input, select, textarea {
     margin-bottom: calc(var(--space-2) * -1); /* gap to desc = 40px */
   }
 
-  .hero__desc {
+  .hero__desc--lead {
+    margin-bottom: calc(var(--space-3) - var(--space-8)); /* desc1->desc2 = 12px */
+  }
+
+  .hero__desc--sub {
     margin-bottom: calc(var(--space-1) * -1); /* gap to video = 44px */
   }
 
@@ -6186,15 +6294,30 @@ input, select, textarea {
 /* Small phones: extra-tight type */
 @media (max-width: 30rem) { /* 480px */
   .hero {
-    padding-top: var(--space-6);
+    padding-top: var(--space-5);
     padding-bottom: var(--space-6);
   }
 
-  .hero__title {
-    font-size: var(--fs-2xl);
+  /* Headline steps down one more notch; both lines are allowed to wrap
+     and are kept visually balanced when they do. */
+  .hero__title-lead {
+    font-size: clamp(1.5rem, 0.8rem + 3.1vw, 2.375rem);
   }
 
-  .hero__desc {
+  .hero__title-sub {
+    font-size: clamp(1rem, 0.6rem + 1.6vw, 1.5rem);
+  }
+
+  .hero__title-lead,
+  .hero__title-sub {
+    text-wrap: balance;
+  }
+
+  .hero__desc--lead {
+    font-size: var(--fs-md);
+  }
+
+  .hero__desc--sub {
     font-size: var(--fs-base);
   }
 
@@ -8363,6 +8486,13 @@ input, select, textarea {
   line-height: var(--leading-tight);
   text-align: center;
   margin-bottom: var(--space-7);
+}
+
+/* Inline Latin terms / Western digits inside RTL funnel sentences
+   (cf. .method__lat / .why__lat / .hero__lat) */
+.funnel__lat {
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* ---------- Options list --------------------------------------- */
