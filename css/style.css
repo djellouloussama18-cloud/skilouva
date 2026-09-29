@@ -795,13 +795,17 @@ input, select, textarea {
   max-width: 40rem;
 }
 
-/* Eyebrow label — two stacked Latin lines (academy name + format).
-   The block itself only owns the tracking/tone and the gap to the H1;
-   each line sizes itself. */
+/* Eyebrow label — two stacked Latin lines (academy name + program).
+   Both lines resolve their size from ONE shared custom property, so
+   the pair can never drift apart: line A is the airy, wide-tracked
+   brand name and line B is the same size but tighter, bolder and
+   two-tone. The block itself only owns the shared tracking/tone and
+   the gap to the H1. */
 .hero__eyebrow {
   /* Fluid and ~1.6x the previous 0.875rem: a real kicker that still
      shrinks sensibly on phones. */
-  font-size: clamp(1.125rem, 0.85rem + 1.1vw, 1.375rem);
+  --hero-eyebrow-size: clamp(1.125rem, 0.85rem + 1.1vw, 1.375rem);
+  font-size: var(--hero-eyebrow-size);
   font-weight: var(--fw-medium);
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -809,23 +813,37 @@ input, select, textarea {
   margin-bottom: var(--space-5);
 }
 
-/* Line A — the academy name (same tracking/tone as before, bigger) */
+/* Line A — the academy name: the airy half of the pair, wide-tracked
+   and medium weight, so it reads as the brand's signature. */
 .hero__eyebrow-a {
   display: block;
+  font-size: var(--hero-eyebrow-size);
   unicode-bidi: isolate;
 }
 
-/* Line B — the format, tucked right under line A: small, very widely
-   tracked, lighter and in the muted text tone, so the pair reads as a
-   single eyebrow group rather than two competing labels. */
+/* Line B — the program: same size as line A, but semibold and tracked
+   tighter so the two lines carry the same visual weight without
+   competing. */
 .hero__eyebrow-b {
   display: block;
   margin-top: var(--space-2);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-regular);
-  letter-spacing: 0.34em;
-  color: var(--clr-text);
+  font-size: var(--hero-eyebrow-size);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.12em;
+  color: var(--clr-brand);
   unicode-bidi: isolate;
+}
+
+/* Line B is two-tone: the qualifier in the calm slate tone, the payoff
+   word in the brand tone. Both spans sit inside line B, which is
+   dir="ltr" + unicode-bidi: isolate, so the order stays
+   "BOOTCAMP CLOSER" inside the RTL page. */
+.hero__eyebrow-b-calm {
+  color: var(--clr-text);
+}
+
+.hero__eyebrow-b-accent {
+  color: var(--clr-brand);
 }
 
 /* Headline — the type sizes live on the two child lines (each clamps
@@ -6306,6 +6324,13 @@ input, select, textarea {
 
   .hero__title-sub {
     font-size: clamp(1rem, 0.6rem + 1.6vw, 1.5rem);
+  }
+
+  /* Narrow phones: line A is the wider of the two (more characters and
+     more tracking), so it absorbs the tracking cut that keeps both
+     eyebrow lines on a single row. Line B keeps its tighter 0.12em. */
+  .hero__eyebrow-a {
+    letter-spacing: 0.15em;
   }
 
   .hero__title-lead,
