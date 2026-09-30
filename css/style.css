@@ -4132,9 +4132,9 @@ input, select, textarea {
    the uniform grid of the Curriculum section. A 4-column CSS Grid
    where cells vary in width (grid-column span) to create visual
    hierarchy:
-     row 1 (prominent): 🎓 span 2 | 👨💼 span 1 | 💼 span 1
-     row 2 (denser):    🌍 span 1 | 📈 span 1 | 🤝 span 2
-     row 3 (denser):    🚀 span 1 | 💻 span 1 | 💰 span 2
+     row 1 (prominent): 🎓 span 2 | 👨💼 span 1 | 🌍 span 1
+     row 2 (denser):    📈 span 1 | 🤝 span 2 | 🚀 span 1
+     row 3 (closing):   💻 span 2 | 💰 span 2
    Flat, restrained cards (white / #F8FAFC tints, thin border, NO
    heavy shadows) with a subtle hover lift. The whole grid reveals
    as ONE cohesive group with a small stagger (js/main.js).
@@ -8671,8 +8671,7 @@ input, select, textarea {
    CONTACT STEP (Step 9) — first text inputs in the funnel
    ----------------------------------------------------------------
    Clean, minimal inputs: white background, --clr-border by
-   default, brand border on focus. Reuses funnel option rows for
-   the contact-preference selector.
+   default, brand border on focus.
    ============================================================ */
 .funnel__contact-form {
   display: flex;
@@ -8764,18 +8763,6 @@ input, select, textarea {
   display: none;
 }
 
-/* Preference selector — two option rows side by side */
-.funnel__options--inline {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
-.funnel__step--contact .funnel__options--inline .funnel__option {
-  flex: 1 1 10rem;
-  justify-content: flex-start;
-}
-
 /* Submit button */
 .funnel__submit-btn {
   width: 100%;
@@ -8849,29 +8836,6 @@ input, select, textarea {
   text-align: center;
 }
 
-.funnel__success-details {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  margin-bottom: var(--space-6);
-}
-
-.funnel__success-line {
-  font-family: var(--font-primary);
-  font-size: var(--fs-md);
-  line-height: var(--leading-normal);
-}
-
-.funnel__success-label {
-  color: var(--clr-text);
-  font-weight: var(--fw-medium);
-}
-
-.funnel__success-value {
-  color: var(--clr-heading);
-  font-weight: var(--fw-bold);
-}
-
 .funnel__success-text {
   font-family: var(--font-primary);
   font-size: var(--fs-md);
@@ -8913,13 +8877,5 @@ input, select, textarea {
 
   .funnel__contact-form {
     gap: var(--space-4);
-  }
-
-  .funnel__step--contact .funnel__options--inline .funnel__option {
-    flex: 1 1 100%;
-  }
-
-  .funnel__success-line {
-    font-size: var(--fs-sm);
   }
 }

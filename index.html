@@ -295,10 +295,11 @@
            WHO IS THIS FOR SECTION
            Audience segments presented as an ASYMMETRIC bento grid —
            deliberately NOT the uniform equal-size grid of the
-           Curriculum section. CSS Grid with per-cell column spans:
-             top row (prominent): 🎓 spans 2 cols, 👨‍💼 + 💼 span 1
-             lower rows (denser): 6 smaller cards, 3 per row, with a
-                                 couple spanning 2 cols for asymmetry
+           Curriculum section. CSS Grid with per-cell column spans
+           (8 cards, every row filled — no holes):
+             top row (prominent):  🎓 spans 2 cols, 👨‍💼 + 🌍 span 1
+             middle row (denser):  📈 span 1, 🤝 spans 2, 🚀 span 1
+             closing row:          💻 spans 2, 💰 spans 2
            White bg, light-tint + thin-border flat cards (no heavy
            shadows), subtle hover lift. Reveals as one cohesive group
            with a small stagger (js/main.js IntersectionObserver).
@@ -337,20 +338,6 @@
             </span>
             <h3 class="aud__title">المبتدئين</h3>
             <p class="aud__desc">إذا ما عندكش أي خبرة سابقة في Sales أو Closing، البرنامج يبدأ معاك من الأساسيات.</p>
-          </article>
-
-          <!-- Medium -->
-          <article class="aud__card aud-reveal">
-            <span class="aud__icon" aria-hidden="true">
-              <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2"></rect>
-                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"></path>
-                <path d="M2 13h20"></path>
-              </svg>
-            </span>
-            <h3 class="aud__title">الباحثين عن عمل</h3>
-            <p class="aud__desc">إذا تبحث على أول وظيفة أو حاب تبدل المجال المهني.</p>
           </article>
 
           <!-- Small -->
@@ -417,8 +404,8 @@
             <p class="aud__desc">إذا عندك Business وحاب تتعلم كيفاش تبيع وتتواصل مع العملاء بطريقة أفضل.</p>
           </article>
 
-          <!-- Small -->
-          <article class="aud__card aud-reveal">
+          <!-- Small (wider, for asymmetry) -->
+          <article class="aud__card aud__card--wide aud-reveal">
             <span class="aud__icon" aria-hidden="true">
               <svg class="aud__icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -2859,27 +2846,11 @@
           </div>
 
           <div class="funnel__field">
-            <label class="funnel__field-label">طريقة التواصل المفضلة</label>
-            <div class="funnel__options funnel__options--inline">
-              <button type="button" class="funnel__option" data-value="whatsapp" data-contact-pref>
-                <span class="funnel__option-emoji">💬</span>
-                <span class="funnel__option-label">WhatsApp</span>
-                <span class="funnel__option-check" aria-hidden="true"></span>
-              </button>
-              <button type="button" class="funnel__option" data-value="phone-call" data-contact-pref>
-                <span class="funnel__option-emoji">📞</span>
-                <span class="funnel__option-label">مكالمة هاتفية</span>
-                <span class="funnel__option-check" aria-hidden="true"></span>
-              </button>
-            </div>
-            <p class="funnel__field-error" id="funnel-contact-pref-error" hidden></p>
-          </div>
-
-          <div class="funnel__field">
-            <label class="funnel__field-label" for="funnel-contact-notes">
-              ملاحظة <span class="funnel__field-optional">(اختياري)</span>
-            </label>
-            <textarea class="funnel__textarea" id="funnel-contact-notes" name="notes" rows="3"></textarea>
+            <label class="funnel__field-label" for="funnel-contact-notes">ملاحظة</label>
+            <textarea class="funnel__textarea" id="funnel-contact-notes" name="notes" rows="3" required
+              placeholder="اكتب سؤالك أو ملاحظتك هنا… مثلاً: واش حاب تتعلم؟ وشنو هو الهدف تاعك من الـBootcamp؟"
+              aria-describedby="funnel-contact-notes-error"></textarea>
+            <p class="funnel__field-error" id="funnel-contact-notes-error" hidden></p>
           </div>
 
           <button type="submit" class="btn btn--primary funnel__submit-btn" id="funnel-contact-submit" disabled>تأكيد
@@ -2905,13 +2876,6 @@
       <!-- ===== STEP 11 — Success / Confirmation ===== -->
       <div class="funnel__step funnel__step--success" data-step="11">
         <h2 class="funnel__heading">تم تسجيل طلبك بنجاح 🎉</h2>
-
-        <div class="funnel__success-details">
-          <p class="funnel__success-line">
-            <span class="funnel__success-label">طريقة التواصل:</span>
-            <span class="funnel__success-value" id="funnel-success-pref"></span>
-          </p>
-        </div>
 
         <p class="funnel__success-text">فريق Skillova راح يتواصل معاك في الموعد المحدد.</p>
 

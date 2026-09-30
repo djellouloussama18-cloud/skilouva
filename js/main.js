@@ -2618,9 +2618,8 @@
       }
     }
 
-    /* Terminal success step: hide counter/progress, fill confirm data */
+    /* Terminal success step: hide counter/progress */
     if (funnelEl) funnelEl.classList.toggle('funnel--complete', stepNumber === 11);
-    if (stepNumber === 11) populateSuccess();
 
     /* Progress bar: 100% once past the qualification questions */
     var pct = (Math.min(stepNumber, 8) / 8) * 100;
@@ -2678,14 +2677,6 @@
       /* Progressive save after every single-select qualification answer */
       if (stepNum >= 1 && stepNum <= 8) {
         queueProgressiveSave(buildLeadPayload());
-      }
-
-      /* Contact preference — select but do not auto-advance */
-      if (stepNum === 10) {
-        funnelState.contactPreference = value;
-        updateContactSubmitBtn();
-        queueProgressiveSave(buildLeadPayload());
-        return;
       }
 
       /* Auto-advance after a short delay */
@@ -2783,6 +2774,14 @@
       error: document.getElementById('funnel-contact-email-error'),
       test: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); },
       msg: 'أدخل بريد إلكتروني صحيح'
+    },
+    notes: {
+      input: contactNotes,
+      error: document.getElementById('funnel-contact-notes-error'),
+      /* Required: at least 3 characters after trim, so an empty or
+         whitespace-only note blocks the submit button. */
+      test: function (v) { return v.trim().length >= 3; },
+      msg: 'المرجو كتابة ملاحظة'
     }
   };
 
@@ -2809,14 +2808,9 @@
     var nameOk  = validateContactField('name');
     var phoneOk = validateContactField('phone');
     var emailOk = validateContactField('email');
-    var prefOk  = !!funnelState.contactPreference;
+    var notesOk = validateContactField('notes');
 
-    var prefErr = document.getElementById('funnel-contact-pref-error');
-    if (prefErr) {
-      prefErr.textContent = 'اختار طريقة التواصل المفضلة';
-      prefErr.hidden = prefOk;
-    }
-    return nameOk && phoneOk && emailOk && prefOk;
+    return nameOk && phoneOk && emailOk && notesOk;
   }
 
   function updateContactSubmitBtn() {
@@ -2903,10 +2897,6 @@
       'if-suitable': '👍 نعم، إذا كان البرنامج مناسب لاحتياجاتي',
       'need-more-info': 'ℹ️ نحتاج نعرف تفاصيل أكثر قبل ما نقرر',
       'cant-invest': '❌ حاليًا ما نقدرش نستثمر'
-    },
-    contact: {
-      'whatsapp': 'WhatsApp',
-      'phone-call': 'مكالمة هاتفية'
     }
   };
 
@@ -2931,7 +2921,6 @@
       fullName:            contactName ? contactName.value.trim() : '',
       phone:               contactPhone ? contactPhone.value.trim() : '',
       email:               contactEmail ? contactEmail.value.trim() : '',
-      contactPreference:   translateLabel(ARABIC_LABELS.contact, funnelState.contactPreference),
       notes:               contactNotes ? contactNotes.value.trim() : '',
       ageRange:            translateLabel(ARABIC_LABELS.step_1, amap['step_1']),
       currentStatus:       translateLabel(ARABIC_LABELS.step_2, amap['step_2']),
@@ -2960,7 +2949,7 @@
   }, 600);
 
   /* Live validation + debounced progressive save on contact input */
-  ['name', 'phone', 'email'].forEach(function (key) {
+  ['name', 'phone', 'email', 'notes'].forEach(function (key) {
     var f = contactFields[key];
     if (!f || !f.input) return;
     f.input.addEventListener('input', function () {
@@ -2973,9 +2962,6 @@
   /* Editing the phone clears any duplicate-phone notice shown earlier */
   if (contactPhone) {
     contactPhone.addEventListener('input', hideContactDuplicate);
-  }
-  if (contactNotes) {
-    contactNotes.addEventListener('input', saveContactProgressively);
   }
 
   /* Submit flow — duplicate-phone guard → confirm-booking */
@@ -3094,14 +3080,6 @@
   /* ============================================================
      SUCCESS STEP (Step 11) — confirmation screen
      ============================================================ */
-  function populateSuccess() {
-    var prefEl = document.getElementById('funnel-success-pref');
-    if (prefEl) {
-      var pref = funnelState.contactPreference;
-      prefEl.textContent = pref === 'phone-call' ? 'مكالمة هاتفية' : (pref === 'whatsapp' ? 'WhatsApp' : (pref || ''));
-    }
-  }
-
   var successClose = document.getElementById('funnel-success-close');
   if (successClose) {
     successClose.addEventListener('click', closeFunnel);
@@ -3112,14 +3090,13 @@
     funnelState.current = 0;
     funnelState.answers = {};
     funnelState.sessionId = null;
-    funnelState.contactPreference = null;
     funnelState.submitted = false;
     /* New session: allow CompleteRegistration to fire again on the next round */
     funnelState.completeRegistrationFired = false;
     /* New session: allow Purchase to fire again for the next booking */
     funnelState.purchaseFired = false;
 
-    ['name', 'phone', 'email'].forEach(function (key) {
+    ['name', 'phone', 'email', 'notes'].forEach(function (key) {
       var f = contactFields[key];
       if (f && f.input) {
         f.input.value = '';
@@ -3127,7 +3104,6 @@
         if (f.error) f.error.hidden = true;
       }
     });
-    if (contactNotes) contactNotes.value = '';
     if (contactSubmit) {
       contactSubmit.classList.remove('is-loading');
       contactSubmit.textContent = 'تأكيد موعدي 🚀';
@@ -3135,13 +3111,6 @@
     }
     contactSubmitting = false;
     hideContactError();
-
-    if (funnelEl) {
-      var prefOptions = funnelEl.querySelectorAll('.funnel__step--contact .funnel__option[data-contact-pref]');
-      Array.prototype.forEach.call(prefOptions, function (o) {
-        o.classList.remove('is-selected');
-      });
-    }
 
     hideContactDuplicate();
 

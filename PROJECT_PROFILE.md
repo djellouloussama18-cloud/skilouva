@@ -155,11 +155,17 @@ C:\Users\pC\SKILLOVA\
 - **Marquee مستمر** (CSS): عناصر `Live Sessions / One-to-One Coaching / Practical Training / Career Preparation` مكررة مرتين لانزلاق سلس `translateX(0%→-50%)`، مع توقف عند hover/focus لسهولة الوصول، وتعطيل كامل عند reduced-motion.
 
 ### 5.4 لمن هذا القسم؟ Who Is This For (الأسطر 259–414)
-- شبكة **Bento غير متماثلة** من 9 بطاقات بدون تخطيط منتظم:
-  - خلية كبيرة مميزة: **الطلبة والخريجين** (تمتد عمودين).
-  - **المبتدئين**، **الباحثين عن عمل**.
-  - بطاقات صغيرة: **اللي حاب يخدم في الخارج**، **موظفي الـSales**، **موظفي Customer Service**، **Entrepreneurs**، **Freelancers**، + خلية واسعة **اللي حاب يحول Skill إلى مصدر دخل**.
-- أيقونات SVG داخلية، تدرّج بالألوان الخفيفة على بعض البطاقات، وreveal جماعي ضمني بمساعدة `IntersectionObserver`.
+- شبكة **Bento غير متماثلة** (CSS Grid بـ4 أعمدة، `grid-column: span`) من **8 بطاقات** — لا فجوة في الشبكة anymore:
+  1. **الطلبة والخريجين** — `aud__card--feature` (تمتد عمودين).
+  2. **المبتدئين** — `aud__card--tint`.
+  3. **اللي حاب يخدم في الخارج**.
+  4. **موظفي الـSales** — `aud__card--tint`.
+  5. **موظفي Customer Service** — `aud__card--wide` (عمودان).
+  6. **Entrepreneurs** — `aud__card--tint`.
+  7. **Freelancers** — `aud__card--wide` (عمودان).
+  8. **اللي حاب يحول Skill إلى مصدر دخل** — `aud__card--wide` (عمودان).
+- ⚠ **حُذفت بطاقة «الباحثين عن عمل»** (كانت بطاقة متوسطة بين الطلبة والمبتدئين): حذفها ترك فراغًا في الشبكة، فصُحّح التوزيع بجعل آخر ثلاث بطاقات عريضة (`aud__card--wide`) حتى تبقى كل صفوف الشبكة ممتلئة.
+- أيقونات SVG داخلية، تدرّج بالألوان الخفيفة على بعض البطاقات (`--tint`)، وreveal جماعي ضمني بمساعدة `IntersectionObserver`.
 
 ### 5.5 قسم المشكلة Problem (الأسطر 416–477)
 - تركيبة تحريرية تيبوغرافية (بدون كروت): عنوان كبير «عندك الرغبة، بصح مازال ما عندكش Skill واضحة تقدر تعتمد عليها؟»
@@ -311,7 +317,8 @@ C:\Users\pC\SKILLOVA\
 > **خطوة العمر**: «قدّاش عمرك؟» بأربعة خيارات — `under-18` (🎒) / `18-24` (🎓) / `25-34` (💼) / `35-plus` (🌟). **لا يوجد أي تفرّع أو منع بحسب العمر**: «أقل من 18 سنة» يتقدّم كأي خيار آخر إلى الخطوة التالية. القيمة تُخزَّن في `answers['step_1']` وتُرسَل كـ`ageRange`.
 
 > **خطوتان أُزيلتا سابقًا**: «أكبر تحدي» (كانت `data-step="5"` / `goToStep(5)` — ومعها حقل payload `mainChallenge`)، و**خطوة التقويم بالكامل** (القسم 7). لا خطوة تقويم في الخريطة أعلاه.
-> «أكبر تحدي» لا لم تعد في الواجهة فقط، بل **حُذف عمودها من Google Sheet أيضًا**: خرجت من `LEADS_HEADERS` و`FIELD_MAP` (15 عمودًا الآن، A→O)، ولا شيء يكتب `mainChallenge` ولا يقرؤه. لإزالته من ورقة العملاء المحتملين القائمة شغّل `migrateRemoveChallengeColumn()` (القسم 8.2) — وهي تنسخ قيم العمود أولًا إلى ورقة احتياطية قبل الحذف.
+> «أكبر تحدي» لا لم تعد في الواجهة فقط، بل **حُذف عمودها من Google Sheet أيضًا**: خرجت من `LEADS_HEADERS` و`FIELD_MAP` و`LEGACY_AR`، فلم يعد هناك أي مسار كتابة أو قراءة له. لإزالته من ورقة العملاء المحتملين القائمة شغّل `migrateRemoveChallengeColumn()` (القسم 8.2) — وهي تنسخ قيم العمود أولًا إلى ورقة احتياطية قبل الحذف.
+> **سؤال «طريقة التواصل المفضلة» حُذف من خطوة الاتصال** (الخطوة 10): لم يعد هناك اختيار WhatsApp/مكالمة، ولا حقل payload `contactPreference`، ولا سطر «طريقة التواصل» في شاشة النجاح (`populateSuccess()` حُذفت). ⚠ **تعويضًا عنه أصبح حقل «ملاحظة» إجباريًا** (كان اختياريًا): `required` + تحقق `notes.trim().length >= 3` + placeholder + رسالة خطأ `funnel-contact-notes-error`، ويشمل التحقق الحيّ وزر الإرسال و`resetFunnelForNewRound()` (لم يعد يُمسح حقلاً منفصلاً للملاحظة). العمود في Google Sheet لم يتغيّر (`notes` → «Remarque» كما هو).
 > **خطوة العمر أُضيفت أولًا**، فأزاحت كل رقم 뒤ها بمقدار 1: من 7 أسئلة إلى **8**، وشاشة الانتقال `9` والاتصال `10` والنجاح `11`. حقل payload الجديد: `ageRange` (القسم 8.2).
 
 ### 6.2 محرك `goToStep(stepNumber)` (js/main.js:2592)
@@ -320,7 +327,7 @@ C:\Users\pC\SKILLOVA\
 - شريط التقدم: `pct = (min(stepNumber,8)/8)*100` → **يثبت عند 100% ابتداءً من الشاشة الانتقالية (9)**.
 - العدّاد: `counter = min(stepNumber,8)` → **يثبت عند «08 / 08»** (لا يُعرض سوى أرقام أسئلة التأهيل الثماني).
 - روابط «السابق» `[data-funnel-back]`: تُخفى على الخطوة 1 (العمر) وتظهر في غيرها، وتدعم هدفًا صريحًا عبر `data-back-step`.
-- عند خطوة النجاح (11): يُضاف `funnel--complete` وتُملأ شاشة النجاح عبر `populateSuccess()`.
+- عند خطوة النجاح (11): يُضاف `funnel--complete` فقط (لا حاجة لملء الشاشة — حُذفت `populateSuccess()` مع سؤال تفضيل الاتصال).
 
 ### 6.3 جلسة واحدة — `session_id`
 - عند فتح القمع يُولَّد `sessionId` (عبر `generateSessionId()`) ويُحفظ في `funnelState.sessionId` (أسطر 2397–2410).
@@ -331,7 +338,7 @@ C:\Users\pC\SKILLOVA\
 - يخزن القيمة في `funnelState.answers['step_' + stepNum]` مع console.log.
 - **حفظ تدريجي (Progressive save)**: بعد كل إجابة تأهيل (1–8) يُستدعى `queueProgressiveSave(buildLeadPayload())` → `POST /.netlify/functions/update-lead`.
 - **خطوات 1 و4 و5** (العمر، المستوى، المهارة): سؤال اختيار واحد عادي مع حفظ تدريجي وقفز تلقائي. **لا توجد أي خطوة اختيار متعدد ولا زر «متابعة»** — كل الخطوات الثماني اختيار واحد.
-- **فرع خطوة الاتصال (`data-step="10"`)**: اختيار «طريقة التواصل المفضلة» يحدّث الحالة ولا يقفز تلقائيًا.
+- **خطوة الاتصال (`data-step="10"`)**: حقول الاسم/الهاتف/البريد/**الملاحظة (إجباري)** — بلا أي اختيار «طريقة التواصل المفضلة» (حُذف)، وبلا «زر متابعة»: التقدّم يحدث بالإرسال.
 - بقية الخطوات: انقر فوق تلقائي إلى `stepNumber + 1` بعد **250ms**.
 
 ### 6.5 التنقل الرجعي (js/main.js:2700)
@@ -376,17 +383,18 @@ C:\Users\pC\SKILLOVA\
 ### 8.2 كود Google Apps Script — `google-apps-script/Code.gs`
 - الكود الكامل موجود في المستودع، **يُلصق يدويًا** في محرر Apps Script (لا يوجد إعداد clasp — التطبيق لا يمكنه النشر بنفسه).
 - **البنية**: نقطة دخول وحيدة `doPost(e)` تتحقق من `body.shared_secret` مقابل خاصية البرنامج `GAS_SHARED_SECRET` («Unauthorized» إن لم يطابق) ثم توجّه حسب `body.action`؛ `doGet` مجرد فحص صحة.
-- **الأوراق**: «العملاء المحتملون» فقط (**15 عمودًا**، A→O). **حُذفت**: صفحة «الأوقات المتاحة» (مع دوال `getAvailability` / `checkSlot` / `generateAvailability` / `setupDailyTrigger` / `cleanupPastDates` — حُذفت من `Code.gs` في commit `da85485`، ولا شيء في الكود الحالي يعود إليها)، وعمود `Plus grand défi` (الحقل `mainChallenge` — انظر أدناه)، وأعمدة `المصدر` و`تفاصيل UTM` و`حالة العميل` و`تاريخ الموعد` و`وقت الموعد` نهائيًا (المصدر/UTM يندمجان الآن في «الملاحظة»).
+- **الأوراق**: «العملاء المحتملون» فقط (**14 عمودًا**، A→N). **حُذفت**: صفحة «الأوقات المتاحة» (مع دوال `getAvailability` / `checkSlot` / `generateAvailability` / `setupDailyTrigger` / `cleanupPastDates` — حُذفت من `Code.gs` في commit `da85485`، ولا شيء في الكود الحالي يعود إليها)، وعمود `Plus grand défi` (الحقل `mainChallenge`)، وعمود `Moyen de contact préféré` (الحقل `contactPreference` — انظر أدناه)، وأعمدة `المصدر` و`تفاصيل UTM` و`حالة العميل` و`تاريخ الموعد` و`وقت الموعد` نهائيًا (المصدر/UTM يندمجان الآن في «الملاحظة»).
 - **الترتيب النهائي للأعمدة** (مطابق لترتيب `LEADS_HEADERS`):
 
-  | | | | | | | | | | | | | | | |
-  |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-  | A | B | C | D | **E** | F | G | H | I | J | K | L | M | N | O |
-  | Date | Nom complet | Téléphone | E-mail | **العمر** | Moyen de contact préféré | Situation actuelle | Objectif professionnel | Niveau d'expérience | Compétence souhaitée | Temps disponible par semaine | Prêt à investir | Remarque | Statut | Closer |
+  | | | | | | | | | | | | | | |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | A | B | C | D | **E** | F | G | H | I | J | K | L | **M** | **N** |
+  | Date | Nom complet | Téléphone | E-mail | **العمر** | Situation actuelle | Objectif professionnel | Niveau d'expérience | Compétence souhaitée | Temps disponible par semaine | Prêt à investir | Remarque | **Statut** | **Closer** |
 
-  - **عمود «العمر» هو E (الخامس)** — في منتصف أعمدة البيانات، وعمودا الحالة والتتبع (`Statut` و`Closer`) يبقيان في النهاية.
+  - **عمود «العمر» هو E (الخامس)** — في منتصف أعمدة البيانات، وعمودا الحالة والتتبع (`Statut` = M و`Closer` = N) يبقيان في النهاية.
   - `session_id` **ليس عمودًا**: يُخزَّن Developer Metadata على الصف (`SESSION_META_KEY`) فيتحرك معه. لذلك لا يوجد «عمود معرّف جلسة» ولا «عمود حالة تسجيل»؛ الاسم `حالة التسجيل` و`معرف الجلسة` موجودان في الكود فقط كاسمي قديمين للمقارنة (`STATUS_HEADERS` / داخل `migrateSheet` القديم).
-  - **`Plus grand défi` (كان K) حُذف**: خرج من `LEADS_HEADERS` و`FIELD_MAP` و`LEGACY_AR`، فلم يعد هناك أي مسار كتابة أو قراءة له. الأعمدة L→P انزلقت درجة واحدة إلى اليسار (K→`Temps disponible par semaine` … O→`Closer`)، وبقيت الأعمدة بعده بترتيبها نفسه. `Closer` (O) قائمة منسدلة يدوية — السكربت لا يكتب فيها.
+  - **`Plus grand défi` (كان K) حُذف**: خرج من `LEADS_HEADERS` و`FIELD_MAP` و`LEGACY_AR`، فلم يعد هناك أي مسار كتابة أو قراءة له. راج تاريخ الأعمدة في `PROJECT_PROFILE.md` أو الـLogs.
+  - **`Moyen de contact préféré` (كان F) حُذف** بالطريقة نفسها: خرج من `LEADS_HEADERS` و`FIELD_MAP` و`LEGACY_AR` **ومن `PROTECTED_HEADERS`** (لولا ذلك لما سمحت `migrateRemoveContactMethodColumn()` بحذفه)، وبقيت أسماؤه في `CONTACT_METHOD_HEADER_ALIASES` للترحيل فقط. كل الأعمدة بعد F انزلقت درجة واحدة إلى اليسار: `Remarque` = L، `Statut` = M، `Closer` = N. أي `payload` قديم فيه `contactPreference` **يُتجاهل بصمت** (الكود يمرّ على مفاتيح `FIELD_MAP` فقط) — تحقّق فعلي عبر harness بـSpreadsheetApp وهمي.
 - **كل الوصول للأعمدة بالاسم، لا برقم ثابت.** لا يوجد أي `getRange(row, <رقم>)` أو `row[N]` أو ثابت `*_COL` ثابت في الملف. تُشتقّ أرقام الأعمدة وقت التشغيل من صف العناوين عبر: `readLeadHeaders()` (يقرأ العناوين كما هي فعلًا) ثم `resolveColumnIndex(sheet, names)` / `resolvePayloadColumn(sheet, header)` (1-based جاهز لـ`getRange`)، و`columnIndexInRow(headers, names)` (0-based لملء مصفوفة صف). النتيجة: نقل عمود أو إضافة/حذف عمود لا يتطلّب أي تعديل كود، ولا يمكن أن يترك فهرسًا ثابتًا قديمًا. `LEADS_AGE_TARGET_COL = 5` هو الرقم الحر الوحيد، ويُستخدم حصرًا في `migrateAddAgeColumn()` و`runSheetDiagnostics()` — أي في الكود اليدوي بطبيعته.
 - **`FIELD_MAP`** (مرتَّب مطابقًا لترتيب الورقة، و`ageRange` رابع مدخلاته = العمود E): يربط أسماء خصائص `funnelState` (camelCase) بأسماء الأعمدة — والواجهة تمرّرها كما هي. **يحتوي على `ageRange` → `العمر`** (حقل **اختياري**: غيابه أو فراغه لا يُكتب ولا يُخطئ، ولا يوجد أي تحقّق مطلوب منه في `update_lead` ولا `confirm_booking`)، و`investmentReadiness` (جاهزية الاستثمار). ⚠ **ثغرة سابقة (غير مُصلَحة، خارج نطاق هذا الملف)**: `readinessToStart` (إجابة «الجاهزية للبدء»، الخطوة 7) **يرسلها `js/main.js` لكنها غير موجودة في `FIELD_MAP`** ولا في `LEGACY_AR` ولا كعمود — أي تُستقبل وتُسقط بصمت ولا تصل إلى Google Sheet. إصلاحها يحتاج عمودًا جديدًا + ترحيلًا يدويًا؛ لم يُنفَّذ هنا. **الربط يتم بالاسم** عبر `getPayloadKeyForHeader()` الذي يتعامل مع الأسماء القديمة (مثلاً `الجاهزية للاستثمار` و`ملاحظة`) — فلا تكسر الورقة القديمة بعد إعادة الهيكلة. `LEGACY_AR` يجب أن يحتوي مدخلًا لكل مفتاح في `FIELD_MAP` (وإلا سقط `getPayloadKeyForHeader`) — لذلك صار قراءةُه آمنة بـ`|| []`.
 - **الأكشنات**:

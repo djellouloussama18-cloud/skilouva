@@ -7,7 +7,7 @@
  *   check_duplicate_phone -> فحص تكرار الهاتف (مقابل الحالة «مؤكد»)
  *   confirm_booking       -> تأكيد التسجيل (حالة «مؤكد»)
  *
- * الجدول: 15 عمودًا (A → O). لا يوجد عمود لمعرف الجلسة؛
+ * الجدول: 14 عمودًا (A → N). لا يوجد عمود لمعرف الجلسة؛
  * يُخزَّن session_id كـ Developer Metadata على الصف نفسه (مخفي تمامًا
  * ويتحرك مع الصف عند الحذف/الترتيب اليدوي).
  * عمود «العمر» هو العمود E (الخامس). كل كود يتعامل مع ورقة العملاء
@@ -18,9 +18,18 @@
  * `migrateAddAgeColumn()` (تشغيل يدوي مرة واحدة).
  *
  * عمود «Plus grand défi» (الحقل `mainChallenge`) **حُذف** مع سؤاله من
- * القمع: لا يدخل في FIELD_MAP ولا في LEADS_HEADERS، فلا يُكتب ولا يُقرأ
+ * القمع: لا يدخل FIELD_MAP ولا في LEADS_HEADERS، فلا يُكتب ولا يُقرأ
  * ولا يُطلب بعد الآن. لإزالته من الورقة الحية شغّل
  * `migrateRemoveChallengeColumn()` مرة واحدة (تنسخه لورقة احتياطية أولًا).
+ *
+ * عمود «Moyen de contact préféré» (الحقل `contactPreference` — طريقة
+ * التواصل المفضلة: WhatsApp / مكالمة) **حُذف** هو الآخر: حُذف من
+ * الواجهة ومن الـpayload، ولا يدخل FIELD_MAP ولا في LEADS_HEADERS ولا
+ * في PROTECTED_HEADERS، فلا يُكتب ولا يُقرأ ولا يُطلب بعد الآن. أي
+ * payload قديم يرسل المفتاح (تبويب مخبأ قديم) يُتجاهل بصمت.
+ * لإزالته من الورقة الحية شغّل `migrateRemoveContactMethodColumn()` مرة
+ * واحدة (تنسخه لورقة احتياطية أولًا). الترتيب النهائي بعدها:
+ * Statut في M و Closer في N.
  *
  * النشر: الصق الملف كاملًا مكان الكود القديم، اضبط Script Property
  * GAS_SHARED_SECRET، ثم أعد نشر Web App بنفس الرابط.
@@ -42,10 +51,20 @@ const REMOVED_CHALLENGE_FIELD = 'mainChallenge';
 const CHALLENGE_HEADER_ALIASES = ['Plus grand défi', 'Plus grand defi', 'أكبر تحدي'];
 const CHALLENGE_BACKUP_PREFIX = '_backup_plus_grand_defi';
 
+/* عمود «طريقة التواصل المفضلة» المحذوف: نفس المعالجة بالضبط —
+   كل الأسماء التي قد تظهر في صف العناوين (الاسم الحالي بالفرنسية بنبرات
+   وبدونها، والاسمان العربيان القديم والاقصر). المقارنة تتم بعد trim +
+   collapse + lowercase + تجاهل النبرات. لا يدخل FIELD_MAP ولا
+   LEADS_HEADERS ولا PROTECTED_HEADERS إطلاقًا: يبقى هنا فقط ليستعمله
+   migrateRemoveContactMethodColumn() على الورقة الحية، ولتوثيق سبب حذفه. */
+const REMOVED_CONTACT_METHOD_FIELD = 'contactPreference';
+const CONTACT_METHOD_HEADER_ALIASES = ['Moyen de contact préféré', 'Moyen de contact prefere', 'طريقة التواصل المفضلة', 'طريقة التواصل'];
+const CONTACT_METHOD_BACKUP_PREFIX = '_backup_moyen_contact';
+
 /* أسماء أعمدة لا يجوز حذفها أبدًا (حماية إضافية) */
 const PROTECTED_HEADERS = [
   'Date', 'Nom complet', 'Téléphone', 'E-mail', LEAD_AGE_HEADER,
-  'Moyen de contact préféré', 'Situation actuelle', 'Objectif professionnel',
+  'Situation actuelle', 'Objectif professionnel',
   "Niveau d'expérience", 'Compétence souhaitée', 'Temps disponible par semaine',
   'Prêt à investir', 'Remarque', 'Statut', 'Closer',
   'معرف الجلسة', 'حالة التسجيل'
@@ -54,20 +73,19 @@ const PROTECTED_HEADERS = [
 const LEADS_HEADERS = [
   'Date',                          // A
   'Nom complet',                   // B
-  'Téléphone',                       // C
+  'Téléphone',                      // C
   'E-mail',                        // D
   LEAD_AGE_HEADER,                 // E (العمر — في منتصف أعمدة البيانات عمدًا؛
                                    //     أعمدة الحالة والتتبع تبقى في النهاية)
-  'Moyen de contact préféré',      // F
-  'Situation actuelle',            // G
-  'Objectif professionnel',        // H
-  "Niveau d'expérience",           // I
-  'Compétence souhaitée',          // J
-  'Temps disponible par semaine',  // K
-  'Prêt à investir',               // L
-  'Remarque',                      // M
-  'Statut',                        // N (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
-  'Closer'                         // O (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
+  'Situation actuelle',            // F
+  'Objectif professionnel',       // G
+  "Niveau d'expérience",          // H
+  'Compétence souhaitée',         // I
+  'Temps disponible par semaine', // J
+  'Prêt à investir',              // K
+  'Remarque',                     // L
+  'Statut',                       // M (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
+  'Closer'                        // N (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
 ];
 
 /* كل عنوان يُقبل بالفرنسية أو بالعربية (القديمة) — الترتيب لا يهم */
@@ -81,17 +99,18 @@ const STATUS_CONFIRMED = 'مؤكد';
 const SESSION_META_KEY = 'skillova_session_id';
 
 /* أسماء خصائص funnelState (camelCase) -> اسم العمود في الورقة.
-   ترتيب المدخلات هنا مطابق لترتيب الأعمدة في الورقة (A → P) لسهولة القراءة
+   ترتيب المدخلات هنا مطابق لترتيب الأعمدة في الورقة (A → N) لسهولة القراءة
    فقط؛ لا يعتمد عليه أي كود (البحث يتم بالاسم عبر صف العناوين).
    كل الأعمدة بالفرنسية عدا «العمر» (عمود جديد، اسمُه عربي كما هو مطلوب).
    أعمدة Date / Statut / Closer ليست هنا: Date يُكتب بالتاريخ الحالي،
-   Statut يكتبه الكود («جزئي» ثم «مؤكد»)، و Closer يُملأ يدويًا. */
+   Statut يكتبه الكود («جزئي» ثم «مؤكد»)، و Closer يُملأ يدويًا.
+   أي مفتاح خارج هذه القائمة (مثل contactPreference أو mainChallenge
+   بعد حذفهما) يتجاهله الكود بصمت: لا يُكتب ولا يُقرأ ولا يخطئ. */
 const FIELD_MAP = {
   fullName:            'Nom complet',
   phone:               'Téléphone',
   email:               'E-mail',
   ageRange:            LEAD_AGE_HEADER,
-  contactPreference:   'Moyen de contact préféré',
   currentStatus:       'Situation actuelle',
   careerGoal:          'Objectif professionnel',
   experienceLevel:     "Niveau d'expérience",
@@ -104,13 +123,13 @@ const FIELD_MAP = {
 /* أسماء عربية مقبولة أيضًا (للأعمدة القديمة) — الترتيب لا يهم.
    لا تُحذف هذه القائمة: getPayloadKeyForHeader() يمرّ على كل مفاتيح
    FIELD_MAP ويقرأ LEGACY_AR[k]، فأي مفتاح بلا مدخل هنا يسقط الاستدعاء.
-   ملاحظة: لا يوجد مدخل لـ `mainChallenge` — العمود حُذف. */
+   ملاحظة: لا يوجد مدخل لـ `mainChallenge` ولا لـ `contactPreference` —
+   العمودان حُذفا (انظر أعلى الملف). */
 const LEGACY_AR = {
   fullName:            ['الاسم الكامل'],
   phone:               ['رقم الهاتف'],
   email:               ['البريد الإلكتروني'],
   ageRange:            [LEAD_AGE_HEADER],
-  contactPreference:   ['طريقة التواصل المفضلة'],
   currentStatus:       ['الوضعية الحالية'],
   careerGoal:          ['الهدف المهني'],
   experienceLevel:     ['مستوى الخبرة'],
@@ -137,6 +156,15 @@ function getPayloadKeyForHeader(header) {
 function indexOfAny(headers, names) {
   for (let i = 0; i < headers.length; i++) {
     if (names.indexOf(String(headers[i]).trim()) !== -1) return i;
+  }
+  return -1;
+}
+
+/* مثل indexOfAny لكن يتجاهل النبرات (é = e …) — لأسماء الأعمدة المحذوفة */
+function indexOfAnyLoose(headers, names) {
+  const wanted = names.map(normalizeHeaderLoose);
+  for (let i = 0; i < headers.length; i++) {
+    if (wanted.indexOf(normalizeHeaderLoose(headers[i])) !== -1) return i;
   }
   return -1;
 }
@@ -235,10 +263,11 @@ function jsonOut(obj) {
 
    يُستدعى دائمًا من getLeadsSheet() قبل القراءة/الكتابة.
 
-   ملاحظة: لأن «Plus grand défi» خرج من LEADS_HEADERS (وFIELD_MAP)، فإن هذه
-   الدالة **لن تعيد إنشاءه** على ورقة قائمة — بل العكس: لو كان العمود ما زال
-   موجودًا في الورقة الحية فلن يُلمسه إطلاقًا. إزالته من هناك من مسؤولية
-   migrateRemoveChallengeColumn() فقط. */
+   * ملاحظة: لأن العمودين «Plus grand défi» و«Moyen de contact préféré» خرجا من
+   * LEADS_HEADERS (وFIELD_MAP)، فإن هذه الدالة **لن تعيد إنشاءهما** على ورقة
+   * قائمة — بل العكس: لو كان أي عمود منهما ما زال موجودًا في الورقة الحية
+   * فلن يُلمس إطلاقًا. إزالتهما من هناك من مسؤولية إحدى الدالتين:
+   * migrateRemoveChallengeColumn() أو migrateRemoveContactMethodColumn(). */
 function ensureHeaders(sheet) {
   const lastCol = Math.max(sheet.getLastColumn(), 1);
   const actual = readLeadHeaders(sheet);
@@ -435,7 +464,16 @@ function confirmBooking(body) {
 
 /* ==========================================================
    تشخيص + ترحيل (تشغيل يدوي من المحرر)
-   ========================================================== */
+   ----------------------------------------------------------------
+   ترتيب التشغيل: الدوال الثلاث التالية تعمل **بأي ترتيب** لأنها
+   كلها تبحث عن أعمدتها بالاسم في صف العناوين ولا تفترض أي رقم عمود:
+     1) migrateAddAgeColumn()                — يثبّت «العمر» في العمود E
+     2) migrateRemoveChallengeColumn()      — يحذف «Plus grand défi»
+     3) migrateRemoveContactMethodColumn()  — يحذف «Moyen de contact préféré»
+   شغّل runSheetDiagnostics() في النهاية للتأكد: 14 عمودًا، «العمر» = E،
+   Statut = M، Closer = N.
+   ⚠ migrateSheet() وحدها مدمّرة (تحذف الورقة القديمة) — لا تُستخدم لهذا الغرض.
+   ============================================================ */
 
 function runSheetDiagnostics() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LEADS_NAME);
@@ -450,6 +488,17 @@ function runSheetDiagnostics() {
   });
   Logger.log('أعمدة زائدة: ' + (actual.filter(function (h) { return LEADS_HEADERS.indexOf(h) === -1; }).join(' ، ') || '(لا شيء)'));
 
+  /* ملاحظة: العمود المحذوف «Moyen de contact préféré» يظهر ضمن «أعمدة زائدة»
+     ما دام migrateRemoveContactMethodColumn() لم تُشغَّل بعد — هذا متوقّع. */
+  const leftovers = CONTACT_METHOD_HEADER_ALIASES.filter(function (alias) {
+    return actual.some(function (h) { return normalizeHeaderLoose(h) === normalizeHeaderLoose(alias); });
+  });
+  if (leftovers.length) {
+    Logger.log('⚠ عمود «' + leftovers[0] + '» ما زال موجودًا في الورقة (' +
+      'col ' + colLetter(indexOfAnyLoose(actual, CONTACT_METHOD_HEADER_ALIASES) + 1) + ') — ' +
+      'شغّل migrateRemoveContactMethodColumn() لإزالته (تنسخه لورقة احتياطية أولًا).');
+  }
+
   const ageCol = actual.indexOf(LEAD_AGE_HEADER) + 1;
   if (ageCol === 0) {
     Logger.log('⚠ عمود «' + LEAD_AGE_HEADER + '» غير موجود — شغّل migrateAddAgeColumn().');
@@ -459,6 +508,16 @@ function runSheetDiagnostics() {
   } else {
     Logger.log('✓ عمود «' + LEAD_AGE_HEADER + '» في مكانه: العمود ' + colLetter(LEADS_AGE_TARGET_COL) + '.');
   }
+
+  /* مواضع عمودَي الحالة والتتبع — تُحلّ بالاسم دائمًا (M و N بعد الترحيل) */
+  const statusCol = resolveColumnIndex(sheet, STATUS_HEADERS);
+  const closerCol = resolveColumnIndex(sheet, ['Closer']);
+  const statusTxt = statusCol === -1 ? 'مفقود' : colLetter(statusCol) + ' (' + statusCol + ')';
+  const closerTxt = closerCol === -1 ? 'مفقود' : colLetter(closerCol) + ' (' + closerCol + ')';
+  Logger.log((statusCol === -1 ? '⚠' : '✓') + ' Statut => ' + statusTxt +
+    ' | ' + (closerCol === -1 ? '⚠' : '✓') + ' Closer => ' + closerTxt +
+    ' | عدد الأعمدة: ' + actual.length + ' / ' + LEADS_HEADERS.length + ' متوقّع' +
+    (actual.length === LEADS_HEADERS.length ? ' ✓' : ' — راجع «أعمدة زائدة» و«مفقود» أعلاه'));
 }
 
 /* ==========================================================
@@ -545,6 +604,23 @@ function normalizeHeader(h) {
   return String(h == null ? '' : h).trim().replace(/\s+/g, ' ').toLowerCase();
 }
 
+/* نفس التطبيع مع تجاهل النبرات (é/è/ê = e، ä = a …) ثم trim/collapse/lowercase.
+   يُستعمل لأسماء الأعمدة المحذوفة فقط: ورقة قديمة كُتبت French بلا نبرات
+   يجب أن تُطابَق أيضًا، حتى لا يبقى العمود في الورقة للأبد. */
+function normalizeHeaderLoose(h) {
+  const flat = String(h == null ? '' : h)
+    .replace(/[\u0300-\u036f]/g, '')                   /* علامات التشكيل المركّبة */
+    .replace(/[àâäãáå]/g, 'a')
+    .replace(/[çć]/g, 'c')
+    .replace(/[èéêë]/g, 'e')
+    .replace(/[ìíîï]/g, 'i')
+    .replace(/[òóôöõ]/g, 'o')
+    .replace(/[ùúûü]/g, 'u')
+    .replace(/[ýÿ]/g, 'y')
+    .replace(/ñ/g, 'n');
+  return normalizeHeader(flat);
+}
+
 /* كل الأعمدة المحمية، مع أسمائها الحالية وأي بدائل عربية معروفة */
 function getProtectedHeaderNames() {
   const base = PROTECTED_HEADERS.slice();
@@ -559,13 +635,15 @@ function getProtectedHeaderNames() {
   return base;
 }
 
-/* اسم ورقة احتياطية غير مستعملة: يضيف طابعًا زمنيًا عند وجود الاسم */
-function pickBackupSheetName(ss) {
-  if (!ss.getSheetByName(CHALLENGE_BACKUP_PREFIX)) return CHALLENGE_BACKUP_PREFIX;
+/* اسم ورقة احتياطية غير مستعملة: يضيف طابعًا زمنيًا عند وجود الاسم.
+   `prefix` معامل لأن عمودين محذوفين لكل منهما ورقة احتياطية. */
+function pickBackupSheetName(ss, prefix) {
+  const base = prefix || CHALLENGE_BACKUP_PREFIX;
+  if (!ss.getSheetByName(base)) return base;
   const stamp = Utilities.formatDate(new Date(), 'Etc/GMT', 'yyyyMMdd-HHmmss');
-  let name = CHALLENGE_BACKUP_PREFIX + '_' + stamp;
+  let name = base + '_' + stamp;
   let n = 2;
-  while (ss.getSheetByName(name)) { name = CHALLENGE_BACKUP_PREFIX + '_' + stamp + '_' + n; n++; }
+  while (ss.getSheetByName(name)) { name = base + '_' + stamp + '_' + n; n++; }
   return name;
 }
 
@@ -652,14 +730,133 @@ function migrateRemoveChallengeColumn() {
   }
 }
 
+/* ==========================================================
+   migrateRemoveContactMethodColumn — حذف عمود «طريقة التواصل المفضلة»
+   نفس آلية migrateRemoveChallengeColumn بالضبط: بحث بالاسم في صف
+   العناوين، نسخة احتياطية قبل أي حذف، آمنة للتكرار، ولا تلمس أي
+   عمود أو صف آخر.
+   ========================================================== */
+
 /*
- * migrateSheet — يعيد بناء الورقة بالأعمدة الـ15 مع نقل البيانات بالاسم
+ * تحذف عمود «Moyen de contact préféré» (الحقل `contactPreference`) من ورقة
+ * العملاء المحتملين. الحقل نفسه حُذف من القمع ومن الـpayload:
+ *   - تُطابَق الترويسة بكل الأسماء المعروفة (trim + collapse + case-insensitive
+ *     + تجاهل النبرات): `Moyen de contact préféré` / `Moyen de contact prefere` /
+ *     `طريقة التواصل المفضلة` / `طريقة التواصل`.
+ *   - إذا لم يُعثر عليه: لا تغيير (آمنة للتكرار).
+ *   - إذا وُجد أكثر من عمود مطابق أو كان محميًا (الهاتف/الحالة/العمر/
+ *     معرّف الجلسة): خطأ واضح وتوقّف، بلا أي حذف.
+ *   - قبل الحذف تُنسخ كل قيمه (ترويسة + كل الصفوف، + الاسم والهاتف كمرجع)
+ *     إلى ورقة احتياطية جديدة، حتى لا تضيع أي بيانات.
+ *   - لا يُمسّ أي عمود أو صف آخر. النتيجة: 14 عمودًا، «العمر» = E،
+ *     Statut = M، Closer = N.
+ */
+function migrateRemoveContactMethodColumn() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  if (!sheet) { Logger.log('migrateRemoveContactMethodColumn: لا توجد ورقة "' + SHEET_LEADS_NAME + '".'); return; }
+
+  const before = readLeadHeaders(sheet);
+  Logger.log('migrateRemoveContactMethodColumn: قبل -> ' + leadHeadersToLog(before));
+
+  /* لو عاد الحقل إلى FIELD_MAP يومًا فهو حيّ من جديد — لا نحذف عمودًا حيًّا */
+  if (Object.prototype.hasOwnProperty.call(FIELD_MAP, REMOVED_CONTACT_METHOD_FIELD)) {
+    Logger.log('migrateRemoveContactMethodColumn: ⚠ توقّف — الحقل `' + REMOVED_CONTACT_METHOD_FIELD +
+      '` موجود في FIELD_MAP (عاد إلى الواجهة؟). لم يتم الحذف.');
+    return;
+  }
+
+  const wanted = CONTACT_METHOD_HEADER_ALIASES.map(normalizeHeaderLoose);
+  const matches = [];
+  before.forEach(function (h, i) { if (wanted.indexOf(normalizeHeaderLoose(h)) !== -1) matches.push(i + 1); });
+
+  if (!matches.length) {
+    Logger.log('migrateRemoveContactMethodColumn: العمود غير موجود — لا تغيير (already removed / not found). الحقل `' +
+      REMOVED_CONTACT_METHOD_FIELD + '` غير موجود أصلًا في FIELD_MAP.');
+    return;
+  }
+  if (matches.length > 1) {
+    Logger.log('migrateRemoveContactMethodColumn: ⚠ توقّف — ' + matches.length + ' أعمدة مطابقة (' +
+      matches.map(function (c) { return colLetter(c); }).join('، ') + '). لم يتم الحذف. راجع يدويًا.');
+    return;
+  }
+
+  const col = matches[0];
+  const header = before[col - 1];
+  const normalized = normalizeHeaderLoose(header);
+  const protectedNames = getProtectedHeaderNames().map(normalizeHeaderLoose);
+  if (protectedNames.indexOf(normalized) !== -1) {
+    Logger.log('migrateRemoveContactMethodColumn: ⚠ توقّف — العمود ' + colLetter(col) + ' («' + header +
+      '») اسم محمي. لم يتم الحذف.');
+    return;
+  }
+
+  /* ---1) كم صفًا فيه بيانات؟ --- */
+  const lastRow = sheet.getLastRow();
+  const colData = sheet.getRange(1, col, Math.max(lastRow, 1), 1).getValues().map(function (r) { return r[0]; });
+  let filled = 0;
+  for (let i = 1; i < colData.length; i++) {
+    if (String(colData[i] == null ? '' : colData[i]).trim() !== '') filled++;
+  }
+  Logger.log('migrateRemoveContactMethodColumn: المرشّح للحذف = العمود ' + colLetter(col) + ' («' + header + '») | صفوف فيها بيانات: ' + filled);
+
+  /* ---2) نسخة احتياطية: الترويسة + كل الصفوف + الاسم والهاتف كمرجع --- */
+  const lastCol = before.length;
+  const allData = sheet.getRange(1, 1, Math.max(lastRow, 1), lastCol).getValues();
+  const nameCol = indexOfAny(before, ['Nom complet', 'الاسم الكامل']);
+  const phoneCol = indexOfAny(before, ['Téléphone', 'رقم الهاتف']);
+  const backup = ss.insertSheet(pickBackupSheetName(ss, CONTACT_METHOD_BACKUP_PREFIX));
+  const outHead = ['_original_column', '_original_header', '_nom_complet', '_telephone', '_value'];
+  const out = [outHead];
+  for (let r = 1; r < allData.length; r++) {
+    const who = (nameCol !== -1 ? allData[r][nameCol] : '');
+    const tel = (phoneCol !== -1 ? allData[r][phoneCol] : '');
+    out.push([colLetter(col), header, who == null ? '' : who, tel == null ? '' : tel, colData[r]]);
+  }
+  backup.getRange(1, 1, out.length, outHead.length).setValues(out);
+  backup.setFrozenRows(1);
+  Logger.log('migrateRemoveContactMethodColumn: نسخة احتياطية في "' + backup.getName() + '" (' +
+    out.length + ' صف × ' + outHead.length + ' عمود).');
+
+  /* ---3) الحذف --- */
+  sheet.deleteColumn(col);
+
+  const after = readLeadHeaders(sheet);
+  Logger.log('migrateRemoveContactMethodColumn: بعد  -> ' + leadHeadersToLog(after));
+  Logger.log('migrateRemoveContactMethodColumn: الأعمدة ' + before.length + ' → ' + after.length +
+    ' | صفوف بيانات محفوظة: ' + Math.max(0, sheet.getLastRow() - 1) +
+    (after.length === before.length - 1 ? ' | ✓ حُذف عمود واحد بالضبط' : ' | ⚠ عدد الأعمدة لم ينقص بواحد!'));
+
+  /* تأكيد ما بعد الحذف: صف العناوين يُقرأ فقط (لا إعادة كتابة)،
+     وStatut/Closer يُحلّان بالاسم لا برقم عمود ثابت. */
+  const leftover = indexOfAnyLoose(after, CONTACT_METHOD_HEADER_ALIASES);
+  if (leftover !== -1) {
+    Logger.log('migrateRemoveContactMethodColumn: ⚠ ما زال العمود ' + colLetter(leftover + 1) + ' موجودًا بعد الحذف!');
+  }
+  if (after.length !== LEADS_HEADERS.length) {
+    Logger.log('migrateRemoveContactMethodColumn: ⚠ عدد الأعمدة ' + after.length + ' ≠ ' + LEADS_HEADERS.length +
+      ' (المتوقّع) — شغّل runSheetDiagnostics() وراجع «أعمدة زائدة».');
+  }
+  if (resolveColumnIndex(sheet, [LEAD_AGE_HEADER]) !== LEADS_AGE_TARGET_COL) {
+    Logger.log('migrateRemoveContactMethodColumn: ⚠ عمود «' + LEAD_AGE_HEADER + '» ليس في العمود ' +
+      colLetter(LEADS_AGE_TARGET_COL) + ' — شغّل migrateAddAgeColumn() إن لزم.');
+  }
+  ['Statut', 'Closer'].forEach(function (h) {
+    const c = resolveColumnIndex(sheet, [h]);
+    Logger.log('migrateRemoveContactMethodColumn: ' + (c === -1 ? '⚠ ' : '✓ ') + h + ' => ' +
+      (c === -1 ? 'مفقود!' : colLetter(c) + ' (' + c + ')'));
+  });
+}
+
+/*
+ * migrateSheet — يعيد بناء الورقة بالأعمدة الـ14 مع نقل البيانات بالاسم
  * (بما فيها «العمر» في E). الأعمدة المحذوفة لا تُنقل (ومنها
- * «Plus grand défi»)، فقيم العمود المحذوف تُفقد هنا — استخدم
- * migrateRemoveChallengeColumn() بدلًا منه. معرفات الجلسة
- * القديمة تُنقل إلى Developer Metadata حتى تبقى الجلسات الجزئية الجارية
- * سليمة. ⚠ يحذف الورقة القديمة — خذ نسخة احتياطية. لا يلزم لهذا التغيير:
- * استخدم migrateAddAgeColumn() بدلًا منه.
+ * «Plus grand défi» و«Moyen de contact préféré»)، فقيم العمود المحذوف
+ * تُفقد هنا — استخدم migrateRemoveChallengeColumn() أو
+ * migrateRemoveContactMethodColumn() بدلًا منه (كلتاهما تنسخان العمود
+ * أولًا). معرفات الجلسة القديمة تُنقل إلى Developer Metadata حتى تبقى
+ * الجلسات الجزئية الجارية سليمة. ⚠ يحذف الورقة القديمة — خذ نسخة احتياطية.
+ * لا يلزم لأي من تغييرات الأعمدة: استخدم دوال الترحيل اليدوية أعلاه.
  */
 function migrateSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
