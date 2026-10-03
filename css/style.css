@@ -797,54 +797,62 @@ input, select, textarea {
 
 /* Eyebrow label — two stacked Latin lines (academy name + program).
    Both lines resolve their size from ONE shared custom property, so
-   the pair can never drift apart: line A is the airy, wide-tracked
-   brand name and line B is the same size but tighter, bolder and
-   two-tone. The block itself only owns the shared tracking/tone and
-   the gap to the H1. */
+   the pair can never drift apart, and both carry the SAME bold weight
+   and the SAME brand tone: the block reads as one confident header
+   label above the H1 instead of two scattered, mismatched subheads.
+   This rule owns the shared size/weight/tone and the gap to the H1. */
 .hero__eyebrow {
-  /* Fluid and ~1.6x the previous 0.875rem: a real kicker that still
+  /* Fluid and ~1.85x the previous 0.875rem: a real kicker that still
      shrinks sensibly on phones. */
-  --hero-eyebrow-size: clamp(1.125rem, 0.85rem + 1.1vw, 1.375rem);
+  --hero-eyebrow-size: clamp(1.294rem, 0.9775rem + 1.265vw, 1.581rem);
   font-size: var(--hero-eyebrow-size);
-  font-weight: var(--fw-medium);
-  letter-spacing: 0.18em;
+  font-weight: var(--fw-bold);
+  /* Moderate tracking (was 0.18em): the letters group into readable
+     word-shapes instead of drifting apart. Expressed in em, so it is
+     divided by the same 1.15 the size grew by — the absolute spacing
+     stays exactly where it was (~1.98px at the desktop max, ~1.44px
+     on small phones) instead of widening with the bigger glyphs. */
+  letter-spacing: 0.0783em;
+  /* Snug leading keeps the two-line block compact, so the hero does
+     not grow taller than it needs to. --leading-snug (1.4) divided by
+     the same 1.15 the size grew by: each line box keeps its exact
+     previous pixel height, so the gap between the two lines AND the
+     gap down to the H1 below are untouched. */
+  line-height: 1.2174;
   text-transform: uppercase;
   color: var(--clr-brand);
   margin-bottom: var(--space-5);
 }
 
-/* Line A — the academy name: the airy half of the pair, wide-tracked
-   and medium weight, so it reads as the brand's signature. */
+/* Line A — the academy name: bold in the brand tone, moderately tracked.
+   Weight/tracking/size all come from the parent, so line A can never
+   drift into a different visual register than line B. */
 .hero__eyebrow-a {
   display: block;
   font-size: var(--hero-eyebrow-size);
   unicode-bidi: isolate;
 }
 
-/* Line B — the program: same size as line A, but semibold and tracked
-   tighter so the two lines carry the same visual weight without
-   competing. */
+/* Line B — the program name: same size and weight as line A (they form
+   one header block), tracked a touch tighter so "BOOTCAMP CLOSER" sits
+   close together and reads as a single name. */
 .hero__eyebrow-b {
   display: block;
   margin-top: var(--space-2);
   font-size: var(--hero-eyebrow-size);
-  font-weight: var(--fw-semibold);
-  letter-spacing: 0.12em;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.0522em;
   color: var(--clr-brand);
   unicode-bidi: isolate;
 }
 
-/* Line B is two-tone: the qualifier in the calm slate tone, the payoff
-   word in the brand tone. Both spans sit inside line B, which is
-   dir="ltr" + unicode-bidi: isolate, so the order stays
+/* Line B's two spans ("BOOTCAMP" / "CLOSER") deliberately carry no
+   color of their own — they inherit the brand tone from line B, so the
+   whole program name is one uniform bold brand-blue unit (it used to
+   be two-tone: slate "BOOTCAMP" + brand "CLOSER", which demoted the
+   program name to a faint secondary subtitle). They sit inside line B,
+   which is dir="ltr" + unicode-bidi: isolate, so the order stays
    "BOOTCAMP CLOSER" inside the RTL page. */
-.hero__eyebrow-b-calm {
-  color: var(--clr-text);
-}
-
-.hero__eyebrow-b-accent {
-  color: var(--clr-brand);
-}
 
 /* Headline — the type sizes live on the two child lines (each clamps
    independently), so this rule only owns the shared color/weight and
@@ -6326,11 +6334,17 @@ input, select, textarea {
     font-size: clamp(1rem, 0.6rem + 1.6vw, 1.5rem);
   }
 
-  /* Narrow phones: line A is the wider of the two (more characters and
-     more tracking), so it absorbs the tracking cut that keeps both
-     eyebrow lines on a single row. Line B keeps its tighter 0.12em. */
+  /* Narrow phones: line A is the wider of the two (more characters),
+     so it keeps a slightly larger tracking value than line B — both
+     stay moderate and each line remains on a single row. Both are the
+     base values divided by 1.15 (the size increase), so the absolute
+     spacing is unchanged at the small-phone size. */
   .hero__eyebrow-a {
-    letter-spacing: 0.15em;
+    letter-spacing: 0.0696em;
+  }
+
+  .hero__eyebrow-b {
+    letter-spacing: 0.0478em;
   }
 
   .hero__title-lead,
