@@ -17,9 +17,10 @@
  *     'session_id'، ويُخفى بعد الإنشاء. هو مصدر الحقيقة الوحيد للربط:
  *     يُكتب في نفس عملية كتابة الصف، ويُقرأ بمطابقة نصّية صريحة في
  *     التبويبين معًا.
- *   - Developer Metadata تبقى آلية احتياطية فقط: إن فشل البحث في العمود
- *     نبحث في الوسوم (داخل try/catch) ونعبّئ خلية المعرّف احتياطيًّا؛
- *     إرفاقها لم يعد مطلوبًا (best-effort).
+ *   - Developer Metadata تبقى آلية احتياطية فقط: البحث في الوسوم
+ *     (داخل try/catch) يُشغَّل فقط حين لا يوجد عمود session_id في الورقة
+ *     أصلًا؛ إن وُجد العمود فهو الجواب الوحيد (إصابة أو غياب مؤكد لجلسة
+ *     جديدة) ولا يمسّ Metadata. إرفاق الوسوم best-effort فقط.
  *   - لا يوجد أي احتياط بالاسم/الهاتف (قيمتهما غير معروفة قبل الخطوة 10).
  *
  * لا يُعاد إنشاء صف العناوين في ورقة قائمة ولا يُعاد ترتيبه ولا يُعادت
@@ -144,7 +145,7 @@ const SESSION_HEADER_ALIASES = [SESSION_ID_HEADER, 'معرف الجلسة'];
 const CODE_HEADER_GUARD = /^[A-Z0-9_]+_HEADER$/i;
 
 /* إصدار الكود: يُعاد في health check (doGet) وفي كل سطر نجاح/خطأ من doPost. */
-const CODE_VERSION = '2026-10-06.2';
+const CODE_VERSION = '2026-10-06.3';
 
 
 /* معرّف ورقة بديلة عند الحاجة للفتح عبر openById (standalone) — يُستبدل
@@ -537,6 +538,25 @@ function logError(functionName, err) {
     (stack ? ' | stack: ' + stack : ''));
 }
 
+/* ==== قياس زمن مراحل الطلب (لا أي بيانات شخصية — أزمنة فقط، ms) ==== */
+function createTimer(label) {
+  const start = Date.now();
+  const marks = [];
+  return {
+    mark: function (name) { marks.push(name + '=' + (Date.now() - start)); },
+    done: function () {
+      Logger.log('TIMING v' + CODE_VERSION + ' ' + label + ' total=' + (Date.now() - start) +
+        'ms {' + marks.join(' ') + '}');
+    }
+  };
+}
+
+/* استجابة «مشغول» السريعة عند تعذّر أخذ قفل الطلب خلال waitLock:
+   يفسّرها الـproxy فيعيد المحاولة مرة واحدة فقط. */
+function busyResponse() {
+  return { success: false, error: 'busy', retryable: true };
+}
+
 function doGet(e) {
   return jsonOut({ success: true, message: 'SKILLOVA_V4_FR', version: CODE_VERSION });
 }
@@ -574,7 +594,8 @@ function canonicalKeyForHeader(h) {
    الوجود يُفحص بالاسم بعد normalize (canonical أولًا ثم بدائل)، فالترويسة
    الحرفية 'LEAD_AGE_HEADER' تُحسب موجودة ولا يُضاف عمود «العمر» مكرر.
 
-   يُستدعى دائمًا من getTierSheet() قبل القراءة/الكتابة. */
+   قراءة واحدة رخيصة لصف العناوين فقط: لا يُكتب أي شيء ولا يُخفى عمود
+   الجلسة ما لم يكن ناقصًا فعلًا — لا يُستدعى هذا أبدًا على كل save. */
 function ensureHeaders(sheet) {
   const lastCol = Math.max(sheet.getLastColumn(), 1);
   const actual = readLeadHeaders(sheet);
@@ -599,33 +620,44 @@ function ensureHeaders(sheet) {
       Logger.log('ensureHeaders: أُضيفت في النهاية (لم تُزحزح أعمدة قائمة): ' + safe.join(' ، '));
     }
   }
-  ensureSessionColumn(sheet);
+  if (resolveIndexCanonicalFirst(actual, 'session') === -1) {
+    ensureSessionColumn(sheet);
+  }
 }
 
 /* --- عمود معرّف الجلسة --------------------------------------------------
    يبحث بالاسم (canonical أولًا ثم بدائله)؛ إن لم يوجد يُضاف في النهاية
-   نصًّا حرفيًّا ويُخفى. إضافةً، يُخفى العمود دائمًا (idempotent). */
+   نصًّا حرفيًّا ويُخفى. العمود موجود => لا يُستدعى hideColumns أبدًا
+   (hideColumns فقط عند الإنشاء، أو عند طلب صريح hideEvenIfExisting من
+   مسار إنشاء ورقة جديدة). لأداء المسار الحار: لا يلمس الورقة إطلاقًا
+   عند وجود العمود. */
 function sessionColumnIndex(sheet) {
   const idx = resolveIndexCanonicalFirst(getActualHeaders(sheet), 'session');
   return idx === -1 ? -1 : idx + 1;
 }
 
-function ensureSessionColumn(sheet) {
-  const existing = sessionColumnIndex(sheet);
-  const col = existing !== -1 ? existing : sheet.getLastColumn() + 1;
-  if (existing === -1) {
-    try {
-      sheet.getRange(1, col).setValue(SESSION_ID_HEADER);
-      Logger.log('ensureSessionColumn: أُضيف عمود `' + SESSION_ID_HEADER + '` في النهاية (' + colLetter(col) + ').');
-    } catch (err) {
-      Logger.log('ensureSessionColumn: تعذّرت كتابة الترويسة: ' + err.toString());
-      return -1;
-    }
-  }
+function hideSessionColumn(sheet, col) {
   try {
     sheet.hideColumns(col, 1);
   } catch (err) {
     Logger.log('ensureSessionColumn: تعذّر إخفاء العمود ' + colLetter(col) + ' (غير مهم): ' + err.toString());
+  }
+}
+
+function ensureSessionColumn(sheet, opts) {
+  const existing = sessionColumnIndex(sheet);
+  if (existing !== -1) {
+    if (opts && opts.hideEvenIfExisting) hideSessionColumn(sheet, existing);
+    return existing;
+  }
+  const col = sheet.getLastColumn() + 1;
+  try {
+    sheet.getRange(1, col).setValue(SESSION_ID_HEADER);
+    hideSessionColumn(sheet, col);
+    Logger.log('ensureSessionColumn: أُضيف عمود `' + SESSION_ID_HEADER + '` في النهاية (' + colLetter(col) + ') وخُفي.');
+  } catch (err) {
+    Logger.log('ensureSessionColumn: تعذّرت كتابة الترويسة: ' + err.toString());
+    return -1;
   }
   return col;
 }
@@ -657,7 +689,7 @@ function getTierSheet(spec) {
     sheet.setFrozenRows(1);
     Logger.log('getTierSheet: أُنشئت ورقة "' + spec.sheet + '" بترويسات LEADS_HEADERS (' +
       LEADS_HEADERS.length + ' عمودًا، «' + LEAD_AGE_HEADER + '» = ' + colLetter(LEADS_AGE_TARGET_COL) + ').');
-    ensureSessionColumn(sheet);
+    ensureSessionColumn(sheet, { hideEvenIfExisting: true });
     return sheet;
   }
   if (sheet.getLastRow() === 0) {
@@ -665,7 +697,7 @@ function getTierSheet(spec) {
     sheet.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
     if (spec.sheet !== VIP_SHEET_NAME) copyLeadsHeaderFormat(findTierSheet(VIP_SPEC), sheet);
     sheet.setFrozenRows(1);
-    ensureSessionColumn(sheet);
+    ensureSessionColumn(sheet, { hideEvenIfExisting: true });
   } else {
     ensureHeaders(sheet);
   }
@@ -722,32 +754,44 @@ function listRowsBySessionId(sheet, sessionId) {
 }
 
 /* يعيد أول صف مرتبط بـ session_id أو -1 (سياسة «صف واحد بالضبط» مع
-   التحذير عند التكرار تكون في findLeadRowBySession). البحث في العمود أولًا
-   (مصدر الحقيقة) ثم احتياطيًّا عبر Developer Metadata للصفوف القديمة. */
+   التحذير عند التكرار تكون في findLeadRowBySession). عمود الجلسة مصدر الحقيقة:
+   إن وُجد العمود فجاوبُه وحيد (إصابة أو غياب مؤكد) ولا يُبحث في Metadata؛
+   البحث الاحتياطي في Developer Metadata يُشغَّل فقط عند غياب العمود أصلًا.
+   كل قراءته: عمود واحد فقط. */
 function findRowBySessionId(sheet, sessionId) {
   if (!sessionId) return -1;
-  const byCol = sessionIdsByColumn(sheet);
+  const col = sessionColumnIndex(sheet);
+  if (col === -1) {
+    const rows = listRowsBySessionId(sheet, sessionId);
+    return rows.length ? rows[0] : -1;
+  }
+  const byCol = sessionIdsByColumn(sheet, col);
   for (let i = 0; i < byCol.length; i++) {
     if (byCol[i].sessionId === String(sessionId)) return byCol[i].row;
   }
-  const rows = listRowsBySessionId(sheet, sessionId);
-  return rows.length ? rows[0] : -1;
+  return -1;
 }
 
-/* يربط الصف بـ session_id (مخفي) — idempotent: لا يضيف وسومًا مكررة
-   على نفس الصف، لأن وسومًا مكررة تُنتج صفًا متكررًا في listRowsBySessionId. */
+/* يربط الصف بـ session_id (مخفي) — بدون أي فحص مسبق للـMetadata: العمود هو
+   مصدر الحقيقة، والوسم احتياطي best-effort فقط، وlistRowsBySessionId يزيل
+   التكرار في نتيجته، فوسمٌ مكرر على نفس الصف غير ضار. لا يُمسّ Metadata
+   في كل save (لا في مسار القراءة). */
 function tagRowWithSession(sheet, row, sessionId) {
   if (!sessionId) return;
-  const rows = listRowsBySessionId(sheet, sessionId);
-  if (rows.indexOf(row) !== -1) return;
-  sheet.getRange(row + ':' + row).addDeveloperMetadata(SESSION_META_KEY, String(sessionId));
+  try {
+    sheet.getRange(row + ':' + row).addDeveloperMetadata(SESSION_META_KEY, String(sessionId));
+  } catch (metaErr) {
+    Logger.log('tagRowWithSession: تعذّر ربط Developer Metadata (احتياطي — غير مطلوب): ' + metaErr.toString());
+  }
 }
 
 /* --- عمود معرّف الجلسة: قراءة القيم والصفوف الفارغة ------------------ */
 
-function sessionIdsByColumn(sheet) {
+/* قراءة عمود الجلسة وحده (مقطع واحد) — givenCol يحوّله المتصل تجنبًا
+   لقراءة صف العناوين مرتين في المسار الحار. */
+function sessionIdsByColumn(sheet, givenCol) {
   const out = [];
-  const col = sessionColumnIndex(sheet);
+  const col = givenCol !== undefined ? givenCol : sessionColumnIndex(sheet);
   if (col === -1) return out;
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return out;
@@ -784,17 +828,24 @@ function backfillSessionCell(sheet, row, sessionId) {
 /* --- الجلسة عبر تبويبي الفئة (VIP + Diamond، بالاسمين الجديد والقديم) ----
    يُرجع { sheet, row } أو null. لا يُنشئ أي ورقة: البحث فقط.
    المصدر الأساسي: قيم عمود session_id (مطابقة نصّية صريحة في التبويبين)؛
-   إن فشل، احتياطي عبر Developer Metadata، ومع العثور يُعبَّأ العمود.
+   البحث الاحتياطي في Developer Metadata يُشغَّل فقط للتبويبات التي لا
+   يوجد فيها عمود session_id أصلًا، ومع العثور يُعبَّأ العمود.
    يضمن «صفًا واحدًا بالضبط»: يُحذّر بالـLogger عند أي تكرار. */
 function findLeadRowBySession(sessionId) {
   if (!sessionId) return null;
   const ss = getSpreadsheet();
   const names = tierSheetLookupNames();
   const marks = [];
+  const withoutColumn = [];
   for (let i = 0; i < names.length; i++) {
     const sheet = ss.getSheetByName(names[i]);
     if (!sheet) continue;
-    const rows = sessionIdsByColumn(sheet);
+    const col = sessionColumnIndex(sheet);
+    if (col === -1) {
+      if (withoutColumn.indexOf(sheet) === -1) withoutColumn.push(sheet);
+      continue;
+    }
+    const rows = sessionIdsByColumn(sheet, col);
     for (let j = 0; j < rows.length; j++) {
       if (rows[j].sessionId === String(sessionId)) marks.push({ sheet: sheet, row: rows[j].row });
     }
@@ -803,11 +854,9 @@ function findLeadRowBySession(sessionId) {
     logSessionDuplicates(marks);
     return marks[0];
   }
-  for (let i = 0; i < names.length; i++) {
-    const sheet = ss.getSheetByName(names[i]);
-    if (!sheet) continue;
-    const rows = listRowsBySessionId(sheet, sessionId);
-    for (let j = 0; j < rows.length; j++) marks.push({ sheet: sheet, row: rows[j] });
+  for (let i = 0; i < withoutColumn.length; i++) {
+    const rows = listRowsBySessionId(withoutColumn[i], sessionId);
+    for (let j = 0; j < rows.length; j++) marks.push({ sheet: withoutColumn[i], row: rows[j] });
   }
   if (!marks.length) return null;
   logSessionDuplicates(marks);
@@ -980,9 +1029,16 @@ function writeLeadRow(sheet, row, valueMap, combined, sessionId) {
 function updateLead(body) {
   if (isHoneypotTriggered(body.data)) return { success: true };
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  const lockWaitStart = Date.now();
+  try {
+    lock.waitLock(5000);
+  } catch (lockErr) {
+    Logger.log('TIMING v' + CODE_VERSION + ' update_lead lock_wait=' + (Date.now() - lockWaitStart) + 'ms TIMEOUT');
+    return busyResponse();
+  }
   try {
     updateLeadInternal(body);
+    Logger.log('TIMING v' + CODE_VERSION + ' update_lead lock_wait=' + (Date.now() - lockWaitStart) + 'ms acquired');
   } catch (err) {
     logError('update_lead', err);
     return { success: false, error: err.toString() };
@@ -996,10 +1052,12 @@ function updateLead(body) {
    ترجع موضع الصف { sheet, row } ليسهل على confirm_booking كتابة الحالة فيه،
    دون كشف أي شيء في الردّ المرجوع للواجهة. */
 function updateLeadInternal(body) {
+  const timer = createTimer('update_lead');
   const sessionId = body.session_id;
   const data = body.data || {};
   const combined = buildCombinedValues(data);
   const existing = findLeadRowBySession(sessionId);
+  timer.mark('session_lookup');
 
   /* كل الحقول اختيارية: أي مفتاح غائب في data أو فارغ لا يُكتب ولا يُخطئ.
      «العمر» تحديدًا اختياري ولا يُتحقَّق منه إطلاقًا (لا في update_lead ولا
@@ -1030,6 +1088,7 @@ function updateLeadInternal(body) {
      جلسة جديدة -> VIP، وصف موجود يبقى مكانه. */
   const storedMap = existing ? readRowValueMap(existing.sheet, existing.row) : {};
   const tier = decideTier(mergedTierInputs(data, storedMap));
+  timer.mark('tier');
   let targetSheet;
   if (tier) {
     targetSheet = getTierSheet(tierSheetSpecFor(tier));
@@ -1045,6 +1104,8 @@ function updateLeadInternal(body) {
 
   if (sameSheet) {
     const row = writeLeadRow(targetSheet, existing.row, null, combined, sessionId);
+    timer.mark('write');
+    timer.done();
     return { sheet: targetSheet, row: row };
   }
 
@@ -1062,12 +1123,15 @@ function updateLeadInternal(body) {
       moveErr.toString());
     throw moveErr;
   }
+  timer.mark('write');
   if (existing) {
     existing.sheet.deleteRow(existing.row);
     Logger.log('updateLeadInternal: تغيّرت شروط الفئة — نُقل صف الجلسة ' + sessionId + ' من "' +
       existing.sheet.getName() + '" (الصف ' + existing.row + ') إلى "' + targetSheet.getName() + '" (الصف ' + newRow + ')' +
       (duplicatedRow !== -1 ? ' (استُبدل صف موجود مسبقًا في التبويب الهدف)' : '') + '.');
+    timer.mark('move');
   }
+  timer.done();
   return { sheet: targetSheet, row: newRow };
 }
 
@@ -1114,27 +1178,43 @@ function isValidAlgerianPhone(phone) {
 /* القاعدة كما هي تمامًا (لا تغيير): تكرار فقط مقابل صف حالته ليست فارغة
    وليست «جزئي» — أي «مؤكد» وأي حالة أخرى مُدخلة يدويًا. عمود الهاتف
    والحالة يُحلّان بالاسم من صف العناوين في كل تبويب فئة على حدة
-   (VIP و Diamond، بالاسمين الجديد والقديم). */
+   (VIP و Diamond، بالاسمين الجديد والقديم).
+
+   القراءة رخيصة: صف العناوين + عمود الهاتف فقط (مقطع واحد)، وخلية
+   الحالة/الجلسة تُقرأ للصفوف المطابقة للهاتف فقط — لا تنزيل
+   getDataRange() كاملًا أبدًا. صف «مؤكد» يعود لنفس session_id الحالي
+   لا يُحسب تكرارًا (حماية جلسة المستخدم نفسه عند إعادة الضغط على تأكيد). */
 function checkDuplicatePhone(body) {
   const phone = body.data && body.data.phone ? body.data.phone.toString().trim() : '';
   if (!phone) return { success: true, isDuplicate: false };
+  const sessionFromBody = body.session_id || (body.data && body.data.session_id);
+  const sameSession = sessionFromBody == null ? '' : String(sessionFromBody).trim();
   const ss = getSpreadsheet();
   const names = tierSheetLookupNames();
   for (let s = 0; s < names.length; s++) {
     const sheet = ss.getSheetByName(names[s]);
     if (!sheet) continue;
-    const data = sheet.getDataRange().getValues();
-    if (data.length <= 1) continue;
-    const headers = data[0].map(function (h) { return String(h).trim(); });
+    const headers = readLeadHeaders(sheet);
     const phoneIdx = resolveIndexCanonicalFirst(headers, 'phone');
     const statusIdx = resolveIndexCanonicalFirst(headers, 'status');
     if (phoneIdx === -1 || statusIdx === -1) continue;
-    for (let i = 1; i < data.length; i++) {
-      const p = (data[i][phoneIdx] || '').toString().trim();
-      const st = String(data[i][statusIdx] || '').trim();
-      if (p === phone && st !== '' && st !== STATUS_PARTIAL) {
-        return { success: true, isDuplicate: true };
+    const sessionIdx = resolveIndexCanonicalFirst(headers, 'session');
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) continue;
+    const phoneColumn = sheet.getRange(2, phoneIdx + 1, lastRow - 1, 1).getValues();
+    for (let i = 0; i < phoneColumn.length; i++) {
+      const p = String(phoneColumn[i][0] == null ? '' : phoneColumn[i][0]).trim();
+      if (p !== phone) continue;
+      const row = 2 + i;
+      const st = String(sheet.getRange(row, statusIdx + 1).getValue() || '').trim();
+      if (st === '' || st === STATUS_PARTIAL) continue;
+      if (sameSession) {
+        const sid = sessionIdx !== -1
+          ? String(sheet.getRange(row, sessionIdx + 1).getValue() || '').trim()
+          : '';
+        if (sid === sameSession) continue;
       }
+      return { success: true, isDuplicate: true };
     }
   }
   return { success: true, isDuplicate: false };
@@ -1195,13 +1275,20 @@ function confirmBooking(body) {
   if (!isValidAlgerianPhone(body.data && body.data.phone)) return { success: false, error: 'رقم الهاتف غير صالح' };
 
   const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
+  const lockWaitStart = Date.now();
+  try {
+    lock.waitLock(5000);
+  } catch (lockErr) {
+    Logger.log('TIMING v' + CODE_VERSION + ' confirm_booking lock_wait=' + (Date.now() - lockWaitStart) + 'ms TIMEOUT');
+    return busyResponse();
+  }
   let placed = null;
   try {
     /* نفس توجيه update_lead: الصف يُنقل إن انقلب اتجاه فئته، ثم تُكتب
        «مؤكد» في عمود الحالة بالاسم — في التبويب الذي استقر فيه الصف فعلاً.
        أي استثناء هنا يُسجَّل ويُعيد success:false (لا يصل الجلسة أبدًا). */
     placed = updateLeadInternal(body);
+    Logger.log('TIMING v' + CODE_VERSION + ' confirm_booking lock_wait=' + (Date.now() - lockWaitStart) + 'ms acquired');
     if (placed && placed.row !== -1) {
       const statusIdx = resolveIndexCanonicalFirst(getActualHeaders(placed.sheet), 'status');
       if (statusIdx !== -1) {
@@ -1217,22 +1304,14 @@ function confirmBooking(body) {
     lock.releaseLock();
   }
 
-/* Meta CAPI — لا يُفشل التأكيد أبدًا؛ يتجاهل بصمت إن لم تُضبط بيانات Meta.
-      فئة Diamond لا تُرسل: الحكم من «العمر»/«الجاهزية»/«الاستثمار» في
-      الـpayload، وإن غابت فمن الصف المخزَّن (الاسم لا اسم التبويب). */
-   try {
-     if (isDiamondLeadForCAPI(body.data, placed)) {
-       Logger.log('confirmBooking: Skipping Meta CAPI - lead is Diamond (no conversion).');
-
-      return { success: true };
-    }
-    try {
-      sendScheduleToMetaCAPI(body.data, placed);
-    } catch (metaErr) {
-      Logger.log('confirmBooking: Meta call failed silently: ' + metaErr.toString());
-    }
-  } catch (err) {
-    Logger.log('confirmBooking: فشل المسار غير الحرج (Meta) — لا يُفشل التأكيد: ' + err.toString());
+  /* Meta CAPI — آخر خطوة دائمًا داخل try/catch: بطؤه أو فشله لا يغيّر
+     ردَّ النجاح أبدًا (الصف مكتوب وحالته «مؤكد» فعلًا). يبقى معطّلًا كما هو
+     (يعمل فقط عند ضبط META_ACCESS_TOKEN و META_PIXEL_ID) وتبقى قاعدة
+     فئة Diamond كما هي داخل sendScheduleToMetaCAPI. */
+  try {
+    sendScheduleToMetaCAPI(body.data, placed);
+  } catch (metaErr) {
+    Logger.log('confirmBooking: Meta call failed silently: ' + metaErr.toString());
   }
   return { success: true };
 }

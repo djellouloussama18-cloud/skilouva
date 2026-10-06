@@ -36,7 +36,7 @@ module.exports = async function (req, res) {
     return gas.jsonResponse(res, 400, { error: 'Missing session_id' });
   }
 
-  var result = await gas.callGasApp('update_lead', payload);
+  var result = await gas.callGasAppWithRetry('update_lead', payload);
 
   if (!result.ok) {
     return gas.jsonResponse(res, result.statusCode, result.body);

@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/update-lead.js": { "maxDuration": 30 },
+    "api/confirm-booking.js": { "maxDuration": 30 },
+    "api/check-duplicate-phone.js": { "maxDuration": 30 }
+  }
+}

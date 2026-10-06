@@ -41,7 +41,7 @@ module.exports = async function (req, res) {
     return gas.jsonResponse(res, 400, { error: 'Missing data payload' });
   }
 
-  var result = await gas.callGasApp('confirm_booking', payload);
+  var result = await gas.callGasAppWithRetry('confirm_booking', payload);
 
   if (!result.ok) {
     return gas.jsonResponse(res, result.statusCode, result.body);
