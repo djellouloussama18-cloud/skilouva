@@ -2291,14 +2291,12 @@
             if (entry.isIntersecting && !viewContentFired) {
               viewContentFired = true;
               offerViewObserver.disconnect();
-              if (typeof fbq === 'function') {
-                fbq('track', 'ViewContent', {
-                  content_name: 'Closer Bootcamp',
-                  content_category: 'Training Program',
-                  value: 14900,
-                  currency: 'DZD'
-                });
-              }
+              trackMeta('ViewContent', {
+                content_name: 'Closer Bootcamp',
+                content_category: 'Training Program',
+                value: 14900,
+                currency: 'DZD'
+              });
             }
           });
         },
@@ -2309,14 +2307,12 @@
       // No IntersectionObserver: fire only if already in view.
       if (offerSection.getBoundingClientRect().top < window.innerHeight) {
         viewContentFired = true;
-        if (typeof fbq === 'function') {
-          fbq('track', 'ViewContent', {
-            content_name: 'Closer Bootcamp',
-            content_category: 'Training Program',
-            value: 14900,
-            currency: 'DZD'
-          });
-        }
+        trackMeta('ViewContent', {
+          content_name: 'Closer Bootcamp',
+          content_category: 'Training Program',
+          value: 14900,
+          currency: 'DZD'
+        });
       }
     }
   }
@@ -2471,6 +2467,49 @@
     purchaseFired: false
   };
 
+  /* ============================================================
+     META PIXEL — AGE GUARD (step 1 = «أقل من 18 سنة»)
+     ------------------------------------------------------------
+     Anyone who answers «أقل من 18 سنة» in funnel step 1 and continues
+     the funnel must NOT be counted as a conversion in Meta: no Lead,
+     no CompleteRegistration, no Purchase. PageView is deliberately NOT
+     gated — it fires from the base code at page load, before the age
+     is even known.
+
+     isMinorLead() reads the CURRENT answer every single time an event is
+     about to fire — never a cached flag — so going back and switching the
+     age to 18+ restores normal tracking, and an unanswered age returns
+     false (events behave exactly as before the age is known).
+
+     The stored value is the data-value of the option in index.html
+     (step 1, «under-18») — the Arabic label only exists in the payload
+     built for the server (ARABIC_LABELS), never in funnelState.answers.
+     ============================================================ */
+
+  var AGE_STEP_KEY = 'step_1';
+  var AGE_UNDER_18 = 'under-18';
+
+  function isMinorLead() {
+    if (!funnelState || !funnelState.answers) return false;
+    var raw = funnelState.answers[AGE_STEP_KEY];
+    if (raw === undefined || raw === null) return false;
+    return String(raw).trim().toLowerCase() === AGE_UNDER_18;
+  }
+
+  /* Every Meta event in this file goes through here — there is no direct
+     fbq conversion call left outside this wrapper. Returns true only when
+     the event actually reached the pixel, so a caller's own "fired" flag
+     is never consumed by a suppressed event. */
+  function trackMeta(eventName, params) {
+    if (typeof fbq !== 'function') return false;
+    if (isMinorLead()) {
+      console.log('[meta] ' + eventName + ' skipped — step 1 = «أقل من 18 سنة» (not a Meta conversion)');
+      return false;
+    }
+    fbq('track', eventName, params);
+    return true;
+  }
+
   /* --- Progressive-save plumbing --------------------------------
      One session_id per funnel session (generated on open, reused for every
      update_lead call and the final confirm_booking call). update-lead calls
@@ -2544,9 +2583,10 @@
 
     /* Meta Pixel: fire Lead on every genuine funnel open (each open is a
        new lead attempt) — but never twice for the same open, even if
-       openFunnel() is called again while the overlay is already up. */
-    if (!funnelWasOpen && typeof fbq === 'function') {
-      fbq('track', 'Lead', {
+       openFunnel() is called again while the overlay is already up.
+       Suppressed entirely when step 1 is «أقل من 18 سنة» (trackMeta). */
+    if (!funnelWasOpen) {
+      trackMeta('Lead', {
         content_name: 'Closer Bootcamp',
         content_category: 'Training Program'
       });
@@ -2606,16 +2646,15 @@
     /* Meta Pixel: fire CompleteRegistration exactly once, the moment the
        funnel transitions into step 9 (transition screen after the 8th
        qualification question). Guarded by a per-session flag so navigating
-       back and forward again cannot fire it a second time. */
+       back and forward again cannot fire it a second time. The age is known
+       by now, so a minor is skipped here (trackMeta). */
     if (stepNumber === 9 && !funnelState.completeRegistrationFired) {
       funnelState.completeRegistrationFired = true;
-      if (typeof fbq === 'function') {
-        fbq('track', 'CompleteRegistration', {
-          content_name: 'Closer Bootcamp',
-          content_category: 'Training Program',
-          status: 'completed'
-        });
-      }
+      trackMeta('CompleteRegistration', {
+        content_name: 'Closer Bootcamp',
+        content_category: 'Training Program',
+        status: 'completed'
+      });
     }
 
     /* Terminal success step: hide counter/progress */
@@ -2893,10 +2932,10 @@
       'later': '⏳ لا، مازال نحتاج وقت باش نكون جاهز'
     },
     step_8: {
-      'ready': '✅ نعم، مستعد نبدأ',
-      'if-suitable': '👍 نعم، إذا كان البرنامج مناسب لاحتياجاتي',
-      'need-more-info': 'ℹ️ نحتاج نعرف تفاصيل أكثر قبل ما نقرر',
-      'cant-invest': '❌ حاليًا ما نقدرش نستثمر'
+      'ready': '💪 مستعد نستثمر ونبدأ',
+      'if-suitable': '👍 نعم، إذا تأكدت أن البرنامج مناسب ليا',
+      'need-more-info': '🤔 نحتاج تفاصيل أكثر قبل القرار',
+      'cant-invest': '⏳ حاليًا ما نقدرش نستثمر'
     }
   };
 
@@ -3048,15 +3087,17 @@
 
           /* Meta Pixel: fire Purchase only on a confirmed booking — the
              success screen (step 11) is shown right below. Never on the
-             confirm click and never on an error. Once per funnel session. */
-          if (!funnelState.purchaseFired && typeof fbq === 'function') {
-            funnelState.purchaseFired = true;
-            fbq('track', 'Purchase', {
+             confirm click and never on an error. Once per funnel session.
+             A suppressed minor must NOT consume the guard: the flag is set
+             only when the event actually reached the pixel. */
+          if (!funnelState.purchaseFired) {
+            var purchaseTracked = trackMeta('Purchase', {
               value: 14900,
               currency: 'DZD',
               content_name: 'Closer Bootcamp',
               content_type: 'product'
             });
+            if (purchaseTracked) funnelState.purchaseFired = true;
           }
 
           goToStep(11);

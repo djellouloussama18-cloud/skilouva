@@ -7,15 +7,16 @@
  *   check_duplicate_phone -> فحص تكرار الهاتف (مقابل الحالة «مؤكد»)
  *   confirm_booking       -> تأكيد التسجيل (حالة «مؤكد»)
  *
- * الجدول: 14 عمودًا (A → N). لا يوجد عمود لمعرف الجلسة؛
+ * الجدول: 15 عمودًا (A → O). لا يوجد عمود لمعرف الجلسة؛
  * يُخزَّن session_id كـ Developer Metadata على الصف نفسه (مخفي تمامًا
  * ويتحرك مع الصف عند الحذف/الترتيب اليدوي).
- * عمود «العمر» هو العمود E (الخامس). كل كود يتعامل مع ورقة العملاء
- * المحتملين يتعامل مع الأعمدة بالاسم (عبر صف العناوين) لا برقم ثابت،
- * لذلك نقل عمود «العمر» إلى E أو إعادة ترتيب أي عمود آخر لاحقًا لا
- * تتطلّب تعديل الكود. لورقة قائمة بلا ترحيل، عمود العمر يظهر في النهاية
- * ويقرأ/يكتب صحيحًا بالاسم؛ الترتيب النهائي يتم عبر
- * `migrateAddAgeColumn()` (تشغيل يدوي مرة واحدة).
+ * عمود «العمر» هو العمود E (الخامس)، وعمود «Prêt à démarrer» (الجاهزية
+ * للبدء) هو العمود K. كل كود يتعامل مع التبويبات يتعامل مع الأعمدة
+ * بالاسم (عبر صف العناوين) لا برقم ثابت، لذلك نقل عمود أو إعادة ترتيب
+ * لاحقًا لا تتطلّب تعديل الكود. لتبويب قائم بلا ترحيل، العمودان الجديدان
+ * يظهران في النهاية ويُقرآن/يُكتبان صحيحًا بالاسم؛ الترتيب النهائي يتم
+ * عبر `migrateAddAgeColumn()` و`migrateAddReadinessColumn()`
+ * (تشغيل يدوي مرة واحدة).
  *
  * عمود «Plus grand défi» (الحقل `mainChallenge`) **حُذف** مع سؤاله من
  * القمع: لا يدخل FIELD_MAP ولا في LEADS_HEADERS، فلا يُكتب ولا يُقرأ
@@ -28,19 +29,101 @@
  * في PROTECTED_HEADERS، فلا يُكتب ولا يُقرأ ولا يُطلب بعد الآن. أي
  * payload قديم يرسل المفتاح (تبويب مخبأ قديم) يُتجاهل بصمت.
  * لإزالته من الورقة الحية شغّل `migrateRemoveContactMethodColumn()` مرة
- * واحدة (تنسخه لورقة احتياطية أولًا). الترتيب النهائي بعدها:
- * Statut في M و Closer في N.
+ * واحدة (تنسخه لورقة احتياطية أولًا). الترتيب النهائي بعدها (مع العمود
+ * الجديد «Prêt à démarrer»): Statut في N و Closer في O.
+ *
+ * ----------------------------------------------------------------------------
+ * تبويبا الفئة: VIP و Diamond — طبقة التوجيه لكل lead
+ * ----------------------------------------------------------------------------
+ * كل lead يُوجَّه إلى أحد تبويبين، كلاهما بنفس ترويسات LEADS_HEADERS
+ * (بالترتيب نفسه + صفّ عناوين مُثبَّت)، وكل الأعمدة تُقرأ وتُكتب بالاسم:
+ *   - VIP: كل lead لا يدخل أي شرط «Diamond» (القاعدة الافتراضية).
+ *   - Diamond: lead عمره أقل من 18 سنة، أو أجاب في الخطوة 7 «لا، مازال
+ *     نحتاج وقت باش نكون جاهز»، أو في الخطوة 8 «حاليًا ما نقدرش نستثمر».
+ *     أي قيمة أخرى (جاهز، جاهز مع توجيه، يحتاج تفاصيل، قيمة غير معروفة)
+ *     لا تدفع نحو Diamond أبدًا.
+ *
+ * الاسم الجديد مفضَّل (VIP / Diamond)؛ الاسم القديم مقبول **للقراءة فقط**
+ * (العملاء المحتملون و Moins de 18 ans) حتى يسبق ترحيل التسمية. أي وصول
+ * للتبويبات يمرّ عبر findTierSheet()/getTierSheet() حصريًا — لا
+ * getSheetByName بالمباشر — فيُقرأ الاسم الجديد أولًا ثم القديم، ولا يُنشأ
+ * تبويب مكرر أبدًا (الإنشاء دائمًا بالاسم الجديد).
+ *
+ * التوجيه في update_lead / confirm_booking:
+ *   - قيم الطبقة الثلاث (العمر / الجاهزية للبدء / الاستثمار) تُقارن دائمًا
+ *     مدموجة: القيمة الواردة غير الفارغة تغلب على القيمة المخزَّنة (تُقرأ
+ *     بالاسم من الصف الحالي). القرار عبر `decideTier()` نقطة واحدة في
+ *     الملف كله.
+ *   - غياب الحقول الثلاثة كليًا ليس سببًا للنقل أبدًا: جلسة جديدة → VIP،
+ *     وصف موجود يبقى مكانه.
+ *   - المستخدم رجع وغيّر إحدى الإجابات فانقلب اتجاه الفئة → الصف **يُنقل**:
+ *     يُكتب الصف المدموج في التبويب الصحيح (مع معرّف الجلسة) ثم يُحذف
+ *     القديم، فلا تبقى الجلسة موجودة في التبويبين معًا أبدًا. كل ذلك داخل
+ *     القفل نفسه.
+ * check_duplicate_phone يفحص التبويبين بنفس القاعدة الأصلية: الحالة غير
+ * الفارغة وليست «جزئي» (أي «مؤكد» وأي حالة أخرى مُدخلة يدويًا).
+ *
+ * الترحيل اليدوي مرة واحدة (الأسماء القديمة تظهر للأسباب التاريخية):
+ *   - migrateRenameTierSheets()   — «العملاء المحتملون» → VIP،
+ *     «Moins de 18 ans» → Diamond (لا يلمس البيانات إطلاقًا).
+ *   - migrateMinorsToSeparateSheet() — ينقل كل صف «أقل من 18 سنة» من تبويب
+ *     الفئة الحالي إليه (نسخة احتياطية أولًا)؛ يعمل حتى لو لم تُشغَّل
+ *     إعادة التسمية بعد.
+ *   - migrateAddReadinessColumn() — يثبّت «Prêt à démarrer» قبل
+ *     «Prêt à investir» في كل تبويب فئة موجود.
  *
  * النشر: الصق الملف كاملًا مكان الكود القديم، اضبط Script Property
  * GAS_SHARED_SECRET، ثم أعد نشر Web App بنفس الرابط.
+ * بعد النشر شغّل مرة واحدة (بالمحرر): migrateRenameTierSheets() ثم
+ * migrateAddReadinessColumn()، ثم runSheetDiagnostics() للتحقق.
  * ============================================================================
  */
 
-const SHEET_LEADS_NAME = 'العملاء المحتملون';
+/* أسماء تبويبي الفئة: الجديدة (VIP / Diamond) + الأسماء القديمة.
+   الأسماء القديمة مقبولة للقراءة فقط — كتابة الاسم الجديد إلزامي:
+   كل إنشاء يتم عبر getTierSheet() بالاسم الجديد حصرًا، فلا يُنشأ تبويب
+   مكرر أبدًا ما دام أحد الأسماء القديمة موجودًا. */
+const VIP_SHEET_NAME = 'VIP';
+const DIAMOND_SHEET_NAME = 'Diamond';
+const LEGACY_LEADS_SHEET_NAME = 'العملاء المحتملون';
+const LEGACY_MINORS_SHEET_NAME = 'Moins de 18 ans';
 
-/* عمود العمر: اسمه وهدفه. الترتيب أدناه مطابق تمامًا لورقة العملاء. */
+/* مواصفات الفئتين: sheet = الاسم الجديد؛ legacyNames = أسماء قديمة
+   نبحث عنها إن لم يوجد الجديد (لا نُنشئ مكررًا). */
+const TIER_SHEET_SPECS = [
+  { sheet: VIP_SHEET_NAME, legacyNames: [LEGACY_LEADS_SHEET_NAME] },
+  { sheet: DIAMOND_SHEET_NAME, legacyNames: [LEGACY_MINORS_SHEET_NAME] }
+];
+const VIP_SPEC = TIER_SHEET_SPECS[0];
+const DIAMOND_SPEC = TIER_SHEET_SPECS[1];
+
+/* بادئة ورقة النسخة الاحتياطية قبل نقل الصفوف القديمة «أقل من 18 سنة»
+   (تُضاف طابعًا زمنيًا تلقائيًا إذا كان الاسم مستعملًا). */
+const MINORS_BACKUP_PREFIX = '_backup_before_minors_split';
+
+/* عمود العمر: اسمه وهدفه. الترتيب أدناه مطابق تمامًا لتبويبي الفئة. */
 const LEAD_AGE_HEADER = 'العمر';
 const LEADS_AGE_TARGET_COL = 5;   // العمود E
+
+/* عمود «الجاهزية للبدء» (الخطوة 7، الحقل `readinessToStart`): تحتسِب في
+   طبقة الفئة عبر decideTier(). اسمه بالفرنسية مثل بقية الأعمدة، ويُطابق
+   على نصوص الواجهة العربية (plus الـslugs) عبر normalizeChoice(). */
+const READINESS_HEADER = 'Prêt à démarrer';
+
+/* --- قيمة «أقل من 18 سنة» ----------------------------------------------
+   المرجع الوحيد الذي يطابق عليه هذا الملف.
+
+   1) ما يرسله الواجهة فعليًا في `ageRange`: js/main.js يترجم الـslug
+      (data-value="under-18" في index.html) إلى التسمية العربية التي رآها
+      المستخدم، عبر ARABIC_LABELS.step_1 في buildLeadPayload.
+      وهذه هي القيمة التي تُخزَّن في عمود «العمر» وتُقرأ في الترحيل.
+   2) الـslug نفسه ('under-18') مقبول احتياطًا لو تغيّرت الواجهة يومًا
+      فأرسلت القيمة الخام بدل التسمية.
+
+   أي قيمة أخرى (بما فيها الفراغ و'18-24') = لست قاصرًا. */
+const MINOR_AGE_RANGE_LABEL = '🎒 أقل من 18 سنة';
+const MINOR_AGE_RANGE_SLUG = 'under-18';
+const MINOR_AGE_RANGE_VALUES = [MINOR_AGE_RANGE_SLUG, MINOR_AGE_RANGE_LABEL];
 
 /* عمود «أكبر تحدي» المحذوف: كل الأسماء التي قد تظهر في صف العناوين
    (الاسم الحالي بالفرنسية، الاسم العربي القديم، وكل صيغه بحالة مختلفة).
@@ -82,10 +165,11 @@ const LEADS_HEADERS = [
   "Niveau d'expérience",          // H
   'Compétence souhaitée',         // I
   'Temps disponible par semaine', // J
-  'Prêt à investir',              // K
-  'Remarque',                     // L
-  'Statut',                       // M (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
-  'Closer'                        // N (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
+  READINESS_HEADER,               // K (الجاهزية للبدء — الخطوة 7، تحتسِب في طبقة الفئة)
+  'Prêt à investir',              // L (الاستثمار — الخطوة 8، تحتسِب في طبقة الفئة)
+  'Remarque',                     // M
+  'Statut',                       // N (قائمة منسدلة: جزئي/مؤكد/لم يرد 1-3/تم الدفع/ملغى)
+  'Closer'                        // O (قائمة منسدلة يدوية — السكربت لا يكتب فيها)
 ];
 
 /* كل عنوان يُقبل بالفرنسية أو بالعربية (القديمة) — الترتيب لا يهم */
@@ -99,7 +183,7 @@ const STATUS_CONFIRMED = 'مؤكد';
 const SESSION_META_KEY = 'skillova_session_id';
 
 /* أسماء خصائص funnelState (camelCase) -> اسم العمود في الورقة.
-   ترتيب المدخلات هنا مطابق لترتيب الأعمدة في الورقة (A → N) لسهولة القراءة
+   ترتيب المدخلات هنا مطابق لترتيب الأعمدة في الورقة (A → O) لسهولة القراءة
    فقط؛ لا يعتمد عليه أي كود (البحث يتم بالاسم عبر صف العناوين).
    كل الأعمدة بالفرنسية عدا «العمر» (عمود جديد، اسمُه عربي كما هو مطلوب).
    أعمدة Date / Statut / Closer ليست هنا: Date يُكتب بالتاريخ الحالي،
@@ -116,6 +200,7 @@ const FIELD_MAP = {
   experienceLevel:     "Niveau d'expérience",
   skillInterest:       'Compétence souhaitée',
   weeklyTime:          'Temps disponible par semaine',
+  readinessToStart:    READINESS_HEADER,
   investmentReadiness: 'Prêt à investir',
   notes:               'Remarque'
 };
@@ -135,6 +220,7 @@ const LEGACY_AR = {
   experienceLevel:     ['مستوى الخبرة'],
   skillInterest:       ['المهارة المطلوبة'],
   weeklyTime:          ['الوقت الأسبوعي المتاح'],
+  readinessToStart:    ['الجاهزية للبدء'],
   investmentReadiness: ['جاهزية الاستثمار', 'الجاهزية للاستثمار', 'الاستعداد للاستثمار'],
   notes:               ['ملاحظة', 'الملاحظة']
 };
@@ -200,6 +286,100 @@ function columnIndexInRow(headers, names) {
   return indexOfAny(headers, names);
 }
 
+/* --- فحص «أقل من 18 سنة» — نقطة مقارنة واحدة في الملف كله --------------
+   تتحمّل المسافات وحالة الأحرف وتشكيل الحروف العربية والفواصل والإيموجي،
+   فأي قيمة من الواجهة أو من لوحة المفاتيح تُطابَق. لا تُنسَخ هذه المقارنة
+   في أي مكان آخر من الملف: استعمل isMinorAgeRange() فقط. */
+function normalizeAgeRangeValue(value) {
+  return String(value == null ? '' : value)
+    .replace(/[\u0640-\u065F\u0670\u200C\u200D\u2060\uFE0E\uFE0F\uFEFF]/g, '') /* تطويل/تشكيل/رابط/VS */
+    .replace(/[أإآٱ]/g, 'ا')                        /* أنواع الألف -> ا */
+    .replace(/[ىی]/g, 'ي')                             /* ى/ی -> ي */
+    .replace(/ة/g, 'ه')                                /* التاء المربوطة -> ه */
+    .toLowerCase()
+    .replace(/[^0-9A-Za-z\u0621-\u064A\u0660-\u0669]+/g, '') /* يُبقي الحروف والأرقام فقط */
+    .replace(/^[\s]+|[\s]+$/g, '');
+}
+
+/* true فقط لإجابة «أقل من 18 سنة». يُستعمل في:
+   update_lead (توجيه الفئة) + confirm_booking + الترحيل اليدوي. */
+function isMinorAgeRange(value) {
+  const normalized = normalizeAgeRangeValue(value);
+  if (!normalized) return false;
+  for (let i = 0; i < MINOR_AGE_RANGE_VALUES.length; i++) {
+    if (normalized === normalizeAgeRangeValue(MINOR_AGE_RANGE_VALUES[i])) return true;
+  }
+  return false;
+}
+
+/* --- طبقة الفئة (VIP / Diamond): نقطة قرار واحدة في الملف كله --------------
+   Diamond = قاصر، أو «غير جاهز للبدء» (الخطوة 7)، أو «لا يستطيع الاستثمار
+   الآن» (الخطوة 8). أي قيمة أخرى — جاهز/جاهز مع توجيه/يحتاج تفاصيل/غريبة —
+   لا تدفع نحو Diamond أبدًا. الـslugs تُقبل احتياطًا (translateLabel في
+   الواجهة يعود للـslug عند فشل الترجمة إلى العربية). */
+
+const READINESS_LATER_LABEL = '⏳ لا، مازال نحتاج وقت باش نكون جاهز';
+const READINESS_LATER_SLUG = 'later';
+const READINESS_DIAMOND_VALUES = [READINESS_LATER_SLUG, READINESS_LATER_LABEL];
+
+const INVESTMENT_CANT_LABEL = '⏳ حاليًا ما نقدرش نستثمر';
+const INVESTMENT_CANT_LEGACY = '❌ حاليًا ما نقدرش نستثمر';   /* صيغة قديمة */
+const INVESTMENT_CANT_SLUG = 'cant-invest';
+const INVESTMENT_DIAMOND_VALUES = [INVESTMENT_CANT_SLUG, INVESTMENT_CANT_LABEL, INVESTMENT_CANT_LEGACY];
+
+/* تطبيع خيارات الخطوة 7/8 للمطابقة: إزالة الإيموجي والتشكيل وعلامات الربط،
+   توحيد الألف (أ إ آٱ -> ا) والياء (ى ی -> ي) والتاء المربوطة (ة -> ه)،
+   خفض حالة الأحرف، وتقليص المسافات. نفس فلسفة normalizeAgeRangeValue لكن
+   مع الإبقاء على فراغات الكلمات مفصولة. */
+function normalizeChoice(value) {
+  return String(value == null ? '' : value)
+    .replace(/[\u0640-\u065F\u0670\u200C\u200D\u2060\uFE0E\uFE0F\uFEFF]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/[ىی]/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .toLowerCase()
+    .replace(/[^0-9a-z\u0621-\u064A\u0660-\u0669]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/* true إذا كانت القيمة تطابق أحد عناصر القائمة (بعد التطبيع) */
+function matchesChoice(value, list) {
+  if (value == null || String(value).trim() === '') return false;
+  const n = normalizeChoice(value);
+  if (!n) return false;
+  for (let i = 0; i < list.length; i++) {
+    if (normalizeChoice(list[i]) === n) return true;
+  }
+  return false;
+}
+
+/* يقرّر فئة الجلسة من القيم المدموجة (الواردة غير الفارغة تغلب على المخزَّنة)
+   { ageRange, readinessToStart, investmentReadiness } -> 'VIP' | 'Diamond' |
+   null. null = لا معلومة في الحقول الثلاثة: جلسة جديدة تذهب VIP، والصف
+   الموجود يبقى مكانه (لا نقل بسبب حقل ناقص). */
+function decideTier(values) {
+  const age = values && values.ageRange;
+  const ready = values && values.readinessToStart;
+  const invest = values && values.investmentReadiness;
+  const hasAny = String(age == null ? '' : age).trim() !== '' ||
+    String(ready == null ? '' : ready).trim() !== '' ||
+    String(invest == null ? '' : invest).trim() !== '';
+  if (!hasAny) return null;
+  if (isMinorAgeRange(age)) return DIAMOND_SHEET_NAME;
+  if (matchesChoice(ready, READINESS_DIAMOND_VALUES)) return DIAMOND_SHEET_NAME;
+  if (matchesChoice(invest, INVESTMENT_DIAMOND_VALUES)) return DIAMOND_SHEET_NAME;
+  return VIP_SHEET_NAME;
+}
+
+/* مواصفات فئة من اسمها (VIP/Diamond) — للوصول إلى getTierSheet() */
+function tierSheetSpecFor(tierName) {
+  for (let i = 0; i < TIER_SHEET_SPECS.length; i++) {
+    if (TIER_SHEET_SPECS[i].sheet === tierName) return TIER_SHEET_SPECS[i];
+  }
+  return null;
+}
+
 /* 1 -> A, 2 -> B, ... 26 -> Z, 27 -> AA (للسجلات فقط) */
 function colLetter(col) {
   let s = '';
@@ -257,11 +437,12 @@ function jsonOut(obj) {
    قائمة، ويضيف العمود الجديد كعمود فارغ في النهاية.
 
    لا تعيد كتابة صف العناوين إطلاقًا ولا تحرّك أي عمود قائم: الترتيب
-   النهائي (وضع «العمر» في العمود E) من مسؤولية `migrateAddAgeColumn()`
-   فقط، لأنها عملية يدوية تُشغَّل مرة واحدة. قبل تشغيلها يمكن أن يظهر عمود
-   «العمر» في نهاية الورقة — وهذا آمن تمامًا لأن كل الكتابة بالاسم.
+   النهائي (وضع «العمر» في العمود E و«Prêt à démarrer» قبل «Prêt à
+   investir») من مسؤولية `migrateAddAgeColumn()` و`migrateAddReadinessColumn()`
+   فقط، لأنها عمليات يدوية تُشغَّل مرة واحدة. قبل تشغيلها يمكن أن يظهر
+   العمودان في نهاية الورقة — وهذا آمن تمامًا لأن كل الكتابة بالاسم.
 
-   يُستدعى دائمًا من getLeadsSheet() قبل القراءة/الكتابة.
+   يُستدعى دائمًا من getTierSheet() قبل القراءة/الكتابة.
 
    * ملاحظة: لأن العمودين «Plus grand défi» و«Moyen de contact préféré» خرجا من
    * LEADS_HEADERS (وFIELD_MAP)، فإن هذه الدالة **لن تعيد إنشاءهما** على ورقة
@@ -279,15 +460,45 @@ function ensureHeaders(sheet) {
     Logger.log('ensureHeaders: عمود «' + LEAD_AGE_HEADER + '» في عمود ' + (lastCol + missing.indexOf(LEAD_AGE_HEADER) + 1) +
       ' وليس العمود ' + LEADS_AGE_TARGET_COL + ' — شغّل migrateAddAgeColumn() مرة واحدة لنقله إلى E.');
   }
+  if (missing.indexOf(READINESS_HEADER) !== -1) {
+    Logger.log('ensureHeaders: عمود «' + READINESS_HEADER + '» أُضيف في النهاية — شغّل ' +
+      'migrateAddReadinessColumn() مرة واحدة لوضعه مباشرة قبل «Prêt à investir».');
+  }
 }
 
-function getLeadsSheet() {
+/* --- تبويبا الفئة (VIP / Diamond) ------------------------------------------
+   نفس ترويسات LEADS_HEADERS بالترتيب نفسه في التبويبين، وتُنشأ تلقائيًا عند
+   أول lead يستهدفها. findTierSheet() = قراءة فقط (الاسم الجديد أولًا ثم
+   الأسماء القديمة)؛ getTierSheet() = قراءة أو إنشاء، والإنشاء دائمًا
+   بالاسم الجديد حصرًا فلا يُنشأ تبويب مكرر أبدًا ما دام أحد الأسماء
+   القديمة موجودًا. */
+function findTierSheet(spec) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_LEADS_NAME);
-  if (!sheet) sheet = ss.insertSheet(SHEET_LEADS_NAME);
-  if (sheet.getLastRow() === 0) {
-    /* ورقة جديدة تمامًا: تُكتب الترويسات بالترتيب الجديد (العمر في E) */
+  let sheet = ss.getSheetByName(spec.sheet);
+  if (sheet) return sheet;
+  for (let i = 0; i < spec.legacyNames.length; i++) {
+    sheet = ss.getSheetByName(spec.legacyNames[i]);
+    if (sheet) return sheet;
+  }
+  return null;
+}
+
+function getTierSheet(spec) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = findTierSheet(spec);
+  if (!sheet) {
+    sheet = ss.insertSheet(spec.sheet);
     sheet.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
+    if (spec.sheet !== VIP_SHEET_NAME) copyLeadsHeaderFormat(findTierSheet(VIP_SPEC), sheet);
+    sheet.setFrozenRows(1);
+    Logger.log('getTierSheet: أُنشئت ورقة "' + spec.sheet + '" بترويسات LEADS_HEADERS (' +
+      LEADS_HEADERS.length + ' عمودًا، «' + LEAD_AGE_HEADER + '» = ' + colLetter(LEADS_AGE_TARGET_COL) + ').');
+    return sheet;
+  }
+  if (sheet.getLastRow() === 0) {
+    /* ورقة موجودة لكن فارغة تمامًا: تُكتب الترويسات بالترتيب نفسه */
+    sheet.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
+    if (spec.sheet !== VIP_SHEET_NAME) copyLeadsHeaderFormat(findTierSheet(VIP_SPEC), sheet);
     sheet.setFrozenRows(1);
   } else {
     ensureHeaders(sheet);
@@ -300,7 +511,34 @@ function getActualHeaders(sheet) {
   return readLeadHeaders(sheet);
 }
 
-/* يعيد رقم الصف المرتبط بـ session_id أو -1 */
+/* كل أسماء تبويبات الفئة الممكنة (الجديد + القديم، بلا تكرار) — للبحث
+   في findLeadRowBySession و checkDuplicatePhone. */
+function tierSheetLookupNames() {
+  const names = [];
+  for (let i = 0; i < TIER_SHEET_SPECS.length; i++) {
+    const spec = TIER_SHEET_SPECS[i];
+    if (names.indexOf(spec.sheet) === -1) names.push(spec.sheet);
+    for (let j = 0; j < spec.legacyNames.length; j++) {
+      if (names.indexOf(spec.legacyNames[j]) === -1) names.push(spec.legacyNames[j]);
+    }
+  }
+  return names;
+}
+
+/* مطابقة تنسيق صف العناوين مع الورقة الرئيسية (بلا fatal إن تعذّر) */
+function copyLeadsHeaderFormat(fromSheet, toSheet) {
+  if (!fromSheet || !toSheet) return;
+  try {
+    fromSheet.getRange(1, 1, 1, Math.max(fromSheet.getLastColumn(), 1))
+      .copyTo(toSheet.getRange(1, 1, 1, LEADS_HEADERS.length), CopyPasteType.PASTE_FORMAT, false);
+  } catch (err) {
+    Logger.log('copyLeadsHeaderFormat: تعذّر نسخ تنسيق الترويسة (غير مهم): ' + err.toString());
+  }
+}
+
+/* يعيد رقم الصف المرتبط بـ session_id أو -1.
+   DeveloperMetadata.getLocation() تُرجع Range، وRange.getRow() تُرجع رقمًا
+   (وليس Range) — لذلك تُستدعى getRow() مرة واحدة على النطاق مباشرة. */
 function findRowBySessionId(sheet, sessionId) {
   if (!sessionId) return -1;
   const found = sheet.createDeveloperMetadataFinder()
@@ -308,8 +546,10 @@ function findRowBySessionId(sheet, sessionId) {
     .withValue(String(sessionId))
     .find();
   for (let i = 0; i < found.length; i++) {
-    const rowRange = found[i].getLocation().getRow();
-    if (rowRange) return rowRange.getRow();
+    const location = found[i].getLocation();
+    if (!location) continue;
+    const row = location.getRow();
+    if (row) return row;
   }
   return -1;
 }
@@ -318,6 +558,116 @@ function findRowBySessionId(sheet, sessionId) {
 function tagRowWithSession(sheet, row, sessionId) {
   if (!sessionId) return;
   sheet.getRange(row + ':' + row).addDeveloperMetadata(SESSION_META_KEY, String(sessionId));
+}
+
+/* --- الجلسة عبر تبويبي الفئة (VIP + Diamond، بالاسمين الجديد والقديم) ----
+   يُرجع { sheet, row } أو null. لا يُنشئ أي ورقة: البحث فقط. */
+function findLeadRowBySession(sessionId) {
+  if (!sessionId) return null;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const names = tierSheetLookupNames();
+  for (let i = 0; i < names.length; i++) {
+    const sheet = ss.getSheetByName(names[i]);
+    if (!sheet) continue;
+    const row = findRowBySessionId(sheet, sessionId);
+    if (row !== -1) return { sheet: sheet, row: row };
+  }
+  return null;
+}
+
+/* كل معرّفات الجلسات في الورقة: { رقم الصف: session_id } — للترحيل اليدوي */
+function listSessionIdsByRow(sheet) {
+  const map = {};
+  const found = sheet.createDeveloperMetadataFinder().withKey(SESSION_META_KEY).find();
+  for (let i = 0; i < found.length; i++) {
+    const loc = found[i].getLocation();
+    if (!loc) continue;
+    map[loc.getRow()] = String(found[i].getValue() == null ? '' : found[i].getValue());
+  }
+  return map;
+}
+
+/* --- قراءة/كتابة صفوف lead بالاسم (بلا أي رقم عمود ثابت) --------------
+   valueMapKeyForHeader: مفتاح موحَّد لكل عمود — «مفتاح payload» للأعمدة
+   القابلة للكتابة (fullName, phone …) و«اسم العمود» لبقية الأعمدة
+   (Date, Statut, Closer). بنفسه يُقرأ من ورقة وبُكتب في أخرى، فالورقتان
+   لا تحتاجان حتى أن يتطابق ترتيبهما أو عدد أعمدتهما. */
+function valueMapKeyForHeader(header) {
+  const key = getPayloadKeyForHeader(header);
+  return key ? 'p:' + key : 'h:' + String(header == null ? '' : header).trim();
+}
+
+/* خريطة قيم صف واحد: { valueMapKeyForHeader: value } */
+function readRowValueMap(sheet, row) {
+  const headers = getActualHeaders(sheet);
+  if (row < 1 || row > sheet.getLastRow()) return {};
+  const values = sheet.getRange(row, 1, 1, headers.length).getValues()[0];
+  const map = {};
+  headers.forEach(function (h, i) { map[valueMapKeyForHeader(h)] = values[i]; });
+  return map;
+}
+
+/* قيمة payload واحدة بعد sanitizeValue (نفس قاعدة الفراغ المتروك) */
+function buildCombinedValues(data) {
+  const combined = {};
+  Object.keys(FIELD_MAP).forEach(function (key) {
+    combined[key] = sanitizeValue(data[key] || '');
+  });
+  return combined;
+}
+
+/* تملأ مصفوفة صف بقيم الخريطة (الفارغ/null لا يكتب فوق الموجود) */
+function applyValueMapToRow(headers, rowValues, map) {
+  if (!map) return;
+  headers.forEach(function (h, idx) {
+    const k = valueMapKeyForHeader(h);
+    if (!Object.prototype.hasOwnProperty.call(map, k)) return;
+    const v = map[k];
+    if (v === '' || v === null || v === undefined) return;
+    rowValues[idx] = v;
+  });
+}
+
+/* قيم الـpayload غير الفارغة فقط تغلب على الموجود (تحديث تدريجي) */
+function applyCombinedToRow(headers, rowValues, combined) {
+  headers.forEach(function (h, idx) {
+    const key = getPayloadKeyForHeader(h);
+    if (key && combined[key]) rowValues[idx] = combined[key];
+  });
+}
+
+/* خلية فارغة (تعامل المعالجة الذكية للقيم الفارغة بنفس المبدأ) */
+function isEmptyCell(value) {
+  return value === '' || value === null || value === undefined;
+}
+
+/* يكتب صف lead في الورقة حسب أسماء الأعمدة ويعيد رقم الصف.
+   row = -1  -> صف جديد في النهاية (تاريخ من الخادم + حالة «جزئي»).
+   row >= 1  -> تحديث ذلك الصف: تاريخه وحالته محفوظان كما هما.
+   valueMap  -> قيم محفوظة من صف سابق (تُستعمل عند النقل من تبويب لآخر).
+
+   ملاحظة أثناء النقل: القيم المحفوظة (Date / Statut / Closer …) تُطبَّق
+   أولًا على الصف الجديد، ثم تُملأ القيم الافتراضية (الآن / جزئي) فقط إن
+   بقيت خلاياها فارغة — فلا تُفقد حالة «مؤكد» أو تاريخ الصف الأصلي عند
+   نقل صف من تبويب الفئة إلى الآخر. */
+function writeLeadRow(sheet, row, valueMap, combined, sessionId) {
+  const headers = getActualHeaders(sheet);
+  const rowValues = row === -1
+    ? new Array(headers.length).fill('')
+    : sheet.getRange(row, 1, 1, headers.length).getValues()[0];
+  applyValueMapToRow(headers, rowValues, valueMap);
+  applyCombinedToRow(headers, rowValues, combined);
+
+  if (row === -1) {
+    const dateIdx = columnIndexInRow(headers, DATE_HEADERS);
+    const statusIdx = columnIndexInRow(headers, STATUS_HEADERS);
+    if (dateIdx !== -1 && isEmptyCell(rowValues[dateIdx])) rowValues[dateIdx] = new Date();
+    if (statusIdx !== -1 && isEmptyCell(rowValues[statusIdx])) rowValues[statusIdx] = STATUS_PARTIAL;
+  }
+  const target = row === -1 ? sheet.getLastRow() + 1 : row;
+  sheet.getRange(target, 1, 1, headers.length).setValues([rowValues]);
+  tagRowWithSession(sheet, target, sessionId);
+  return target;
 }
 
 /* ==========================================================
@@ -329,22 +679,21 @@ function updateLead(body) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    return updateLeadInternal(body);
+    updateLeadInternal(body);
   } finally {
     lock.releaseLock();
   }
+  return { success: true };
 }
 
-/* بدون قفل — تُستدعى من داخل دوال تمتلك القفل أصلًا */
+/* بلا قفل — تُستدعى من داخل دوال تمتلك القفل أصلًا.
+   ترجع موضع الصف { sheet, row } ليسهل على confirm_booking كتابة الحالة فيه،
+   دون كشف أي شيء في الردّ المرجوع للواجهة. */
 function updateLeadInternal(body) {
-  const sheet = getLeadsSheet();
   const sessionId = body.session_id;
   const data = body.data || {};
-
-  const combined = {};
-  Object.keys(FIELD_MAP).forEach(function (key) {
-    combined[key] = sanitizeValue(data[key] || '');
-  });
+  const combined = buildCombinedValues(data);
+  const existing = findLeadRowBySession(sessionId);
 
   /* كل الحقول اختيارية: أي مفتاح غائب في data أو فارغ لا يُكتب ولا يُخطئ.
      «العمر» تحديدًا اختياري ولا يُتحقَّق منه إطلاقًا (لا في update_lead ولا
@@ -352,32 +701,70 @@ function updateLeadInternal(body) {
 
      الكتابة بالاسم لا بالترتيب: نبني صفًا بطول صف العناوين الفعلي ونملؤه
      حسب اسم كل عمود، لذلك لا يمكن أن تُكتب قيمة في العمود الخطأ مهما كان
-     ترتيب الأعمدة في الورقة. */
-  const actualHeaders = getActualHeaders(sheet);
-  const row = findRowBySessionId(sheet, sessionId);
+     ترتيب الأعمدة في التبويب.
 
-  if (row === -1) {
-    const newRow = new Array(actualHeaders.length).fill('');
-    actualHeaders.forEach(function (header, idx) {
-      const key = getPayloadKeyForHeader(header);
-      if (key && combined[key]) newRow[idx] = combined[key];
-    });
-    const dateIdx = columnIndexInRow(actualHeaders, DATE_HEADERS);
-    const statusIdx = columnIndexInRow(actualHeaders, STATUS_HEADERS);
-    if (dateIdx !== -1) newRow[dateIdx] = new Date();
-    if (statusIdx !== -1) newRow[statusIdx] = STATUS_PARTIAL;
-    const target = sheet.getLastRow() + 1;
-    sheet.getRange(target, 1, 1, actualHeaders.length).setValues([newRow]);
-    tagRowWithSession(sheet, target, sessionId);
+     توجيه الفئة: قيم الطبقة الثلاث (العمر / الجاهزية للبدء / الاستثمار)
+     تُدمج — الواردة غير الفارغة تغلب على المخزَّن (يُقرأ من الصف الحالي
+     بالاسم) — ويقرّرها decideTier() بضربة واحدة: أي شرط Diamond -> Diamond،
+     وعداه -> VIP. غياب الحقول الثلاثة كليًا ليس سببًا للنقل أبدًا:
+     جلسة جديدة -> VIP، وصف موجود يبقى مكانه. */
+  const storedMap = existing ? readRowValueMap(existing.sheet, existing.row) : {};
+  const tier = decideTier(mergedTierInputs(data, storedMap));
+  let targetSheet;
+  if (tier) {
+    targetSheet = getTierSheet(tierSheetSpecFor(tier));
+  } else if (existing) {
+    targetSheet = existing.sheet;          // الصف يبقى مكانه
   } else {
-    const rowValues = sheet.getRange(row, 1, 1, actualHeaders.length).getValues()[0];
-    actualHeaders.forEach(function (header, idx) {
-      const key = getPayloadKeyForHeader(header);
-      if (key && combined[key]) rowValues[idx] = combined[key];
-    });
-    sheet.getRange(row, 1, 1, actualHeaders.length).setValues([rowValues]);
+    targetSheet = getTierSheet(VIP_SPEC);
   }
-  return { success: true };
+
+  /* المقارنة بالاسم لا بمرجع الكائن: Sheets يستعيد غلافًا جديدًا في كل
+     getSheetByName، فقد لا يتساوى مرجعان لنفس التبويب. */
+  const sameSheet = !!(existing && existing.sheet.getName() === targetSheet.getName());
+
+  if (sameSheet) {
+    const row = writeLeadRow(targetSheet, existing.row, null, combined, sessionId);
+    return { sheet: targetSheet, row: row };
+  }
+
+  /* --- نقل: تغيّرت شروط الفئة (العمر/الجاهزية/الاستثمار)، فالصف موجود في
+     التبويب الخطأ -----------------------------------------------------
+     الترتيب مقصود: نكتب المدموج في التبويب الصحيح (بالأسماء + معرّف
+     الجلسة) ثم نحذف القديم. أي خطأ في الكتابة يوقف العملية قبل الحذف. */
+  const sourceValues = existing ? readRowValueMap(existing.sheet, existing.row) : {};
+  const duplicatedRow = existing ? findRowBySessionId(targetSheet, sessionId) : -1;
+  let newRow;
+  try {
+    newRow = writeLeadRow(targetSheet, duplicatedRow === -1 ? -1 : duplicatedRow, sourceValues, combined, sessionId);
+  } catch (moveErr) {
+    Logger.log('updateLeadInternal: فشل نقل الصف إلى "' + targetSheet.getName() + '" — لم يُحذف الصف القديم: ' +
+      moveErr.toString());
+    throw moveErr;
+  }
+  if (existing) {
+    existing.sheet.deleteRow(existing.row);
+    Logger.log('updateLeadInternal: تغيّرت شروط الفئة — نُقل صف الجلسة ' + sessionId + ' من "' +
+      existing.sheet.getName() + '" (الصف ' + existing.row + ') إلى "' + targetSheet.getName() + '" (الصف ' + newRow + ')' +
+      (duplicatedRow !== -1 ? ' (استُبدل صف موجود مسبقًا في التبويب الهدف)' : '') + '.');
+  }
+  return { sheet: targetSheet, row: newRow };
+}
+
+/* قيم الطبقة الثلاث المدموجة من الـpayload والمخزَّنة: الواردة غير الفارغة
+   تغلب، والباقي يُقرأ من الصف المخزَّن باسم العمود (مفتاح 'p:...'). */
+function mergedTierInputs(data, storedMap) {
+  function pick(key) {
+    const incoming = data && data[key];
+    if (incoming != null && String(incoming).trim() !== '') return incoming;
+    const stored = storedMap ? storedMap['p:' + key] : '';
+    return stored == null ? '' : stored;
+  }
+  return {
+    ageRange: pick('ageRange'),
+    readinessToStart: pick('readinessToStart'),
+    investmentReadiness: pick('investmentReadiness')
+  };
 }
 
 /* ==========================================================
@@ -401,26 +788,33 @@ function isValidAlgerianPhone(phone) {
 }
 
 /* ==========================================================
-   check_duplicate_phone
+   check_duplicate_phone — تبويبا الفئات (VIP + Diamond)
    ========================================================== */
 
+/* القاعدة كما هي تمامًا (لا تغيير): تكرار فقط مقابل صف حالته ليست فارغة
+   وليست «جزئي» — أي «مؤكد» وأي حالة أخرى مُدخلة يدويًا. عمود الهاتف
+   والحالة يُحلّان بالاسم من صف العناوين في كل تبويب فئة على حدة
+   (VIP و Diamond، بالاسمين الجديد والقديم). */
 function checkDuplicatePhone(body) {
-  const sheet = getLeadsSheet();
-  const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return { success: true, isDuplicate: false };
-  /* الهاتف والحالة يُحلّان بالاسم من صف العناوين — يعملان مهما تغيّر ترتيب
-     الأعمدة (بما في ذلك بعد نقل «العمر» إلى E). */
-  const headers = data[0].map(function (h) { return String(h).trim(); });
-  const phoneCol = columnIndexInRow(headers, PHONE_HEADERS);
-  const statusCol = columnIndexInRow(headers, STATUS_HEADERS);
-  if (phoneCol === -1 || statusCol === -1) return { success: true, isDuplicate: false };
   const phone = body.data && body.data.phone ? body.data.phone.toString().trim() : '';
   if (!phone) return { success: true, isDuplicate: false };
-  for (let i = 1; i < data.length; i++) {
-    const p = (data[i][phoneCol] || '').toString().trim();
-    const st = String(data[i][statusCol] || '').trim();
-    if (p === phone && st !== '' && st !== STATUS_PARTIAL) {
-      return { success: true, isDuplicate: true };
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const names = tierSheetLookupNames();
+  for (let s = 0; s < names.length; s++) {
+    const sheet = ss.getSheetByName(names[s]);
+    if (!sheet) continue;
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) continue;
+    const headers = data[0].map(function (h) { return String(h).trim(); });
+    const phoneCol = columnIndexInRow(headers, PHONE_HEADERS);
+    const statusCol = columnIndexInRow(headers, STATUS_HEADERS);
+    if (phoneCol === -1 || statusCol === -1) continue;
+    for (let i = 1; i < data.length; i++) {
+      const p = (data[i][phoneCol] || '').toString().trim();
+      const st = String(data[i][statusCol] || '').trim();
+      if (p === phone && st !== '' && st !== STATUS_PARTIAL) {
+        return { success: true, isDuplicate: true };
+      }
     }
   }
   return { success: true, isDuplicate: false };
@@ -430,21 +824,54 @@ function checkDuplicatePhone(body) {
    confirm_booking — تثبيت البيانات بحالة «مؤكد»
    ========================================================== */
 
+/* ==========================================================
+   Meta CAPI — القاصر «أقل من 18 سنة» لا يُرسل إطلاقًا
+   ------------------------------------------------------------
+   ageRange موجود في الـpayload -> isMinorAgeRange مباشرة. وإن غاب عن
+   هذا الـpayload نقرأ «العمر» من الصف الذي استقرت فيه الجلسة فعلًا
+   (بالاسم لا باسم التبويب). الدالة تُستدعى أيضًا بحاجز داخلي (defense
+   in depth) في sendScheduleToMetaCAPI، فلا يرسل قاصرًا أي caller مستقبلي.
+   لا يُسجَّل الهاتف ولا البريد أبدًا. */
+function isMinorLeadForMeta(data, placedRow) {
+  const raw = data && data.ageRange != null ? data.ageRange : '';
+  if (String(raw).trim() !== '') return isMinorAgeRange(raw);
+  return isStoredRowMinor(placedRow);
+}
+
+/* يُقرأ «العمر» من الصف الذي استقرت فيه الجلسة، بالاسم لا باسم التبويب
+   (التوجيه في VIP/Diamond يعتمد على القيم المدموجة وليس على اسم التبويب).
+   أي خطأ في القراءة -> fail closed (لا يُرسل): القاعدة أن القاصر لا يبلغ
+   Meta أبدًا. */
+function isStoredRowMinor(placedRow) {
+  if (!placedRow || !placedRow.sheet || !(placedRow.row >= 1)) return false;
+  try {
+    if (placedRow.row > placedRow.sheet.getLastRow()) return false;
+    const headers = getActualHeaders(placedRow.sheet);
+    const ageIdx = columnIndexInRow(headers, [LEAD_AGE_HEADER]);
+    if (ageIdx === -1) return false;
+    const value = placedRow.sheet.getRange(placedRow.row, ageIdx + 1).getValue();
+    return isMinorAgeRange(value);
+  } catch (err) {
+    Logger.log('isStoredRowMinor: تعذّر قراءة «العمر» من الصف المخزَّن — لا يُرسل (fail closed): ' + err.toString());
+    return true;
+  }
+}
+
 function confirmBooking(body) {
   if (isHoneypotTriggered(body.data)) return { success: true };
   if (!isValidAlgerianPhone(body.data && body.data.phone)) return { success: false, error: 'رقم الهاتف غير صالح' };
 
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
+  let placed = null;
   try {
-    updateLeadInternal(body);
-    const sheet = getLeadsSheet();
-    const row = findRowBySessionId(sheet, body.session_id);
-    if (row !== -1) {
-      /* عمود الحالة يُحلّ بالاسم من صف العناوين (لا رقم ثابت) */
-      const statusCol = resolveColumnIndex(sheet, STATUS_HEADERS);
+    /* نفس توجيه update_lead: الصف يُنقل إن انقلب اتجاه فئته، ثم تُكتب
+       «مؤكد» في عمود الحالة بالاسم — في التبويب الذي استقر فيه الصف فعلاً. */
+    placed = updateLeadInternal(body);
+    if (placed && placed.row !== -1) {
+      const statusCol = resolveColumnIndex(placed.sheet, STATUS_HEADERS);
       if (statusCol !== -1) {
-        const cell = sheet.getRange(row, statusCol);
+        const cell = placed.sheet.getRange(placed.row, statusCol);
         const current = String(cell.getValue() || '').trim();
         if (current === '' || current === STATUS_PARTIAL) cell.setValue(STATUS_CONFIRMED);
       }
@@ -453,9 +880,15 @@ function confirmBooking(body) {
     lock.releaseLock();
   }
 
-  /* Meta CAPI — لا يُفشل التأكيد أبدًا؛ يتجاهل بصمت إن لم تُضبط بيانات Meta */
+  /* Meta CAPI — لا يُفشل التأكيد أبدًا؛ يتجاهل بصمت إن لم تُضبط بيانات Meta.
+     القاصر لا يُرسل: النتيجة من ageRange في الـpayload، وإن غاب منها
+     فمن قيمة «العمر» في الصف المخزَّن (الاسم لا اسم التبويب). */
+  if (isMinorLeadForMeta(body.data, placed)) {
+    Logger.log('confirmBooking: تخطّي Meta CAPI — lead «أقل من 18 سنة» (لا يُرسل إلى Meta).');
+    return { success: true };
+  }
   try {
-    sendScheduleToMetaCAPI(body.data);
+    sendScheduleToMetaCAPI(body.data, placed);
   } catch (metaErr) {
     Logger.log('confirmBooking: Meta call failed silently: ' + metaErr.toString());
   }
@@ -465,20 +898,104 @@ function confirmBooking(body) {
 /* ==========================================================
    تشخيص + ترحيل (تشغيل يدوي من المحرر)
    ----------------------------------------------------------------
-   ترتيب التشغيل: الدوال الثلاث التالية تعمل **بأي ترتيب** لأنها
+   ترتيب التشغيل: الدوال التالية تعمل **بأي ترتيب** لأنها
    كلها تبحث عن أعمدتها بالاسم في صف العناوين ولا تفترض أي رقم عمود:
-     1) migrateAddAgeColumn()                — يثبّت «العمر» في العمود E
-     2) migrateRemoveChallengeColumn()      — يحذف «Plus grand défi»
-     3) migrateRemoveContactMethodColumn()  — يحذف «Moyen de contact préféré»
-   شغّل runSheetDiagnostics() في النهاية للتأكد: 14 عمودًا، «العمر» = E،
-   Statut = M، Closer = N.
-   ⚠ migrateSheet() وحدها مدمّرة (تحذف الورقة القديمة) — لا تُستخدم لهذا الغرض.
+     1) migrateRenameTierSheets()          — «العملاء المحتملون» → VIP،
+                                              «Moins de 18 ans» → Diamond
+     2) migrateAddAgeColumn()               — يثبّت «العمر» في العمود E
+     3) migrateAddReadinessColumn()         — يثبّت «Prêt à démarrer» قبل «Prêt à investir»
+     4) migrateRemoveChallengeColumn()      — يحذف «Plus grand défi»
+     5) migrateRemoveContactMethodColumn()  — يحذف «Moyen de contact préféré»
+     6) migrateMinorsToSeparateSheet()      — ينقل «أقل من 18» إلى تبويب Diamond (مرة واحدة)
+   شغّل runSheetDiagnostics() في النهاية للتأكد: 15 عمودًا، «العمر» = E،
+   «Prêt à démarrer» = K، Statut = N، Closer = O — في تبويبي VIP و Diamond.
+   ⚠ migrateSheet() وحدها مدمّرة (تحذف التبويب القديم) — لا تُستخدم لهذا الغرض.
    ============================================================ */
 
+/* عدد صفوف «أقل من 18 سنة» في ورقة (نفس المقارنة الواحدة)، أو -1 إن كان
+   عمود «العمر» مفقودًا في تلك الورقة. */
+function countMinorRows(sheet) {
+  const headers = readLeadHeaders(sheet);
+  const ageIdx = columnIndexInRow(headers, [LEAD_AGE_HEADER]);
+  if (ageIdx === -1) return -1;
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const col = sheet.getRange(2, ageIdx + 1, lastRow - 1, 1).getValues();
+  let n = 0;
+  for (let i = 0; i < col.length; i++) if (isMinorAgeRange(col[i][0])) n++;
+  return n;
+}
+
+/* عدد صفوف تبويب يقرّرها decideTier() في فئة مخالفة لفئة التبويب الذي
+   استقرّت فيه حاليًا. تُقرأ قيم الصف من الورقة نفسها (لا payload). */
+function countTierMismatches(sheet, ownSheetName) {
+  const headers = readLeadHeaders(sheet);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const data = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  let n = 0;
+  for (let r = 0; r < data.length; r++) {
+    const map = {};
+    headers.forEach(function (h, i) { map[valueMapKeyForHeader(h)] = data[r][i]; });
+    const tier = decideTier(mergedTierInputs({}, map));
+    if (tier && tier !== ownSheetName) n++;
+  }
+  return n;
+}
+
+/* سطر ✓/✗ واحد لكل تبويب فئة: العناوين مطابقة لـ LEADS_HEADERS بالترتيب،
+   «العمر» في E، «Prêt à démarrer» قبل «Prêt à investir»، لا أعمدة زائدة،
+   وعدد الصفوف التي تصوّب فئة أخرى. لا تفشل إن لم يكن التبويب موجودًا،
+   ويُنوَّه إذا كانت الورقة تحمل اسمًا قديمًا (الترحيل لم يُشغَّل بعد). */
+function logTierStructureLine(spec) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const label = spec.sheet;
+  const sheet = findTierSheet(spec);
+  if (!sheet) {
+    Logger.log('✗ تبويب «' + label + '»: غير موجود — ' + (label === DIAMOND_SHEET_NAME
+      ? 'لا مشكلة: يُنشأ تلقائيًا عند أول lead يصوّب Diamond (getTierSheet()/update_lead).'
+      : 'يُنشأ تلقائيًا عند أول lead جديد (getTierSheet()).'));
+    return;
+  }
+  if (sheet.getName() !== label) {
+    Logger.log('⚠ تبويب «' + sheet.getName() + '» يُستعمل حاليًا كفئة ' + label +
+      ' (اسم قديم) — شغّل migrateRenameTierSheets() مرة واحدة لإعادة التسمية.');
+  }
+  const actual = readLeadHeaders(sheet);
+  const orderOk = actual.length === LEADS_HEADERS.length &&
+    LEADS_HEADERS.every(function (h, i) { return actual[i] === h; });
+  const ageCol = actual.indexOf(LEAD_AGE_HEADER) + 1;
+  const ageOk = ageCol === LEADS_AGE_TARGET_COL;
+  const readCol = actual.indexOf(READINESS_HEADER) + 1;
+  const investCol = actual.indexOf('Prêt à investir') + 1;
+  const readOk = readCol !== -1 && investCol === readCol + 1;
+  const extra = actual.filter(function (h) { return LEADS_HEADERS.indexOf(h) === -1; });
+  const extraOk = extra.length === 0;
+  const minorsHere = countMinorRows(sheet);
+  const mismatches = countTierMismatches(sheet, label);
+  Logger.log((orderOk && ageOk && readOk && extraOk ? '✓' : '✗') + ' تبويب «' + label + '»:' +
+    ' العناوين مطابقة لـ LEADS_HEADERS بالترتيب: ' + (orderOk ? 'نعم' : 'لا') +
+    ' | الأعمدة: ' + actual.length + '/' + LEADS_HEADERS.length +
+    ' | «' + LEAD_AGE_HEADER + '» = ' + (ageCol ? colLetter(ageCol) + ' (' + ageCol + ')' : 'مفقود') +
+    (ageOk ? ' ✓' : ' ✗ (المتوقع ' + colLetter(LEADS_AGE_TARGET_COL) + ' = ' + LEADS_AGE_TARGET_COL + ')') +
+    ' | «' + READINESS_HEADER + '» = ' + (readOk ? colLetter(readCol) + ' ✓'
+      : (readCol ? colLetter(readCol) + ' ✗ (المتوقع قبل «Prêt à investir»)' : 'مفقود — شغّل migrateAddReadinessColumn()')) +
+    ' | أعمدة زائدة: ' + (extra.join(' ، ') || '(لا شيء)') + (extraOk ? ' ✓' : ' ✗') +
+    ' | صفوف بيانات: ' + Math.max(0, sheet.getLastRow() - 1) +
+    ' | «أقل من 18» هنا: ' + (minorsHere < 0 ? 'غير قابل للقراءة' : minorsHere) +
+    (label === VIP_SHEET_NAME && minorsHere > 0 ? ' — شغّل migrateMinorsToSeparateSheet()' : '') +
+    ' | تصوّب فئة أخرى: ' + (mismatches ? mismatches + ' — ستُعاد توجيهها عند أول save/confirm' : '0'));
+}
+
 function runSheetDiagnostics() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_LEADS_NAME);
-  if (!sheet) { Logger.log('لا توجد ورقة "' + SHEET_LEADS_NAME + '"'); return; }
-  if (sheet.getLastRow() === 0) { Logger.log('الورقة فارغة.'); return; }
+  /* سطر مختصر (✓/✗) لكل تبويب فئة أولًا: يعملان حتى لو لم يكونا موجودين
+     بعد، ولا يمنعان بقية الفحوص التفصيلية لتبويب VIP. */
+  logTierStructureLine(VIP_SPEC);
+  logTierStructureLine(DIAMOND_SPEC);
+
+  const sheet = findTierSheet(VIP_SPEC);
+  if (!sheet) { Logger.log('لا يوجد تبويب "' + VIP_SHEET_NAME + '" (ولن يُنشأ هنا).'); return; }
+  if (sheet.getLastRow() === 0) { Logger.log('التبويب فارغ.'); return; }
   const actual = getActualHeaders(sheet);
   Logger.log('آخر صف: ' + sheet.getLastRow() + ' | الأعمدة: ' + actual.length);
   Logger.log('ترتيب العناوين: ' + leadHeadersToLog(actual));
@@ -509,7 +1026,19 @@ function runSheetDiagnostics() {
     Logger.log('✓ عمود «' + LEAD_AGE_HEADER + '» في مكانه: العمود ' + colLetter(LEADS_AGE_TARGET_COL) + '.');
   }
 
-  /* مواضع عمودَي الحالة والتتبع — تُحلّ بالاسم دائمًا (M و N بعد الترحيل) */
+  /* عمود «Prêt à démarrer» — يجب أن يكون مباشرة قبل «Prêt à investir» */
+  const readIdx = actual.indexOf(READINESS_HEADER);
+  const investIdx = actual.indexOf('Prêt à investir');
+  if (readIdx === -1) {
+    Logger.log('⚠ عمود «' + READINESS_HEADER + '» غير موجود — شغّل migrateAddReadinessColumn() (أو سيتضاف في النهاية عبر ensureHeaders بلا موضع).');
+  } else if (investIdx === readIdx + 1) {
+    Logger.log('✓ عمود «' + READINESS_HEADER + '» في مكانه: مباشرة قبل «Prêt à investir».');
+  } else {
+    Logger.log('⚠ عمود «' + READINESS_HEADER + '» في ' + colLetter(readIdx + 1) + ' ويجب أن يكون مباشرة قبل «Prêt à investir» (' +
+      (investIdx === -1 ? 'مفقود' : colLetter(investIdx + 1)) + ') — شغّل migrateAddReadinessColumn().');
+  }
+
+  /* مواضع عمودَي الحالة والتتبع — تُحلّ بالاسم دائمًا (N و O بعد الترحيل) */
   const statusCol = resolveColumnIndex(sheet, STATUS_HEADERS);
   const closerCol = resolveColumnIndex(sheet, ['Closer']);
   const statusTxt = statusCol === -1 ? 'مفقود' : colLetter(statusCol) + ' (' + statusCol + ')';
@@ -539,9 +1068,9 @@ function runSheetDiagnostics() {
  */
 function migrateAddAgeColumn() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_LEADS_NAME);
+  const sheet = findTierSheet(VIP_SPEC);
   if (!sheet) {
-    Logger.log('migrateAddAgeColumn: لا توجد ورقة "' + SHEET_LEADS_NAME + '".');
+    Logger.log('migrateAddAgeColumn: لا يوجد تبويب "' + VIP_SHEET_NAME + '" (ولا الاسم القديم).');
     return;
   }
 
@@ -660,8 +1189,8 @@ function pickBackupSheetName(ss, prefix) {
  */
 function migrateRemoveChallengeColumn() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_LEADS_NAME);
-  if (!sheet) { Logger.log('migrateRemoveChallengeColumn: لا توجد ورقة "' + SHEET_LEADS_NAME + '".'); return; }
+  const sheet = findTierSheet(VIP_SPEC);
+  if (!sheet) { Logger.log('migrateRemoveChallengeColumn: لا يوجد تبويب "' + VIP_SHEET_NAME + '" (ولا الاسم القديم).'); return; }
 
   const before = readLeadHeaders(sheet);
   Logger.log('migrateRemoveChallengeColumn: قبل -> ' + leadHeadersToLog(before));
@@ -748,13 +1277,13 @@ function migrateRemoveChallengeColumn() {
  *     معرّف الجلسة): خطأ واضح وتوقّف، بلا أي حذف.
  *   - قبل الحذف تُنسخ كل قيمه (ترويسة + كل الصفوف، + الاسم والهاتف كمرجع)
  *     إلى ورقة احتياطية جديدة، حتى لا تضيع أي بيانات.
- *   - لا يُمسّ أي عمود أو صف آخر. النتيجة: 14 عمودًا، «العمر» = E،
- *     Statut = M، Closer = N.
+ *   - لا يُمسّ أي عمود أو صف آخر. النتيجة: 15 عمودًا، «العمر» = E،
+ *     «Prêt à démarrer» = K، Statut = N، Closer = O.
  */
 function migrateRemoveContactMethodColumn() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_LEADS_NAME);
-  if (!sheet) { Logger.log('migrateRemoveContactMethodColumn: لا توجد ورقة "' + SHEET_LEADS_NAME + '".'); return; }
+  const sheet = findTierSheet(VIP_SPEC);
+  if (!sheet) { Logger.log('migrateRemoveContactMethodColumn: لا يوجد تبويب "' + VIP_SHEET_NAME + '" (ولا الاسم القديم).'); return; }
 
   const before = readLeadHeaders(sheet);
   Logger.log('migrateRemoveContactMethodColumn: قبل -> ' + leadHeadersToLog(before));
@@ -848,26 +1377,184 @@ function migrateRemoveContactMethodColumn() {
   });
 }
 
+/* ==========================================================
+   migrateMinorsToSeparateSheet — نقل «أقل من 18» إلى تبويب Diamond
+   تشغيل يدوي من المحرر مرة واحدة. آمنة للتكرار/idempotent.
+   ------------------------------------------------------------
+   تنقل كل صف في تبويب الفئة الحالي (VIP) عمره «أقل من 18 سنة» إلى تبويب
+   Diamond، بالأعمدة بالاسم ومع الاحتفاظ بمعرّف الجلسة (Developer Metadata)
+   وبتاريخ الصف وحالته.
+
+   الترتيب (لا يُكسر):
+     1) لا صف تحت 18 -> لا تغيير إطلاقًا (بلا نسخة احتياطية جديدة).
+     2) نسخة احتياطية كاملة لبيانات تبويب الفئة الحالي في ورقة جديدة
+        `_backup_before_minors_split` (+ طابع زمني إن وُجد الاسم).
+     3) نسخ الصفوف المرشّحة بالاسم إلى تبويب Diamond.
+     4) تحقق: عدد المنسوخ + الموجود مسبقًا = عدد المرشّحين، وكل صف موجود
+        فعلًا في تبويب Diamond، وعدد صفوف التبويب زاد بالعدد المنسوخ بالضبط.
+        أي عدم تطابق -> توقّف **بلا حذف** مع تسجيل السبب.
+     5) الحذف من تبويب الفئة الحالي من الأسفل إلى الأعلى (أرقام الصفوف ثابتة).
+   ============================================================ */
+
+/* صف بنفس (الاسم + الهاتف) — احتياط للصفوف التي بلا معرّف جلسة
+   حتى لا يتكرر نسخها لو أُعيد تشغيل الدالة بعد توقف midway. */
+function findRowByIdentity(sheet, headers, values) {
+  const nameIdx = columnIndexInRow(headers, ['Nom complet', 'الاسم الكامل']);
+  const phoneIdx = columnIndexInRow(headers, PHONE_HEADERS);
+  if (nameIdx === -1 && phoneIdx === -1) return -1;
+  const wantName = nameIdx !== -1 ? String(values[nameIdx] == null ? '' : values[nameIdx]).trim() : '';
+  const wantPhone = phoneIdx !== -1 ? String(values[phoneIdx] == null ? '' : values[phoneIdx]).trim() : '';
+  if (!wantPhone && !wantName) return -1;
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return -1;
+  const data = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  for (let i = 0; i < data.length; i++) {
+    const nm = nameIdx !== -1 ? String(data[i][nameIdx] == null ? '' : data[i][nameIdx]).trim() : '';
+    const ph = phoneIdx !== -1 ? String(data[i][phoneIdx] == null ? '' : data[i][phoneIdx]).trim() : '';
+    if (nm === wantName && ph === wantPhone) return 2 + i;
+  }
+  return -1;
+}
+
+function migrateMinorsToSeparateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const main = findTierSheet(VIP_SPEC);
+  if (!main) { Logger.log('migrateMinorsToSeparateSheet: لا يوجد تبويب "' + VIP_SHEET_NAME + '" (ولا الاسم القديم).'); return; }
+
+  const headers = readLeadHeaders(main);
+  const ageIdx = columnIndexInRow(headers, [LEAD_AGE_HEADER]);
+  if (ageIdx === -1) {
+    Logger.log('migrateMinorsToSeparateSheet: ⚠ عمود «' + LEAD_AGE_HEADER + '» غير موجود في ' +
+      main.getName() + ' — لا تغيير. شغّل migrateAddAgeColumn() أولًا.');
+    return;
+  }
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    /* ---1) الصفوف المرشّحة (نفس المقارنة الواحدة).
+       الفحص يتم داخل القفل نفسه حتى تكون أرقام الصفوف المستعملة لاحقًا
+       (النسخ ثم الحذف من الأسفل) صحيحة حتى لو جاءت كتابة متزامنة. --- */
+    const lastRow = main.getLastRow();
+    const sessionByRow = listSessionIdsByRow(main);
+    const matched = [];
+    if (lastRow >= 2) {
+      main.getRange(2, 1, lastRow - 1, headers.length).getValues().forEach(function (values, i) {
+        if (isMinorAgeRange(values[ageIdx])) matched.push({ row: 2 + i, values: values });
+      });
+    }
+    Logger.log('migrateMinorsToSeparateSheet: «' + main.getName() + '»: ' + Math.max(0, lastRow - 1) +
+      ' صف بيانات | مرشّحون (أقل من 18 سنة): ' + matched.length +
+      ' | صفوف بلا معرّف جلسة: ' + matched.filter(function (m) { return !sessionByRow[m.row]; }).length);
+    if (!matched.length) {
+      Logger.log('migrateMinorsToSeparateSheet: لا يوجد ما ينقل — لا تغيير (آمنة للتكرار).');
+      return;
+    }
+    /* ---2) نسخة احتياطية كاملة قبل أي كتابة/حذف --- */
+    const backupName = pickBackupSheetName(ss, MINORS_BACKUP_PREFIX);
+    const backup = ss.insertSheet(backupName);
+    const backupHead = headers.concat(['_session_id']);
+    backup.getRange(1, 1, 1, backupHead.length).setValues([backupHead]);
+    if (lastRow >= 2) {
+      const dataRows = main.getRange(2, 1, lastRow - 1, headers.length).getValues();
+      const withSession = dataRows.map(function (vals, r) {
+        return vals.concat([sessionByRow[r + 2] || '']);
+      });
+      backup.getRange(2, 1, lastRow - 1, backupHead.length).setValues(withSession);
+    }
+    backup.setFrozenRows(1);
+    Logger.log('migrateMinorsToSeparateSheet: نسخة احتياطية "' + backupName + '" (' + lastRow +
+      ' صف × ' + backupHead.length + ' عمود، منها عمود _session_id كمرجع).');
+
+    /* ---3) النسخ إلى تبويب القُصّر (Diamond) بالاسم --- */
+    const minors = getTierSheet(DIAMOND_SPEC);
+    const minorsHeaders = getActualHeaders(minors);
+    const minorsRowsBefore = minors.getLastRow();
+    const pending = [];
+    let alreadyThere = 0;
+    matched.forEach(function (m) {
+      const sid = sessionByRow[m.row];
+      let targetRow = -1;
+      if (sid) targetRow = findRowBySessionId(minors, sid);
+      else targetRow = findRowByIdentity(minors, minorsHeaders, m.values);
+      if (targetRow !== -1) { alreadyThere++; return; }
+
+      const map = {};
+      headers.forEach(function (h, i) { map[valueMapKeyForHeader(h)] = m.values[i]; });
+      const rowValues = new Array(minorsHeaders.length).fill('');
+      applyValueMapToRow(minorsHeaders, rowValues, map);
+      pending.push({ values: rowValues, session: sid });
+    });
+
+    if (pending.length) {
+      const first = minors.getLastRow() + 1;
+      minors.getRange(first, 1, pending.length, minorsHeaders.length)
+        .setValues(pending.map(function (p) { return p.values; }));
+      pending.forEach(function (p, i) { tagRowWithSession(minors, first + i, p.session); });
+    }
+    const added = minors.getLastRow() - minorsRowsBefore;
+    Logger.log('migrateMinorsToSeparateSheet: «' + DIAMOND_SHEET_NAME + '»: وُجد مسبقًا ' + alreadyThere +
+      ' صفًا | نُسخ ' + pending.length + ' صفًا (صفوفها ' + (pending.length ? minorsRowsBefore + 1 + ' → ' + minors.getLastRow() : '—') + ').');
+
+    /* ---4) التحقق قبل أي حذف --- */
+    const copiedTotal = alreadyThere + pending.length;
+    if (copiedTotal !== matched.length) {
+      Logger.log('migrateMinorsToSeparateSheet: ⚠ عدد الصفوف في تبويب القُصّر (' + copiedTotal +
+        ') ≠ المرشّحين (' + matched.length + ') — لم يُحذف أي صف من ' + main.getName() +
+        '. راجع «' + backupName + '».');
+      return;
+    }
+    if (added !== pending.length) {
+      Logger.log('migrateMinorsToSeparateSheet: ⚠ عدد الصفوف المضافة فعليًا (' + added + ') ≠ المنسوخ (' +
+        pending.length + ') — لم يُحذف أي صف.');
+      return;
+    }
+    const missing = matched.filter(function (m) {
+      const sid = sessionByRow[m.row];
+      if (sid) return findRowBySessionId(minors, sid) === -1;
+      return findRowByIdentity(minors, minorsHeaders, m.values) === -1;
+    });
+    if (missing.length) {
+      Logger.log('migrateMinorsToSeparateSheet: ⚠ ' + missing.length +
+        ' صفًا ناقص في ورقة القُصّر بعد النسخ — لم يُحذف أي صف. الصفوف الناقصة: ' +
+        missing.map(function (m) { return m.row; }).join('، '));
+      return;
+    }
+
+    /* ---5) الحذف من الأسفل إلى الأعلى --- */
+    const rowsDesc = matched.map(function (m) { return m.row; }).sort(function (a, b) { return b - a; });
+    rowsDesc.forEach(function (r) { main.deleteRow(r); });
+
+    Logger.log('migrateMinorsToSeparateSheet: ✓ تم. مطابق: ' + matched.length +
+      ' | نُسخ: ' + pending.length + ' (موجود مسبقًا: ' + alreadyThere + ')' +
+      ' | حُذف: ' + rowsDesc.length + ' | نسخة احتياطية: "' + backupName + '"' +
+      ' | ' + main.getName() + ' الآن: ' + Math.max(0, main.getLastRow() - 1) + ' صفًا | ' +
+      DIAMOND_SHEET_NAME + ' الآن: ' + Math.max(0, minors.getLastRow() - 1) + ' صفًا.');
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 /*
- * migrateSheet — يعيد بناء الورقة بالأعمدة الـ14 مع نقل البيانات بالاسم
- * (بما فيها «العمر» في E). الأعمدة المحذوفة لا تُنقل (ومنها
- * «Plus grand défi» و«Moyen de contact préféré»)، فقيم العمود المحذوف
- * تُفقد هنا — استخدم migrateRemoveChallengeColumn() أو
+ * migrateSheet — يعيد بناء التبويب بالأعمدة الـ15 مع نقل البيانات بالاسم
+ * (بما فيها «العمر» في E و«Prêt à démarrer» في K). الأعمدة المحذوفة لا
+ * تُنقل (ومنها «Plus grand défi» و«Moyen de contact préféré»)، فقيم العمود
+ * المحذوف تُفقد هنا — استخدم migrateRemoveChallengeColumn() أو
  * migrateRemoveContactMethodColumn() بدلًا منه (كلتاهما تنسخان العمود
  * أولًا). معرفات الجلسة القديمة تُنقل إلى Developer Metadata حتى تبقى
- * الجلسات الجزئية الجارية سليمة. ⚠ يحذف الورقة القديمة — خذ نسخة احتياطية.
+ * الجلسات الجزئية الجارية سليمة. ⚠ يحذف التبويب القديم — خذ نسخة احتياطية.
  * لا يلزم لأي من تغييرات الأعمدة: استخدم دوال الترحيل اليدوية أعلاه.
  */
 function migrateSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const oldSheet = ss.getSheetByName(SHEET_LEADS_NAME);
-  if (!oldSheet) { getLeadsSheet(); Logger.log('تم إنشاء ورقة جديدة.'); return; }
+  const oldSheet = findTierSheet(VIP_SPEC);
+  if (!oldSheet) { getTierSheet(VIP_SPEC); Logger.log('تم إنشاء تبويب جديد.'); return; }
 
   const data = oldSheet.getDataRange().getValues();
   const oldHeaders = data.length ? data[0].map(function (h) { return String(h).trim(); }) : [];
   const oldSessionCol = oldHeaders.indexOf('معرف الجلسة');
 
-  const tmp = ss.insertSheet(SHEET_LEADS_NAME + '_NEW');
+  const tmp = ss.insertSheet(VIP_SHEET_NAME + '_NEW');
   tmp.getRange(1, 1, 1, LEADS_HEADERS.length).setValues([LEADS_HEADERS]);
   tmp.setFrozenRows(1);
 
@@ -888,8 +1575,105 @@ function migrateSheet() {
   }
 
   ss.deleteSheet(oldSheet);
-  tmp.setName(SHEET_LEADS_NAME);
+  tmp.setName(VIP_SHEET_NAME);
   Logger.log('migrateSheet: تم ترحيل ' + Math.max(0, data.length - 1) + ' صفًا.');
+}
+
+/* ==========================================================
+   migrateRenameTierSheets — «العملاء المحتملون» → VIP،
+   «Moins de 18 ans» → Diamond
+   ----------------------------------------------------------------
+   آمنة للتكرار: إذا وُجد التبويب الجديد بالاسم فهو المعتمَد. إن وُجد
+   الاسم القديم فقط (نفس التبويب، البيانات تُحفظ) يُعاد تسميته. إن وُجدا
+   معًا مع تناقض، يبقى الجديد ويُنوَّه بالقديم حتى يُنظّف يدويًا. التبويب
+   الجديد الذي لم يُنشأ بعد يُترك: getTierSheet() ينشئه عند أول save.
+   ============================================================ */
+function migrateRenameTierSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  TIER_SHEET_SPECS.forEach(function (spec) {
+    const newSheet = ss.getSheetByName(spec.sheet);
+    let legacy = null;
+    for (let i = 0; i < spec.legacyNames.length && !legacy; i++) {
+      legacy = ss.getSheetByName(spec.legacyNames[i]);
+    }
+    const legacyLabel = spec.legacyNames[0];
+    if (newSheet) {
+      if (legacy) {
+        Logger.log('migrateRenameTierSheets: «' + spec.sheet + '» موجود و «' + legacy.getName() +
+          '» ما زال — لم تُمسَّ أسماء التبويبات (البيانات في «' + spec.sheet + '» معتمدة).');
+      } else {
+        Logger.log('migrateRenameTierSheets: «' + spec.sheet + '» موجود بالفعل — لا تغيير.');
+      }
+      return;
+    }
+    if (legacy) {
+      try {
+        legacy.setName(spec.sheet);
+        findTierSheet(spec); /* reset لأي نسخة محفوظة خلف كل getSheetByName */
+        Logger.log('migrateRenameTierSheets: ✓ «' + legacyLabel + '» → «' + spec.sheet + '» (' +
+          Math.max(0, legacy.getLastRow() - 1) + ' صف بيانات).');
+      } catch (err) {
+        Logger.log('migrateRenameTierSheets: ⚠ فشلت إعادة تسمية «' + legacyLabel + '»: ' + err.toString());
+      }
+      return;
+    }
+    Logger.log('migrateRenameTierSheets: «' + spec.sheet +
+      '» غير موجود (لن يُنشأ هنا) — يُنشأ تلقائيًا عند أول save أو confirm_booking.');
+  });
+}
+
+/* ==========================================================
+   migrateAddReadinessColumn — تثبيت «Prêt à démarrer» قبل
+   «Prêt à investir» (العمود K)
+   ----------------------------------------------------------------
+   تُشغَّل على تبويبي VIP و Diamond معًا. الحالات:
+     1) العمود مفقود -> insertColumnBefore أمام «Prêt à investir» + الترويسة.
+     2) موجود مكانه (مباشرة قبل «Prêt à investir») -> لا تغيير.
+     3) موجود في عمود آخر -> moveColumns ينقله (كل قيمه) ليكون قبل «Prêt
+        à investir». لا تُمسَّ أي بيانات أخرى.
+   ============================================================ */
+function migrateAddReadinessColumn() {
+  TIER_SHEET_SPECS.forEach(function (spec) {
+    const sheet = findTierSheet(spec);
+    if (!sheet) {
+      Logger.log('migrateAddReadinessColumn: «' + spec.sheet +
+        '» غير موجود (لن يُنشأ هنا) — يُنشأ تلقائيًا عند أول save.');
+      return;
+    }
+    migrateReadinessInSheet(sheet);
+  });
+}
+
+function migrateReadinessInSheet(sheet) {
+  const before = readLeadHeaders(sheet);
+  const readCol = before.indexOf(READINESS_HEADER) + 1;
+  const investCol = before.indexOf('Prêt à investir') + 1;
+  if (readCol > 0 && investCol === readCol + 1) {
+    Logger.log('migrateAddReadinessColumn: «' + sheet.getName() +
+      '»: «' + READINESS_HEADER + '» قبل «Prêt à investir» بالفعل — لا تغيير.');
+    return;
+  }
+  if (readCol > 0) {
+    /* moveColumns(.., pos) يجعل العمود يصير رقم pos (1-يبدأ). الهدف: أن يكون
+       «Prêt à investir» بعده مباشرة -> pos = investCol - 1 إن نُقل من قبلُ، وإلا investCol. */
+    const dest = readCol < investCol ? investCol - 1 : investCol;
+    sheet.moveColumns(sheet.getRange(1, readCol, 1, 1), dest);
+    Logger.log('migrateAddReadinessColumn: «' + sheet.getName() + '»: نُقل «' + READINESS_HEADER +
+      '» من ' + colLetter(readCol) + ' إلى ' + colLetter(dest) + '.');
+    return;
+  }
+  if (investCol < 1) {
+    Logger.log('migrateAddReadinessColumn: «' + sheet.getName() +
+      '»: لا «' + READINESS_HEADER + '» ولا «Prêt à investir» — أُضيف في النهاية.');
+    const pos = sheet.getLastColumn() + 1;
+    sheet.getRange(1, pos).setValue(READINESS_HEADER);
+    return;
+  }
+  sheet.insertColumnBefore(investCol);
+  sheet.getRange(1, investCol).setValue(READINESS_HEADER);
+  copyLeadsHeaderFormat(findTierSheet(VIP_SPEC) || findTierSheet(DIAMOND_SPEC) || sheet, sheet);
+  Logger.log('migrateAddReadinessColumn: «' + sheet.getName() + '»: أُدخل «' + READINESS_HEADER +
+    '» قبل «Prêt à investir» (' + colLetter(investCol) + ').');
 }
 
 /* ==========================================================
@@ -914,7 +1698,15 @@ function normalizePhoneForMeta(phone) {
   return cleaned;
 }
 
-function sendScheduleToMetaCAPI(data) {
+/* placedRow اختياري: الصف الذي استقرت فيه الجلسة {sheet, row} (confirm_booking
+   يمرّرها). الغرض حاجز ثانٍ — أي caller مستقبلي لا يستطيع إرسال بيانات
+   قاصر حتى لو نسِي الفحص. CAPI معطّل كما هو (يعمل فقط عند ضبط
+   META_ACCESS_TOKEN و META_PIXEL_ID) ولا تتغير قراءته للخصائص. */
+function sendScheduleToMetaCAPI(data, placedRow) {
+  if (isMinorLeadForMeta(data, placedRow)) {
+    Logger.log('sendScheduleToMetaCAPI: تخطّي — lead «أقل من 18 سنة» (حارس داخلي، لا يُرسل).');
+    return { success: true, skipped: true };
+  }
   try {
     const props = PropertiesService.getScriptProperties();
     const token = props.getProperty('META_ACCESS_TOKEN');
